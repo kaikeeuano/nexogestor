@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Pregações</title>
+    <style>
+        /* ==================== RESET E VARIÁVEIS ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --text-color: #333;
+            --bg-color: #f5f7fa;
+            --sidebar-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --hover-color: #f0f0f0;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ==================== BOTÕES ==================== */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        /* ==================== LAYOUT PRINCIPAL ==================== */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* ==================== SIDEBAR (Lista de Pregações) ==================== */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            transition: transform 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .pregacao-list {
+            padding: 10px;
+        }
+
+        .pregacao-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .pregacao-item:hover {
+            background: var(--hover-color);
+            border-color: var(--primary-color);
+        }
+
+        .pregacao-item.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .pregacao-item-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .pregacao-item-date {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .no-pregacoes {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+        }
+
+        /* ==================== ÁREA DO EDITOR ==================== */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ==================== BARRA DE FERRAMENTAS ==================== */
+        .toolbar {
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            padding-right: 12px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .toolbar-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--hover-color);
+            border-color: var(--primary-color);
+        }
+
+        .toolbar-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .color-picker {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* ==================== ÁREA DE EDIÇÃO ==================== */
+        .editor-container {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            padding: 40px;
+        }
+
+        .title-input {
+            width: 100%;
+            border: none;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            padding: 10px;
+            outline: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .title-input:focus {
+            background: #f9f9f9;
+        }
+
+        .bible-input {
+            width: 100%;
+            border: none;
+            font-size: 18px;
+            font-weight: 500;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding: 10px;
+            outline: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-style: italic;
+        }
+
+        .bible-input:focus {
+            background: #f9f9f9;
+        }
+
+        .content-editor {
+            min-height: 400px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.8;
+            outline: none;
+            background: white;
+        }
+
+        .content-editor:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* ==================== MENSAGENS E ALERTAS ==================== */
+        .message {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .message.success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .message.error {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* ==================== MODAL ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* ==================== RESPONSIVIDADE ==================== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 60px;
+                height: calc(100vh - 60px);
+                transform: translateX(-100%);
+                z-index: 50;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .editor-container {
+                padding: 20px;
+            }
+
+            .title-input {
+                font-size: 24px;
+            }
+
+            .toolbar {
+                padding: 8px;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* ==================== ESTILOS DO CONTADOR ==================== */
+        .stats {
+            padding: 10px 20px;
+            background: #f9f9f9;
+            border-top: 1px solid var(--border-color);
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* ==================== EMPTY STATE ==================== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== CABEÇALHO ==================== -->
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <a href="index.html" class="header-logo">
+                <span style="font-size: 20px;">📊</span>
+                <h1>📖 Editor de Pregações</h1>
+            </a>
+        </div>
+        <div class="header-buttons">
+            <button class="btn btn-primary" onclick="voltarDashboards()" title="Voltar aos Dashboards">
+                ← Voltar
+            </button>
+            <button class="btn btn-primary" onclick="novaPregacao()">
+                ✨ Nova Pregação
+            </button>
+            <button class="btn btn-success" onclick="salvarPregacao()">
+                💾 Salvar
+            </button>
+            <button class="btn btn-secondary" onclick="exportarPregacao()">
+                📥 Exportar
+            </button>
+            <button class="btn btn-danger" onclick="confirmarExcluir()">
+                🗑️ Excluir
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== CONTAINER PRINCIPAL ==================== -->
+    <div class="container">
+        <!-- ==================== SIDEBAR - Lista de Pregações ==================== -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Minhas Pregações</h2>
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar pregação..." oninput="filtrarPregacoes()">
+            </div>
+            <div class="pregacao-list" id="pregacaoList">
+                <!-- Lista será preenchida dinamicamente -->
+            </div>
+        </div>
+
+        <!-- ==================== ÁREA DO EDITOR ==================== -->
+        <div class="editor-area">
+            <!-- Barra de Ferramentas de Formatação -->
+            <div class="toolbar">
+                <!-- Grupo: Formatação de Texto -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="formatDoc('bold')" title="Negrito (Ctrl+B)">
+                        <strong>B</strong>
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('italic')" title="Itálico (Ctrl+I)">
+                        <em>I</em>
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('underline')" title="Sublinhado (Ctrl+U)">
+                        <u>U</u>
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('strikeThrough')" title="Tachado">
+                        <s>S</s>
+                    </button>
+                </div>
+
+                <!-- Grupo: Listas -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="formatDoc('insertUnorderedList')" title="Lista com marcadores">
+                        ☰
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('insertOrderedList')" title="Lista numerada">
+                        ≡
+                    </button>
+                </div>
+
+                <!-- Grupo: Alinhamento -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="formatDoc('justifyLeft')" title="Alinhar à esquerda">
+                        ⬅
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('justifyCenter')" title="Centralizar">
+                        ↔
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('justifyRight')" title="Alinhar à direita">
+                        ➡
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('justifyFull')" title="Justificar">
+                        ⬌
+                    </button>
+                </div>
+
+                <!-- Grupo: Cor do Texto -->
+                <div class="toolbar-group">
+                    <input type="color" class="color-picker" id="textColor" onchange="formatDoc('foreColor', this.value)" title="Cor do texto">
+                    <input type="color" class="color-picker" id="bgColor" onchange="formatDoc('hiliteColor', this.value)" title="Cor de fundo">
+                </div>
+
+                <!-- Grupo: Tamanho da Fonte -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="aumentarTexto()" title="Aumentar texto (Ctrl++)">
+                        A+
+                    </button>
+                    <button class="toolbar-btn" onclick="diminuirTexto()" title="Diminuir texto (Ctrl+-)">
+                        A-
+                    </button>
+                </div>
+
+                <!-- Grupo: Desfazer/Refazer -->
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="formatDoc('undo')" title="Desfazer (Ctrl+Z)">
+                        ↶
+                    </button>
+                    <button class="toolbar-btn" onclick="formatDoc('redo')" title="Refazer (Ctrl+Y)">
+                        ↷
+                    </button>
+                </div>
+            </div>
+
+            <!-- Área de Edição -->
+            <div class="editor-container">
+                <div id="editorContent">
+                    <!-- Empty State - Mostrado quando nenhuma pregação está aberta -->
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-icon">📝</div>
+                        <h2>Nenhuma pregação aberta</h2>
+                        <p>Crie uma nova pregação ou selecione uma existente da lista</p>
+                        <button class="btn btn-primary" onclick="novaPregacao()" style="margin-top: 20px;">
+                            ✨ Criar Nova Pregação
+                        </button>
+                    </div>
+
+                    <!-- Editor - Mostrado quando uma pregação está aberta -->
+                    <div id="editorForm" style="display: none;">
+                        <input 
+                            type="text" 
+                            class="title-input" 
+                            id="tituloInput" 
+                            placeholder="Título da Pregação"
+                        >
+                        <input 
+                            type="text" 
+                            class="bible-input" 
+                            id="livroBibliaInput" 
+                            placeholder="Livro da Bíblia (ex: João 3:16)"
+                        >
+                        <div 
+                            class="content-editor" 
+                            id="conteudoEditor" 
+                            contenteditable="true"
+                            data-placeholder="Comece a escrever sua pregação aqui..."
+                        ></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="stats">
+                <span id="wordCount">Palavras: 0</span>
+                <span id="charCount">Caracteres: 0</span>
+                <span id="lastSaved">Última edição: --</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL DE CONFIRMAÇÃO ==================== -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">⚠️ Confirmar Exclusão</div>
+            <p>Tem certeza que deseja excluir esta pregação? Esta ação não pode ser desfeita.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="excluirPregacao()">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MENSAGEM DE FEEDBACK ==================== -->
+    <div class="message" id="message"></div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ==================== VARIÁVEIS GLOBAIS ====================
+        
+        const API_BASE = 'http://localhost:3000';
+        const token = localStorage.getItem('token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const dashboardId = urlParams.get('dashboardId') || localStorage.getItem('dashboardId');
+        
+        // ID da pregação atualmente aberta
+        let pregacaoAtualId = null;
+
+        // ==================== INICIALIZAÇÃO ====================
+        
+        /**
+         * Carrega as pregações salvas quando a página é carregada
+         */
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!token || !dashboardId) {
+                alert('Você precisa estar logado e ter um dashboard selecionado');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            carregarLista();
+            atualizarContadores();
+            
+            // Adiciona listener para atualizar contadores ao digitar
+            document.getElementById('conteudoEditor').addEventListener('input', atualizarContadores);
+            document.getElementById('tituloInput').addEventListener('input', salvarAutomatico);
+            document.getElementById('livroBibliaInput').addEventListener('input', salvarAutomatico);
+            document.getElementById('conteudoEditor').addEventListener('input', salvarAutomatico);
+        });
+
+        // ==================== FUNÇÕES DE FORMATAÇÃO ====================
+        
+        /**
+         * Aplica formatação ao texto selecionado
+         * @param {string} command - Comando de formatação (bold, italic, etc)
+         * @param {string} value - Valor opcional (usado para cores)
+         */
+        function formatDoc(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('conteudoEditor').focus();
+        }
+
+        /**
+         * Aumenta o tamanho do texto no editor
+         */
+        let currentFontSize = 16; // Tamanho inicial em pixels
+        function aumentarTexto() {
+            const editor = document.getElementById('conteudoEditor');
+            currentFontSize = Math.min(currentFontSize + 2, 32); // Máximo 32px
+            editor.style.fontSize = currentFontSize + 'px';
+        }
+
+        /**
+         * Diminui o tamanho do texto no editor
+         */
+        function diminuirTexto() {
+            const editor = document.getElementById('conteudoEditor');
+            currentFontSize = Math.max(currentFontSize - 2, 12); // Mínimo 12px
+            editor.style.fontSize = currentFontSize + 'px';
+        }
+
+        // ==================== GERENCIAMENTO DE PREGAÇÕES ====================
+        
+        /**
+         * Obtém todas as pregações do backend
+         * @returns {Promise<Array>} Array de pregações
+         */
+        async function obterPregacoes() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboards/${dashboardId}/pregacoes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Erro ao carregar pregações');
+                return await response.json();
+            } catch (error) {
+                console.error('Erro ao obter pregações:', error);
+                mostrarMensagem('Erro ao carregar pregações', 'error');
+                return [];
+            }
+        }
+
+        /**
+         * Cria uma nova pregação vazia
+         */
+        function novaPregacao() {
+            // Limpa os campos
+            document.getElementById('tituloInput').value = '';
+            document.getElementById('livroBibliaInput').value = '';
+            document.getElementById('conteudoEditor').innerHTML = '';
+            
+            // Define ID como null (nova pregação)
+            pregacaoAtualId = null;
+            
+            // Mostra o editor
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('editorForm').style.display = 'block';
+            
+            // Remove seleção ativa da lista
+            document.querySelectorAll('.pregacao-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Foca no título
+            document.getElementById('tituloInput').focus();
+            
+            mostrarMensagem('Nova pregação criada', 'success');
+        }
+
+        /**
+         * Salva a pregação atual
+         */
+        async function salvarPregacao() {
+            const titulo = document.getElementById('tituloInput').value.trim();
+            const livroBiblia = document.getElementById('livroBibliaInput').value.trim();
+            const conteudo = document.getElementById('conteudoEditor').innerHTML;
+            
+            // Validação
+            if (!titulo) {
+                mostrarMensagem('Por favor, adicione um título', 'error');
+                document.getElementById('tituloInput').focus();
+                return;
+            }
+
+            if (!conteudo || conteudo === '<br>') {
+                mostrarMensagem('Por favor, escreva o conteúdo da pregação', 'error');
+                return;
+            }
+
+            try {
+                if (pregacaoAtualId) {
+                    // Atualiza pregação existente
+                    const response = await fetch(`${API_BASE}/dashboards/${dashboardId}/pregacoes/${pregacaoAtualId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ titulo, conteudo, livro_biblia: livroBiblia })
+                    });
+                    
+                    if (!response.ok) throw new Error('Erro ao atualizar pregação');
+                    mostrarMensagem('Pregação atualizada com sucesso!', 'success');
+                } else {
+                    // Cria nova pregação
+                    const response = await fetch(`${API_BASE}/dashboards/${dashboardId}/pregacoes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ titulo, conteudo, livro_biblia: livroBiblia })
+                    });
+                    
+                    if (!response.ok) throw new Error('Erro ao criar pregação');
+                    const novaPregacao = await response.json();
+                    pregacaoAtualId = novaPregacao.id;
+                    mostrarMensagem('Pregação salva com sucesso!', 'success');
+                }
+                
+                await carregarLista();
+                atualizarUltimaEdicao();
+            } catch (error) {
+                console.error('Erro ao salvar pregação:', error);
+                mostrarMensagem('Erro ao salvar pregação', 'error');
+            }
+        }
+
+        /**
+         * Salva automaticamente após 2 segundos sem digitar
+         */
+        let autoSaveTimeout;
+        function salvarAutomatico() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                if (pregacaoAtualId) {
+                    salvarPregacao();
+                }
+            }, 2000);
+        }
+
+        /**
+         * Carrega uma pregação para edição
+         * @param {string} id - ID da pregação
+         */
+        async function carregarPregacao(id) {
+            const pregacoes = await obterPregacoes();
+            const pregacao = pregacoes.find(p => p.id == id);
+            
+            if (!pregacao) return;
+
+            pregacaoAtualId = id;
+            document.getElementById('tituloInput').value = pregacao.titulo;
+            document.getElementById('livroBibliaInput').value = pregacao.livro_biblia || '';
+            document.getElementById('conteudoEditor').innerHTML = pregacao.conteudo;
+            
+            // Mostra o editor
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('editorForm').style.display = 'block';
+            
+            // Atualiza lista para destacar item ativo
+            document.querySelectorAll('.pregacao-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.id == id) {
+                    item.classList.add('active');
+                }
+            });
+
+            atualizarContadores();
+            atualizarUltimaEdicao();
+        }
+
+        /**
+         * Mostra modal de confirmação de exclusão
+         */
+        function confirmarExcluir() {
+            if (!pregacaoAtualId) {
+                mostrarMensagem('Nenhuma pregação aberta para excluir', 'error');
+                return;
+            }
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        /**
+         * Exclui a pregação atual
+         */
+        async function excluirPregacao() {
+            if (!pregacaoAtualId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/dashboards/${dashboardId}/pregacoes/${pregacaoAtualId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Erro ao excluir pregação');
+                
+                await carregarLista();
+                
+                // Limpa o editor
+                pregacaoAtualId = null;
+                document.getElementById('editorForm').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'flex';
+                
+                fecharModal();
+                mostrarMensagem('Pregação excluída', 'success');
+            } catch (error) {
+                console.error('Erro ao excluir pregação:', error);
+                mostrarMensagem('Erro ao excluir pregação', 'error');
+            }
+        }
+
+        /**
+         * Exporta a pregação atual como arquivo .txt
+         */
+        function exportarPregacao() {
+            if (!pregacaoAtualId) {
+                mostrarMensagem('Nenhuma pregação aberta para exportar', 'error');
+                return;
+            }
+
+            const titulo = document.getElementById('tituloInput').value;
+            const livroBiblia = document.getElementById('livroBibliaInput').value;
+            const conteudoHTML = document.getElementById('conteudoEditor').innerHTML;
+            
+            // Converte HTML para texto simples preservando quebras de linha
+            const temp = document.createElement('div');
+            temp.innerHTML = conteudoHTML;
+            const textoSimples = temp.innerText || temp.textContent;
+
+            // Cria o conteúdo do arquivo
+            let conteudo = `${titulo}\n${'='.repeat(titulo.length)}\n`;
+            if (livroBiblia) {
+                conteudo += `\nTexto Base: ${livroBiblia}\n`;
+            }
+            conteudo += `\n${textoSimples}`;
+
+            // Cria e faz download do arquivo
+            const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${titulo.replace(/[^a-z0-9]/gi, '_')}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            mostrarMensagem('Pregação exportada com sucesso!', 'success');
+        }
+
+        // ==================== INTERFACE ====================
+        
+        /**
+         * Carrega e exibe a lista de pregações
+         */
+        async function carregarLista() {
+            const pregacoes = await obterPregacoes();
+            const lista = document.getElementById('pregacaoList');
+            
+            if (pregacoes.length === 0) {
+                lista.innerHTML = '<div class="no-pregacoes">Nenhuma pregação salva ainda</div>';
+                return;
+            }
+
+            lista.innerHTML = pregacoes.map(pregacao => `
+                <div class="pregacao-item ${pregacao.id == pregacaoAtualId ? 'active' : ''}" 
+                     data-id="${pregacao.id}"
+                     onclick="carregarPregacao(${pregacao.id})">
+                    <div class="pregacao-item-title">${pregacao.titulo}</div>
+                    ${pregacao.livro_biblia ? `<div class="pregacao-item-biblia" style="font-size: 12px; color: #667eea; margin: 2px 0;">${pregacao.livro_biblia}</div>` : ''}
+                    <div class="pregacao-item-date">${formatarData(pregacao.modificado_em)}</div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Filtra pregações baseado na busca
+         */
+        async function filtrarPregacoes() {
+            const termo = document.getElementById('searchBox').value.toLowerCase();
+            const pregacoes = await obterPregacoes();
+            const lista = document.getElementById('pregacaoList');
+            
+            const filtradas = pregacoes.filter(p => 
+                p.titulo.toLowerCase().includes(termo) ||
+                (p.livro_biblia && p.livro_biblia.toLowerCase().includes(termo))
+            );
+
+            if (filtradas.length === 0) {
+                lista.innerHTML = '<div class="no-pregacoes">Nenhuma pregação encontrada</div>';
+                return;
+            }
+
+            lista.innerHTML = filtradas.map(pregacao => `
+                <div class="pregacao-item ${pregacao.id == pregacaoAtualId ? 'active' : ''}" 
+                     data-id="${pregacao.id}"
+                     onclick="carregarPregacao(${pregacao.id})">
+                    <div class="pregacao-item-title">${pregacao.titulo}</div>
+                    ${pregacao.livro_biblia ? `<div class="pregacao-item-biblia" style="font-size: 12px; color: #667eea; margin: 2px 0;">${pregacao.livro_biblia}</div>` : ''}
+                    <div class="pregacao-item-date">${formatarData(pregacao.modificado_em)}</div>
+                </div>
+            `).join('');
+        }
+
+        /**
+         * Atualiza contadores de palavras e caracteres
+         */
+        function atualizarContadores() {
+            const conteudo = document.getElementById('conteudoEditor').innerText || '';
+            const palavras = conteudo.trim().split(/\s+/).filter(p => p.length > 0).length;
+            const caracteres = conteudo.length;
+
+            document.getElementById('wordCount').textContent = `Palavras: ${palavras}`;
+            document.getElementById('charCount').textContent = `Caracteres: ${caracteres}`;
+        }
+
+        /**
+         * Atualiza a data da última edição
+         */
+        function atualizarUltimaEdicao() {
+            const agora = new Date();
+            const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('lastSaved').textContent = `Última edição: ${hora}`;
+        }
+
+        /**
+         * Mostra mensagem de feedback
+         * @param {string} texto - Texto da mensagem
+         * @param {string} tipo - Tipo da mensagem (success ou error)
+         */
+        function mostrarMensagem(texto, tipo) {
+            const msg = document.getElementById('message');
+            msg.textContent = texto;
+            msg.className = `message ${tipo}`;
+            msg.style.display = 'block';
+            
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 3000);
+        }
+
+        /**
+         * Formata data para exibição
+         * @param {string} isoDate - Data em formato ISO
+         * @returns {string} Data formatada
+         */
+        function formatarData(isoDate) {
+            const data = new Date(isoDate);
+            const hoje = new Date();
+            const ontem = new Date(hoje);
+            ontem.setDate(ontem.getDate() - 1);
+
+            const dataStr = data.toLocaleDateString('pt-BR');
+            const hojeStr = hoje.toLocaleDateString('pt-BR');
+            const ontemStr = ontem.toLocaleDateString('pt-BR');
+
+            const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            if (dataStr === hojeStr) {
+                return `Hoje às ${hora}`;
+            } else if (dataStr === ontemStr) {
+                return `Ontem às ${hora}`;
+            } else {
+                return `${dataStr} às ${hora}`;
+            }
+        }
+
+        /**
+         * Alterna visibilidade da sidebar em mobile
+         */
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        /**
+         * Fecha o modal de confirmação
+         */
+        function fecharModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        /**
+         * Volta para a página de dashboards
+         */
+        function voltarDashboards() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // ==================== ATALHOS DE TECLADO ====================
+        
+        /**
+         * Adiciona suporte para atalhos de teclado
+         */
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S para salvar
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                salvarPregacao();
+            }
+            // Ctrl+N para nova pregação
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                novaPregacao();
+            }
+            // Ctrl+E para exportar
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportarPregacao();
+            }
+            // Ctrl++ para aumentar texto
+            if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
+                e.preventDefault();
+                aumentarTexto();
+            }
+            // Ctrl+- para diminuir texto
+            if (e.ctrlKey && e.key === '-') {
+                e.preventDefault();
+                diminuirTexto();
+            }
+        });
+
+        // ==================== PREVENÇÃO DE PERDA DE DADOS ====================
+        
+        /**
+         * Avisa antes de sair se houver alterações não salvas
+         */
+        window.addEventListener('beforeunload', (e) => {
+            if (pregacaoAtualId) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>

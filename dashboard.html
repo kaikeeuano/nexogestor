@@ -5,23 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXO GESTOR - Dashboards</title>
     <link rel="stylesheet" href="staly.css">
+    <script src="notifications.js"></script>
 </head>
 <body>
+    <div style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
+        <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="font-size: 28px;">📊</span>
+            <h2 style="margin: 0;">NEXO GESTOR</h2>
+        </a>
+        <div id="adminLink"></div>
+    </div>
+    
     <main class="dashboards">
         <h1>Meus Dashboards</h1>
-        <button id="createDashboard">Criar Novo Dashboard</button>
+        <button id="createDashboard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">✨ Criar Novo Dashboard</button>
         <button id="joinDashboard">Entrar em Dashboard Existente</button>
+        <button id="createPregacoes" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); margin-top: 10px;">📖 Criar Dashboard de Pregações</button>
 
         <section style="margin-top:14px; padding:12px; border:1px solid #ddd; border-radius:8px; background:#f7f9ff;">
-            <h2>Crescimento por Período</h2>
-            <p>Acompanhe a evolução de membros e dashboards criando relatórios por período na página de membros. Use o filtro de datas e congregação para ver o total de adesões.</p>
+            <h2>💡 Dica</h2>
+            <p>Crie seu próprio dashboard ou entre em um existente usando o código de acesso. Para criar, você precisará de uma <strong>chave de ativação</strong> fornecida pelo administrador.</p>
         </section>
         
         <div id="createForm" style="display: none;">
-            <h2>Criar Dashboard</h2>
+            <h2>✨ Criar Novo Dashboard</h2>
             <input type="text" id="dashboardName" placeholder="Nome do Dashboard">
-            <button id="submitCreate">Criar</button>
+            <input type="text" id="activationKey" placeholder="Chave de Ativação (NEXO-XXXXXXXX-XXXXXXXX)" style="text-transform: uppercase; margin-top: 10px;">
+            <button id="submitCreate">Criar Dashboard</button>
             <button id="cancelCreate">Cancelar</button>
+        </div>
+        
+        <div id="createPregacoesForm" style="display: none;">
+            <h2>📖 Criar Dashboard de Pregações</h2>
+            <input type="text" id="pregacoesDashboardName" placeholder="Nome do Dashboard (ex: Minhas Pregações)">
+            <input type="text" id="pregacoesActivationKey" placeholder="Chave de Ativação (NEXO-XXXXXXXX-XXXXXXXX)" style="text-transform: uppercase; margin-top: 10px;">
+            <button id="submitCreatePregacoes">Criar Dashboard de Pregações</button>
+            <button id="cancelCreatePregacoes">Cancelar</button>
         </div>
         
         <div id="joinForm" style="display: none;">
@@ -31,14 +50,45 @@
             <button id="cancelJoin">Cancelar</button>
         </div>
         
+
+        
         <div id="dashboardList"></div>
     </main>
 
     <script>
-        const API_BASE = 'http://localhost:3000';
-        const token = localStorage.getItem('token');
+        // Aguarda o DOM carregar completamente
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Dashboard.html carregado - DOMContentLoaded disparado!');
+            console.log('🔍 Verificando elementos...');
+            console.log('Botão createDashboard:', document.getElementById('createDashboard'));
+            console.log('Botão joinDashboard:', document.getElementById('joinDashboard'));
+            console.log('Botão createPregacoes:', document.getElementById('createPregacoes'));
+            
+            const API_BASE = 'http://localhost:3000';
+            const token = localStorage.getItem('token');
+            
+            console.log('Token:', token ? 'Presente (' + token.substring(0, 20) + '...)' : 'AUSENTE - Redirecionando para login');
 
-        async function loadDashboards() {
+            // Verifica se o usuário é admin e mostra o link
+            async function checkAdmin() {
+                try {
+                    const response = await fetch(`${API_BASE}/admin/check`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.isAdmin) {
+                            document.getElementById('adminLink').innerHTML = 
+                                '<a href="admin.html" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 6px; font-weight: 500;">⚙️ Painel Admin</a>';
+                        }
+                    }
+                } catch (error) {
+                    console.log('Não é admin');
+                }
+            }
+
+            async function loadDashboards() {
             console.log('🔄 Carregando dashboards...');
             console.log('Token:', token ? 'Presente' : 'Ausente');
             
@@ -74,13 +124,30 @@
                     const p = document.createElement('p');
                     p.textContent = `ID: ${dashboard.code || dashboard.id}`;
 
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.display = 'flex';
+                    buttonContainer.style.gap = '10px';
+                    buttonContainer.style.marginTop = '10px';
+
                     const btn = document.createElement('button');
                     btn.textContent = 'Acessar';
                     btn.addEventListener('click', () => selectDashboard(dashboard.id));
 
+                    // Botão de excluir (apenas para owner)
+                    if (dashboard.status === 'owner') {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = '🗑️ Excluir';
+                        deleteBtn.style.backgroundColor = '#dc3545';
+                        deleteBtn.style.color = 'white';
+                        deleteBtn.addEventListener('click', () => deleteDashboard(dashboard.id, dashboard.name));
+                        buttonContainer.appendChild(deleteBtn);
+                    }
+
+                    buttonContainer.appendChild(btn);
+
                     div.appendChild(h3);
                     div.appendChild(p);
-                    div.appendChild(btn);
+                    div.appendChild(buttonContainer);
 
                     list.appendChild(div);
                 });
@@ -91,119 +158,340 @@
                 const list = document.getElementById('dashboardList');
                 list.innerHTML = '<h2>Dashboards Disponíveis</h2>';
                 list.innerHTML += '<p style="color:red;padding:20px;text-align:center;">❌ Erro ao carregar dashboards. Verifique se o servidor está rodando.</p>';
-                alert('Erro ao carregar dashboards: ' + error.message);
+                notify.error('Erro ao carregar dashboards. Verifique se o servidor está rodando.', { title: 'Erro de Conexão' });
             }
         }
 
-        document.getElementById('createDashboard').addEventListener('click', () => {
-            document.getElementById('createForm').style.display = 'block';
-            document.getElementById('joinForm').style.display = 'none';
-        });
-
-        document.getElementById('joinDashboard').addEventListener('click', () => {
-            document.getElementById('joinForm').style.display = 'block';
-            document.getElementById('createForm').style.display = 'none';
-        });
-
-        document.getElementById('submitCreate').addEventListener('click', async () => {
-            const name = document.getElementById('dashboardName').value;
+        // Event Listeners para botões principais
+        function setupEventListeners() {
+            console.log('🔧 Configurando event listeners...');
             
-            if (!name.trim()) {
-                alert('⚠️ Por favor, digite um nome para o dashboard');
-                return;
-            }
+            const createBtn = document.getElementById('createDashboard');
+            const joinBtn = document.getElementById('joinDashboard');
+            const pregacoesBtn = document.getElementById('createPregacoes');
             
-            console.log('📝 Criando dashboard:', name);
+            console.log('createBtn encontrado?', createBtn !== null);
+            console.log('joinBtn encontrado?', joinBtn !== null);
+            console.log('pregacoesBtn encontrado?', pregacoesBtn !== null);
             
-            try {
-                const response = await fetch(`${API_BASE}/dashboards`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name })
-                });
-                
-                console.log('Resposta:', response.status);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Dashboard criado:', data);
-                    alert(`✅ Dashboard "${name}" criado com sucesso!\nCódigo: ${data.code}`);
-                    localStorage.setItem('dashboardId', data.id);
-                    window.location.href = 'sitem.html';
-                } else {
-                    const error = await response.json().catch(() => ({}));
-                    console.error('❌ Erro:', error);
-                    alert('❌ Erro ao criar dashboard: ' + (error.error || 'Erro desconhecido'));
-                }
-            } catch (error) {
-                console.error('❌ Erro de conexão:', error);
-                alert('❌ Erro ao conectar com o servidor');
-            }
-        });
-
-        document.getElementById('submitJoin').addEventListener('click', async () => {
-            const code = document.getElementById('joinCode').value;
-            
-            if (!code.trim()) {
-                alert('⚠️ Por favor, digite o código do dashboard');
-                return;
-            }
-            
-            console.log('🔑 Entrando no dashboard com código:', code);
-            
-            try {
-                const response = await fetch(`${API_BASE}/dashboards/join`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ code })
-                });
-                
-                console.log('Resposta:', response.status);
-                
-                if (response.ok) {
-                    alert('✅ Solicitação enviada com sucesso! Aguarde aprovação do dono do dashboard.');
+            if (createBtn) {
+                console.log('✅ Adicionando listener ao createDashboard');
+                createBtn.addEventListener('click', function() {
+                    console.log('🎯 BOTÃO CRIAR DASHBOARD CLICADO!');
+                    console.log('Mostrando formulário de criação...');
+                    document.getElementById('createForm').style.display = 'block';
                     document.getElementById('joinForm').style.display = 'none';
-                    document.getElementById('joinCode').value = '';
-                    await loadDashboards();
-                } else {
-                    const error = await response.json().catch(() => ({}));
-                    console.error('❌ Erro:', error);
-                    if (response.status === 404) {
-                        alert('❌ Dashboard não encontrado. Verifique o código digitado.');
-                    } else {
-                        alert('❌ Erro ao entrar no dashboard: ' + (error.error || 'Erro desconhecido'));
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Erro de conexão:', error);
-                alert('❌ Erro ao conectar com o servidor');
+                    document.getElementById('createPregacoesForm').style.display = 'none';
+                });
+            } else {
+                console.error('❌ Botão createDashboard não encontrado!');
             }
-        });
 
-        document.getElementById('cancelCreate').addEventListener('click', () => {
-            document.getElementById('createForm').style.display = 'none';
-        });
+            if (joinBtn) {
+                console.log('✅ Adicionando listener ao joinDashboard');
+                joinBtn.addEventListener('click', function() {
+                    console.log('🎯 BOTÃO ENTRAR DASHBOARD CLICADO!');
+                    document.getElementById('joinForm').style.display = 'block';
+                    document.getElementById('createForm').style.display = 'none';
+                    document.getElementById('createPregacoesForm').style.display = 'none';
+                });
+            } else {
+                console.error('❌ Botão joinDashboard não encontrado!');
+            }
 
-        document.getElementById('cancelJoin').addEventListener('click', () => {
-            document.getElementById('joinForm').style.display = 'none';
-        });
+            if (pregacoesBtn) {
+                console.log('✅ Adicionando listener ao createPregacoes');
+                pregacoesBtn.addEventListener('click', function() {
+                    console.log('🎯 BOTÃO CRIAR PREGAÇÕES CLICADO!');
+                    document.getElementById('createPregacoesForm').style.display = 'block';
+                    document.getElementById('createForm').style.display = 'none';
+                    document.getElementById('joinForm').style.display = 'none';
+                });
+            } else {
+                console.error('❌ Botão createPregacoes não encontrado!');
+            }
+            
+            // Submit Create Dashboard - REFEITO
+            const submitCreateBtn = document.getElementById('submitCreate');
+            if (submitCreateBtn) {
+                console.log('✅ Configurando botão submitCreate');
+                submitCreateBtn.onclick = async function() {
+                    console.log('🚀 INICIANDO CRIAÇÃO DE DASHBOARD');
+                    
+                    const nameInput = document.getElementById('dashboardName');
+                    const keyInput = document.getElementById('activationKey');
+                    
+                    if (!nameInput || !keyInput) {
+                        alert('Erro: Campos não encontrados!');
+                        return;
+                    }
+                    
+                    const name = nameInput.value.trim();
+                    const activationKey = keyInput.value.trim().toUpperCase();
+                    
+                    console.log('📋 Dados:', { name, activationKey, hasToken: !!token });
+                    
+                    if (!name) {
+                        alert('Por favor, digite o nome do dashboard');
+                        return;
+                    }
+                    
+                    if (!activationKey) {
+                        alert('Por favor, digite a chave de ativação');
+                        return;
+                    }
+                    
+                    if (!token) {
+                        alert('Você não está logado. Redirecionando...');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    try {
+                        console.log('📡 Enviando requisição...');
+                        const response = await fetch(`${API_BASE}/activate-dashboard`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ activationKey: activationKey })
+                        });
+                        
+                        console.log('📥 Resposta:', response.status, response.statusText);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('✅ Sucesso:', data);
+                            
+                            if (data.dashboard && data.dashboard.id) {
+                                // Atualizar nome
+                                try {
+                                    await fetch(`${API_BASE}/config`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`,
+                                            'dashboard-id': data.dashboard.id
+                                        },
+                                        body: JSON.stringify({ name: name })
+                                    });
+                                } catch (e) {
+                                    console.warn('Erro ao atualizar nome:', e);
+                                }
+                                
+                                alert(`Dashboard "${name}" criado com sucesso!\nCódigo: ${data.dashboard.code}`);
+                                localStorage.setItem('dashboardId', data.dashboard.id);
+                                window.location.href = 'sitem.html';
+                            }
+                        } else {
+                            const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+                            console.error('❌ Erro:', error);
+                            alert('Erro: ' + (error.error || 'Não foi possível criar o dashboard'));
+                        }
+                    } catch (error) {
+                        console.error('❌ Exceção:', error);
+                        alert('Erro de conexão com o servidor. Verifique se está rodando.');
+                    }
+                };
+            } else {
+                console.error('❌ Botão submitCreate não encontrado!');
+            }
+            
+            // Cancel Create - SIMPLIFICADO
+            const cancelCreateBtn = document.getElementById('cancelCreate');
+            if (cancelCreateBtn) {
+                console.log('✅ Configurando botão cancelCreate');
+                cancelCreateBtn.onclick = function() {
+                    console.log('❌ Cancelando criação');
+                    document.getElementById('createForm').style.display = 'none';
+                    document.getElementById('dashboardName').value = '';
+                    document.getElementById('activationKey').value = '';
+                };
+            }
+            
+            // Submit Create Pregacoes
+            const submitPregacoesBtn = document.getElementById('submitCreatePregacoes');
+            if (submitPregacoesBtn) {
+                submitPregacoesBtn.addEventListener('click', async () => {
+                    const name = document.getElementById('pregacoesDashboardName').value.trim();
+                    const activationKey = document.getElementById('pregacoesActivationKey').value.trim().toUpperCase();
+                    
+                    if (!name) {
+                        notify.warning('Por favor, digite o nome do dashboard', { title: 'Campo Obrigatório' });
+                        return;
+                    }
+                    
+                    if (!activationKey) {
+                        notify.warning('Por favor, digite a chave de ativação', { title: 'Campo Obrigatório' });
+                        return;
+                    }
+                    
+                    const loadingId = notify.loading('Criando dashboard de pregações...');
+                    
+                    try {
+                        const response = await fetch(`${API_BASE}/activate-dashboard`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ 
+                                activationKey: activationKey
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            // Atualiza o nome e tipo do dashboard
+                            if (data.dashboard && data.dashboard.id) {
+                                try {
+                                    await fetch(`${API_BASE}/config`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`,
+                                            'dashboard-id': data.dashboard.id
+                                        },
+                                        body: JSON.stringify({ name: name, type: 'pregacoes' })
+                                    });
+                                } catch (err) {
+                                    console.error('Erro ao atualizar dashboard:', err);
+                                }
+                            }
+                            
+                            notify.hide(loadingId);
+                            notify.success(`Dashboard de Pregações "${name}" criado com sucesso!`, { 
+                                title: 'Dashboard Criado',
+                                duration: 3000
+                            });
+                            localStorage.setItem('dashboardId', data.dashboard.id);
+                            setTimeout(() => window.location.href = 'pregacoes.html?dashboardId=' + data.dashboard.id, 1500);
+                        } else {
+                            notify.hide(loadingId);
+                            const error = await response.json().catch(() => ({}));
+                            notify.error(error.error || 'Erro ao criar dashboard', { title: 'Erro' });
+                        }
+                    } catch (error) {
+                        notify.hide(loadingId);
+                        console.error('❌ Erro de conexão:', error);
+                        notify.error('Erro ao conectar com o servidor', { title: 'Erro de Conexão' });
+                    }
+                });
+            }
+            
+            // Cancel Create Pregacoes
+            const cancelPregacoesBtn = document.getElementById('cancelCreatePregacoes');
+            if (cancelPregacoesBtn) {
+                cancelPregacoesBtn.addEventListener('click', () => {
+                    document.getElementById('createPregacoesForm').style.display = 'none';
+                    document.getElementById('pregacoesDashboardName').value = '';
+                    document.getElementById('pregacoesActivationKey').value = '';
+                });
+            }
+            
+            // Submit Join
+            const submitJoinBtn = document.getElementById('submitJoin');
+            if (submitJoinBtn) {
+                submitJoinBtn.addEventListener('click', async () => {
+                    const code = document.getElementById('joinCode').value;
+                    
+                    if (!code.trim()) {
+                        notify.warning('Por favor, digite o código do dashboard', { title: 'Campo Obrigatório' });
+                        return;
+                    }
+                    
+                    console.log('🔑 Entrando no dashboard com código:', code);
+                    
+                    try {
+                        const response = await fetch(`${API_BASE}/dashboards/join`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ code })
+                        });
+                        
+                        console.log('Resposta:', response.status);
+                        
+                        if (response.ok) {
+                            notify.success('Solicitação enviada! Aguarde aprovação do dono do dashboard.', { 
+                                title: 'Solicitação Enviada',
+                                duration: 6000
+                            });
+                            document.getElementById('joinForm').style.display = 'none';
+                            document.getElementById('joinCode').value = '';
+                            await loadDashboards();
+                        } else {
+                            const error = await response.json().catch(() => ({}));
+                            console.error('❌ Erro:', error);
+                            if (response.status === 404) {
+                                notify.error('Dashboard não encontrado. Verifique o código digitado.', { title: 'Não Encontrado' });
+                            } else {
+                                notify.error(error.error || 'Erro desconhecido ao entrar no dashboard', { title: 'Erro' });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('❌ Erro de conexão:', error);
+                        notify.error('Erro ao conectar com o servidor', { title: 'Erro de Conexão' });
+                    }
+                });
+            }
+            
+            // Cancel Join
+            const cancelJoinBtn = document.getElementById('cancelJoin');
+            if (cancelJoinBtn) {
+                cancelJoinBtn.addEventListener('click', () => {
+                    document.getElementById('joinForm').style.display = 'none';
+                });
+            }
+        }
+
+        // Chama a função para configurar os event listeners
+        setupEventListeners();
 
         function selectDashboard(id) {
             localStorage.setItem('dashboardId', id);
             window.location.href = 'sitem.html';
         }
 
+        async function deleteDashboard(id, name) {
+            if (!confirm(`Tem certeza que deseja excluir o dashboard "${name}"?\n\nEsta ação não pode ser desfeita e todos os dados serão perdidos.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/dashboards/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Dashboard excluído com sucesso!');
+                    await loadDashboards();
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    alert(error.error || 'Erro ao excluir dashboard');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir dashboard:', error);
+                alert('Erro ao conectar com o servidor');
+            }
+        }
+
         if (!token) {
             window.location.href = 'login.html';
         } else {
+            checkAdmin();
             loadDashboards();
         }
+        
+        }); // Fim do DOMContentLoaded
     </script>
 </body>
 </html>
+            

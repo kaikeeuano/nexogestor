@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - NEXO GESTOR</title>
+    <link rel="stylesheet" href="staly.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navigation Bar */
+        .admin-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-nav .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+        }
+
+        .admin-nav .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .admin-nav .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .admin-nav .logo-icon {
+            font-size: 32px;
+        }
+
+        .admin-nav .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .admin-nav .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .admin-nav .nav-links a:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .admin-header h2 {
+            font-size: 42px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+            font-weight: 800;
+        }
+
+        .admin-header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .stat-card .stat-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 10px 0;
+        }
+
+        .stat-card .stat-label {
+            color: #666;
+            font-size: 16px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .card h2 {
+            font-size: 28px;
+            margin-bottom: 25px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 15px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+        }
+
+        table th:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        table th:last-child {
+            border-top-right-radius: 10px;
+        }
+
+        table td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        table tr {
+            transition: all 0.2s;
+        }
+
+        table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+        }
+
+        table tbody tr:last-child td:first-child {
+            border-bottom-left-radius: 10px;
+        }
+
+        table tbody tr:last-child td:last-child {
+            border-bottom-right-radius: 10px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+        }
+
+        .status-used {
+            background: linear-gradient(135deg, #4dabf7 0%, #228be6 100%);
+            color: white;
+        }
+
+        .status-expired {
+            background: linear-gradient(135deg, #ff8787 0%, #fa5252 100%);
+            color: white;
+        }
+
+        /* Key Display */
+        .key-display {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px dashed #667eea;
+        }
+
+        .key-display .key-value {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: 800;
+            color: #667eea;
+            user-select: all;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card, .stat-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-nav .nav-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .admin-container {
+                padding: 20px 15px;
+            }
+
+            .admin-header h2 {
+                font-size: 32px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="admin-nav">
+        <div class="nav-content">
+            <a href="index.html" class="logo" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <span class="logo-icon">🔐</span>
+                <h1>NEXO GESTOR ADMIN</h1>
+            </a>
+            <div class="nav-links">
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="#" onclick="logout()">🚪 Sair</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <h2>⚙️ Painel Administrativo</h2>
+            <p>Gerenciamento de Chaves de Ativação e Controle do Sistema</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-number" id="totalKeys">0</div>
+                <div class="stat-label">Total de Chaves</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number" id="activeKeys">0</div>
+                <div class="stat-label">Chaves Ativas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-number" id="usedKeys">0</div>
+                <div class="stat-label">Chaves Utilizadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-number" id="expiredKeys">0</div>
+                <div class="stat-label">Chaves Expiradas</div>
+            </div>
+        </div>
+
+        <!-- Generate Key Form -->
+        <div class="card">
+            <h2>🎫 Gerar Nova Chave de Ativação</h2>
+            
+            <div id="alertContainer"></div>
+
+            <form id="generateKeyForm">
+                <div class="form-group">
+                    <label for="dashboardName">Nome do Dashboard (Opcional)</label>
+                    <input type="text" id="dashboardName" placeholder="Ex: Dashboard Regional Norte">
+                </div>
+
+                <div class="form-group">
+                    <label for="expiresIn">Validade da Chave</label>
+                    <select id="expiresIn">
+                        <option value="0">Sem expiração</option>
+                        <option value="7">7 dias</option>
+                        <option value="30" selected>30 dias</option>
+                        <option value="60">60 dias</option>
+                        <option value="90">90 dias</option>
+                        <option value="180">180 dias</option>
+                        <option value="365">1 ano</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">✨ Gerar Chave</button>
+            </form>
+
+            <div id="generatedKeyDisplay" class="hidden">
+                <h3 style="color: #28a745; display: flex; align-items: center; gap: 10px; font-size: 22px;">
+                    ✅ Chave Gerada com Sucesso!
+                </h3>
+                <div class="key-display">
+                    <div style="font-weight: 600; color: #4a5568; margin-bottom: 8px;">🎫 Chave de Ativação:</div>
+                    <div class="key-value" id="generatedKeyValue"></div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="copyKey()">📋 Copiar Chave</button>
+                    <button class="btn btn-secondary" onclick="hideKeyDisplay()">✖ Fechar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Management Section -->
+        <div class="card">
+            <h2>👥 Gerenciar Administradores</h2>
+            <p style="color: #999; margin-bottom: 20px;">Conceda ou revogue acesso de administrador para outros usuários.</p>
+            
+            <div class="table-container">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Email</th>
+                            <th>Status Admin</th>
+                            <th>Criado em</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px;">
+                                Carregando...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Password Reset Section -->
+        <div class="card">
+            <h2>🔑 Redefinir Senha de Usuário</h2>
+            <p style="color: #999; margin-bottom: 20px;">Gere um link de redefinição de senha para qualquer usuário.</p>
+            
+            <form id="resetPasswordForm" style="max-width: 600px;">
+                <div style="margin-bottom: 20px;">
+                    <label for="resetUsername" style="display: block; margin-bottom: 8px; color: #e9ecef; font-weight: 500;">Nome de Usuário</label>
+                    <input 
+                        type="text" 
+                        id="resetUsername" 
+                        placeholder="Digite o nome de usuário" 
+                        required
+                        style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; font-size: 14px;"
+                    >
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    🔗 Gerar Link de Redefinição
+                </button>
+            </form>
+
+            <div id="resetLinkDisplay" class="generated-key-display hidden" style="margin-top: 20px;">
+                <h3>Link de Redefinição Gerado</h3>
+                <div class="key-display">
+                    <code id="resetLinkValue"></code>
+                    <button class="btn btn-primary" onclick="copyResetLink()">📋 Copiar</button>
+                </div>
+                <p style="color: #ffd43b; margin-top: 10px;">
+                    ⚠️ Este link expira em 1 hora. Envie para o usuário imediatamente.
+                </p>
+                <button class="btn btn-secondary" onclick="hideResetLinkDisplay()" style="margin-top: 10px;">
+                    Fechar
+                </button>
+            </div>
+        </div>
+
+        <!-- Activation Keys List -->
+        <div class="card">
+            <h2>📋 Chaves de Ativação</h2>
+            
+            <div class="table-container">
+                <table id="keysTable">
+                    <thead>
+                        <tr>
+                            <th>Chave</th>
+                            <th>Nome do Dashboard</th>
+                            <th>Status</th>
+                            <th>Criada em</th>
+                            <th>Expira em</th>
+                            <th>Criada por</th>
+                            <th>Usada por</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keysTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px;">
+                                Carregando...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let currentGeneratedKey = '';
+
+        // Check if user is admin
+        async function checkAdminStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/check`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to check admin status');
+                }
+
+                const data = await response.json();
+                if (!data.isAdmin) {
+                    alert('Acesso negado. Você não tem permissões de administrador do sistema.');
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                alert('Erro ao verificar permissões. Redirecionando...');
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        // Load activation keys
+        async function loadActivationKeys() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/activation-keys`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load activation keys');
+                }
+
+                const keys = await response.json();
+                displayKeys(keys);
+                updateStats(keys);
+            } catch (error) {
+                console.error('Error loading activation keys:', error);
+                showAlert('Erro ao carregar chaves de ativação.', 'error');
+            }
+        }
+
+        // Display keys in table
+        function displayKeys(keys) {
+            const tbody = document.getElementById('keysTableBody');
+            
+            if (keys.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                            Nenhuma chave de ativação encontrada.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = keys.map(key => {
+                const status = getKeyStatus(key);
+                const statusClass = status === 'Ativa' ? 'status-active' : 
+                                  status === 'Utilizada' ? 'status-used' : 
+                                  status === 'Revogada' ? 'status-expired' : 'status-expired';
+                
+                return `
+                    <tr>
+                        <td><code>${key.key}</code></td>
+                        <td>${key.dashboard_name || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>${formatDate(key.created_at)}</td>
+                        <td>${key.expires_at ? formatDate(key.expires_at) : 'Sem expiração'}</td>
+                        <td>${key.created_by_username || '-'}</td>
+                        <td>${key.used_by_username || '-'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary" onclick="copyKeyToClipboard('${key.key}')" title="Copiar chave">
+                                    📋
+                                </button>
+                                ${status === 'Revogada' ? `
+                                    <button class="btn btn-primary" onclick="restoreKey(${key.id})" title="Restaurar chave" style="background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%); padding: 8px 16px; font-size: 13px;">
+                                        ✅ Restaurar
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-danger" onclick="revokeKey(${key.id})" title="Bloquear/Revogar chave">
+                                        🔒 Bloquear
+                                    </button>
+                                `}
+                                ${status === 'Ativa' ? `
+                                    <button class="btn btn-danger" onclick="deleteKey(${key.id})" title="Excluir" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);">
+                                        🗑️
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Get key status
+        function getKeyStatus(key) {
+            if (key.revoked_at) {
+                return 'Revogada';
+            }
+            if (key.used_at) {
+                return 'Utilizada';
+            }
+            if (key.expires_at) {
+                const expireDate = new Date(key.expires_at);
+                if (expireDate < new Date()) {
+                    return 'Expirada';
+                }
+            }
+            return 'Ativa';
+        }
+
+        // Update statistics
+        function updateStats(keys) {
+            const total = keys.length;
+            const used = keys.filter(k => k.used_at).length;
+            const expired = keys.filter(k => {
+                if (k.used_at) return false;
+                if (!k.expires_at) return false;
+                return new Date(k.expires_at) < new Date();
+            }).length;
+            const active = total - used - expired;
+
+            document.getElementById('totalKeys').textContent = total;
+            document.getElementById('activeKeys').textContent = active;
+            document.getElementById('usedKeys').textContent = used;
+            document.getElementById('expiredKeys').textContent = expired;
+        }
+
+        // Generate activation key
+        document.getElementById('generateKeyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const dashboardName = document.getElementById('dashboardName').value.trim();
+            const expiresIn = parseInt(document.getElementById('expiresIn').value);
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/generate-key`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        dashboard_name: dashboardName || null,
+                        expires_in_days: expiresIn || 0
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate key');
+                }
+
+                const data = await response.json();
+                currentGeneratedKey = data.key;
+                
+                document.getElementById('generatedKeyValue').textContent = data.key;
+                document.getElementById('generatedKeyDisplay').classList.remove('hidden');
+                
+                showAlert('Chave gerada com sucesso!', 'success');
+                
+                // Reset form
+                document.getElementById('generateKeyForm').reset();
+                
+                // Reload keys
+                await loadActivationKeys();
+            } catch (error) {
+                console.error('Error generating key:', error);
+                showAlert('Erro ao gerar chave de ativação.', 'error');
+            }
+        });
+
+        // Delete key
+        async function deleteKey(keyId) {
+            if (!confirm('Tem certeza que deseja EXCLUIR esta chave de ativação? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/activation-keys/${keyId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete key');
+                }
+
+                showAlert('Chave excluída com sucesso!', 'success');
+                await loadActivationKeys();
+            } catch (error) {
+                console.error('Error deleting key:', error);
+                showAlert('Erro ao excluir chave.', 'error');
+            }
+        }
+
+        // Revoke/Block key
+        async function revokeKey(keyId) {
+            if (!confirm('Tem certeza que deseja BLOQUEAR esta chave? Ela não poderá mais ser utilizada, mesmo se já estiver em uso.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/activation-keys/${keyId}/revoke`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to revoke key');
+                }
+
+                showAlert('✅ Chave bloqueada/revogada com sucesso!', 'success');
+                await loadActivationKeys();
+            } catch (error) {
+                console.error('Error revoking key:', error);
+                showAlert('Erro ao bloquear chave.', 'error');
+            }
+        }
+
+        // Restore key
+        async function restoreKey(keyId) {
+            if (!confirm('Deseja RESTAURAR esta chave? Ela voltará a funcionar normalmente.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/activation-keys/${keyId}/restore`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to restore key');
+                }
+
+                showAlert('✅ Chave restaurada com sucesso!', 'success');
+                await loadActivationKeys();
+            } catch (error) {
+                console.error('Error restoring key:', error);
+                showAlert('Erro ao restaurar chave.', 'error');
+            }
+        }
+
+        // Copy key to clipboard
+        function copyKey() {
+            copyKeyToClipboard(currentGeneratedKey);
+        }
+
+        function copyKeyToClipboard(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                showAlert('Chave copiada para a área de transferência!', 'success');
+            }).catch(err => {
+                console.error('Error copying key:', err);
+                showAlert('Erro ao copiar chave.', 'error');
+            });
+        }
+
+        // Load users for admin management
+        async function loadUsers() {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+
+                const users = await response.json();
+                displayUsers(users);
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showAlert('Erro ao carregar usuários.', 'error');
+            }
+        }
+
+        // Display users in table
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                            Nenhum usuário encontrado.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => {
+                const isAdmin = user.is_system_admin === 1;
+                const statusClass = isAdmin ? 'status-active' : 'status-expired';
+                const statusText = isAdmin ? 'Administrador' : 'Usuário';
+                
+                return `
+                    <tr>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.email || '-'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${formatDate(user.created_at)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                ${!isAdmin ? `
+                                    <button class="btn btn-primary" onclick="grantAdminAccess('${user.username}')" style="background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);">
+                                        ✅ Tornar Admin
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-danger" onclick="revokeAdminAccess('${user.username}')">
+                                        ❌ Remover Admin
+                                    </button>
+                                `}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Grant admin access
+        async function grantAdminAccess(username) {
+            if (!confirm(`Deseja conceder acesso de administrador para ${username}?`)) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/grant-access`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to grant admin access');
+                }
+
+                showAlert(`✅ ${username} agora é administrador!`, 'success');
+                await loadUsers();
+            } catch (error) {
+                console.error('Error granting admin access:', error);
+                showAlert(error.message || 'Erro ao conceder acesso.', 'error');
+            }
+        }
+
+        // Revoke admin access
+        async function revokeAdminAccess(username) {
+            if (!confirm(`Tem certeza que deseja REMOVER o acesso de administrador de ${username}?`)) {
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/revoke-access`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to revoke admin access');
+                }
+
+                showAlert(`${username} não é mais administrador.`, 'success');
+                await loadUsers();
+            } catch (error) {
+                console.error('Error revoking admin access:', error);
+                showAlert(error.message || 'Erro ao remover acesso.', 'error');
+            }
+        }
+
+        // Generate password reset link
+        let currentResetLink = '';
+
+        document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('resetUsername').value.trim();
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/reset-password-link`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate reset link');
+                }
+
+                const data = await response.json();
+                currentResetLink = data.resetLink;
+                
+                document.getElementById('resetLinkValue').textContent = data.resetLink;
+                document.getElementById('resetLinkDisplay').classList.remove('hidden');
+                
+                showAlert('Link de redefinição gerado com sucesso!', 'success');
+                
+                // Reset form
+                document.getElementById('resetPasswordForm').reset();
+            } catch (error) {
+                console.error('Error generating reset link:', error);
+                showAlert(error.message || 'Erro ao gerar link de redefinição.', 'error');
+            }
+        });
+
+        // Copy reset link to clipboard
+        function copyResetLink() {
+            navigator.clipboard.writeText(currentResetLink).then(() => {
+                showAlert('Link copiado para a área de transferência!', 'success');
+            }).catch(err => {
+                console.error('Error copying reset link:', err);
+                showAlert('Erro ao copiar link.', 'error');
+            });
+        }
+
+        // Hide reset link display
+        function hideResetLinkDisplay() {
+            document.getElementById('resetLinkDisplay').classList.add('hidden');
+            currentResetLink = '';
+        }
+
+        // Copy key to clipboard
+        function copyKey() {
+            copyKeyToClipboard(currentGeneratedKey);
+        }
+
+        function copyKeyToClipboard(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                showAlert('Chave copiada para a área de transferência!', 'success');
+            }).catch(err => {
+                console.error('Error copying key:', err);
+                showAlert('Erro ao copiar chave.', 'error');
+            });
+        }
+
+        // Hide key display
+        function hideKeyDisplay() {
+            document.getElementById('generatedKeyDisplay').classList.add('hidden');
+            currentGeneratedKey = '';
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'error' ? 'alert-error' : 'alert-info';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    ${message}
+                </div>
+            `;
+
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize
+        checkAdminStatus();
+        loadActivationKeys();
+        loadUsers();
+
+        // Reload keys and users every 30 seconds
+        setInterval(() => {
+            loadActivationKeys();
+            loadUsers();
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -69,6 +70,7 @@ db.run(`ALTER TABLE dashboards ADD COLUMN congregation TEXT;`, (err) => { if (er
 db.run(`ALTER TABLE dashboards ADD COLUMN logo TEXT;`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE dashboards ADD COLUMN parent_dashboard_id INTEGER;`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE dashboards ADD COLUMN restricted_congregation TEXT;`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
+db.run(`ALTER TABLE dashboards ADD COLUMN type TEXT DEFAULT 'default';`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE dashboard_members ADD COLUMN role TEXT DEFAULT 'member';`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE members ADD COLUMN status TEXT DEFAULT 'active';`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE members ADD COLUMN created_at TEXT;`, (err) => { 
@@ -97,6 +99,19 @@ db.run(`CREATE TABLE IF NOT EXISTS roles (
   name TEXT NOT NULL,
   UNIQUE(dashboard_id, name)
 )`);
+
+// Create pregacoes table
+db.run(`CREATE TABLE IF NOT EXISTS pregacoes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  dashboard_id INTEGER NOT NULL,
+  titulo TEXT NOT NULL,
+  livro_biblia TEXT,
+  conteudo TEXT NOT NULL,
+  criado_em TEXT DEFAULT CURRENT_TIMESTAMP,
+  modificado_em TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (dashboard_id) REFERENCES dashboards (id)
+)`);
+db.run(`ALTER TABLE pregacoes ADD COLUMN livro_biblia TEXT;`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 
 // Create files table
 db.run(`CREATE TABLE IF NOT EXISTS files (
@@ -273,8 +288,53 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   email TEXT,
-  phone TEXT
+  phone TEXT,
+  is_system_admin INTEGER DEFAULT 0
 )`);
+db.run(`ALTER TABLE users ADD COLUMN is_system_admin INTEGER DEFAULT 0;`, (err) => { 
+  if (err && !err.message.includes('duplicate column')) console.error(err); 
+});
+
+// Create activation_keys table
+db.run(`CREATE TABLE IF NOT EXISTS activation_keys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT UNIQUE NOT NULL,
+  dashboard_name TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  expires_at TEXT,
+  used_at TEXT,
+  used_by_user_id INTEGER,
+  created_by_admin_id INTEGER NOT NULL,
+  FOREIGN KEY (created_by_admin_id) REFERENCES users (id),
+  FOREIGN KEY (used_by_user_id) REFERENCES users (id)
+)`);
+
+// Create password_resets table
+db.run(`CREATE TABLE IF NOT EXISTS password_resets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  token TEXT UNIQUE NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users (id)
+)`);
+
+// Add revoked_at column to activation_keys
+db.run(`ALTER TABLE activation_keys ADD COLUMN revoked_at TEXT;`, (err) => { 
+  if (err && !err.message.includes('duplicate column')) console.error(err); 
+});
+
+// Add activation columns to dashboards table
+db.run(`ALTER TABLE dashboards ADD COLUMN activated_at TEXT;`, (err) => { 
+  if (err && !err.message.includes('duplicate column')) console.error(err); 
+});
+db.run(`ALTER TABLE dashboards ADD COLUMN activated_by_key TEXT;`, (err) => { 
+  if (err && !err.message.includes('duplicate column')) console.error(err); 
+});
+db.run(`ALTER TABLE activation_keys ADD COLUMN dashboard_id INTEGER;`, (err) => { 
+  if (err && !err.message.includes('duplicate column')) console.error(err); 
+});
 
 // Create dashboards table
 db.run(`CREATE TABLE IF NOT EXISTS dashboards (
@@ -334,7 +394,9 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   // Minimal logging for production; preserve detailed logs only in non-production
   if (process.env.NODE_ENV !== 'production') console.debug('Login attempt for:', username);
-  db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
+  
+  // Aceita tanto username quanto email para login
+  db.get('SELECT * FROM users WHERE username = ? OR email = ?', [username, username], async (err, user) => {
     if (err) {
       console.error('Database error during login for', username, err);
       res.status(500).json({ error: err.message });
@@ -355,6 +417,114 @@ app.post('/login', async (req, res) => {
     if (process.env.NODE_ENV !== 'production') console.debug('Login successful for:', username);
     res.json({ token });
   });
+});
+
+// Verify reset token
+app.post('/verify-reset-token', (req, res) => {
+  const { token } = req.body;
+  
+  if (!token) {
+    return res.status(400).json({ error: 'Token é obrigatório' });
+  }
+  
+  db.get(
+    `SELECT pr.*, u.username 
+     FROM password_resets pr
+     JOIN users u ON pr.user_id = u.id
+     WHERE pr.token = ? AND pr.used_at IS NULL`,
+    [token],
+    (err, reset) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!reset) {
+        return res.status(404).json({ error: 'Token inválido ou já utilizado' });
+      }
+      
+      // Check if token expired
+      const expiresAt = new Date(reset.expires_at);
+      if (expiresAt < new Date()) {
+        return res.status(400).json({ error: 'Token expirado' });
+      }
+      
+      res.json({ 
+        valid: true,
+        username: reset.username 
+      });
+    }
+  );
+});
+
+// Reset password using token
+app.post('/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+  
+  if (!token || !newPassword) {
+    return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+  }
+  
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'A senha deve ter no mínimo 6 caracteres' });
+  }
+  
+  db.get(
+    `SELECT pr.*, u.id as user_id 
+     FROM password_resets pr
+     JOIN users u ON pr.user_id = u.id
+     WHERE pr.token = ? AND pr.used_at IS NULL`,
+    [token],
+    async (err, reset) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!reset) {
+        return res.status(404).json({ error: 'Token inválido ou já utilizado' });
+      }
+      
+      // Check if token expired
+      const expiresAt = new Date(reset.expires_at);
+      if (expiresAt < new Date()) {
+        return res.status(400).json({ error: 'Token expirado' });
+      }
+      
+      try {
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        // Update user password
+        db.run(
+          'UPDATE users SET password = ? WHERE id = ?',
+          [hashedPassword, reset.user_id],
+          function(err) {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+            
+            // Mark token as used
+            db.run(
+              'UPDATE password_resets SET used_at = ? WHERE id = ?',
+              [new Date().toISOString(), reset.id],
+              (err) => {
+                if (err) {
+                  console.error('Error marking token as used:', err);
+                }
+                
+                res.json({ 
+                  success: true,
+                  message: 'Senha redefinida com sucesso' 
+                });
+              }
+            );
+          }
+        );
+      } catch (error) {
+        console.error('Error hashing password:', error);
+        res.status(500).json({ error: 'Erro ao processar senha' });
+      }
+    }
+  );
 });
 
 // Change password (user changes their own password)
@@ -502,6 +672,30 @@ function authenticateToken(req, res, next) {
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
+  });
+}
+
+// Middleware to verify system admin
+function authenticateSystemAdmin(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.sendStatus(401);
+  
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) return res.sendStatus(403);
+    
+    // Check if user is system admin
+    db.get('SELECT is_system_admin FROM users WHERE id = ?', [user.id], (err, row) => {
+      if (err) {
+        console.error('Error checking admin status:', err);
+        return res.sendStatus(500);
+      }
+      if (!row || !row.is_system_admin) {
+        return res.status(403).json({ error: 'Access denied. System admin privileges required.' });
+      }
+      req.user = user;
+      next();
+    });
   });
 }
 
@@ -703,25 +897,13 @@ app.get('/dashboards', authenticateToken, (req, res) => {
   });
 });
 
-app.post('/dashboards', authenticateToken, (req, res) => {
-  const { name } = req.body;
-  const ownerId = req.user.id;
-  const code = Math.random().toString(36).substring(2, 15);
-  db.run('INSERT INTO dashboards (name, owner_id, code) VALUES (?, ?, ?)', [name, ownerId, code], function(err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    const dashboardId = this.lastID;
-    db.run('INSERT INTO dashboard_members (dashboard_id, user_id, status, role) VALUES (?, ?, ?, ?)', [dashboardId, ownerId, 'owner', 'owner'], function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({ id: dashboardId, code });
-    });
-  });
-});
+// Endpoint desabilitado - Use /activate-dashboard com chave de ativação
+// app.post('/dashboards', authenticateToken, (req, res) => {
+//   return res.status(403).json({ 
+//     error: 'Criação direta de dashboard desabilitada. Use uma chave de ativação fornecida pelo administrador.',
+//     info: 'Clique em "Ativar com Chave" e use a chave fornecida pelo administrador do sistema.'
+//   });
+// });
 
 app.post('/dashboards/join', authenticateToken, (req, res) => {
   const { code } = req.body;
@@ -743,6 +925,53 @@ app.post('/dashboards/join', authenticateToken, (req, res) => {
       res.json({ message: 'Join request sent' });
     });
   });
+});
+
+// Deletar dashboard (apenas owner)
+app.delete('/dashboards/:id', authenticateToken, (req, res) => {
+  const dashboardId = req.params.id;
+  const userId = req.user.id;
+  
+  // Verifica se o usuário é o dono
+  db.get(
+    'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND status = ?',
+    [dashboardId, userId, 'owner'],
+    (err, member) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!member) {
+        return res.status(403).json({ error: 'Apenas o dono pode excluir o dashboard' });
+      }
+      
+      // Deleta membros do dashboard
+      db.run('DELETE FROM dashboard_members WHERE dashboard_id = ?', [dashboardId], (err) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        // Deleta pregações do dashboard
+        db.run('DELETE FROM pregacoes WHERE dashboard_id = ?', [dashboardId], (err) => {
+          if (err) {
+            console.error('Erro ao deletar pregações:', err);
+          }
+          
+          // Deleta o dashboard
+          db.run('DELETE FROM dashboards WHERE id = ?', [dashboardId], function(err) {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+            
+            res.json({ 
+              success: true,
+              message: 'Dashboard excluído com sucesso' 
+            });
+          });
+        });
+      });
+    }
+  );
 });
 
 app.get('/dashboards/:id/requests', authenticateToken, (req, res) => {
@@ -934,7 +1163,7 @@ app.post('/config/logo', authenticateToken, upload.single('logo'), (req, res) =>
 app.put('/config', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
-  const { name, congregation } = req.body;
+  const { name, congregation, type } = req.body;
   
   // Check if user is owner
   db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND status = ?', 
@@ -948,7 +1177,31 @@ app.put('/config', authenticateToken, (req, res) => {
       return;
     }
     
-    db.run('UPDATE dashboards SET name = ?, congregation = ? WHERE id = ?', [name, congregation, dashboardId], function(err) {
+    // Monta query dinamicamente baseado nos campos fornecidos
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    if (congregation !== undefined) {
+      updateFields.push('congregation = ?');
+      updateValues.push(congregation);
+    }
+    if (type !== undefined) {
+      updateFields.push('type = ?');
+      updateValues.push(type);
+    }
+    
+    if (updateFields.length === 0) {
+      return res.json({ message: 'No fields to update' });
+    }
+    
+    updateValues.push(dashboardId);
+    const query = `UPDATE dashboards SET ${updateFields.join(', ')} WHERE id = ?`;
+    
+    db.run(query, updateValues, function(err) {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
@@ -1280,6 +1533,99 @@ app.post('/config/subdashboards', authenticateToken, (req, res) => {
         }
         res.json({ id: subDashboardId, code, name, congregation });
       });
+    });
+  });
+});
+
+// Create sub-dashboard with activation key
+app.post('/config/subdashboards/with-key', authenticateToken, (req, res) => {
+  const dashboardId = req.headers['dashboard-id'];
+  const userId = req.user.id;
+  const { activationKey, name, congregation } = req.body;
+  
+  if (!activationKey || !name || !congregation) {
+    return res.status(400).json({ error: 'Chave de ativação, nome e congregação são obrigatórios' });
+  }
+  
+  // Check if user is owner or admin
+  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role = ?)', 
+    [dashboardId, userId, 'owner', 'admin'], (err, member) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!member) {
+      return res.status(403).json({ error: 'Não autorizado' });
+    }
+    
+    // Validate activation key
+    db.get('SELECT * FROM activation_keys WHERE key = ?', [activationKey.toUpperCase()], (err, keyData) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!keyData) {
+        return res.status(404).json({ error: 'Chave de ativação inválida' });
+      }
+      
+      if (keyData.revoked_at) {
+        return res.status(400).json({ error: 'Esta chave foi bloqueada/revogada pelo administrador' });
+      }
+      
+      if (keyData.used_at) {
+        return res.status(400).json({ error: 'Esta chave já foi utilizada' });
+      }
+      
+      // Check if expired
+      if (keyData.expires_at) {
+        const expireDate = new Date(keyData.expires_at);
+        if (expireDate < new Date()) {
+          return res.status(400).json({ error: 'Chave de ativação expirada' });
+        }
+      }
+      
+      // Create sub-dashboard
+      const code = Math.random().toString(36).substring(2, 15);
+      db.run(
+        'INSERT INTO dashboards (name, owner_id, code, parent_dashboard_id, restricted_congregation, activated_at, activated_by_key) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+        [name, userId, code, dashboardId, congregation, new Date().toISOString(), activationKey.toUpperCase()], 
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          
+          const subDashboardId = this.lastID;
+          
+          // Add creator as owner
+          db.run(
+            'INSERT INTO dashboard_members (dashboard_id, user_id, status, role) VALUES (?, ?, ?, ?)', 
+            [subDashboardId, userId, 'owner', 'owner'], 
+            function(err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              
+              // Mark key as used
+              db.run(
+                'UPDATE activation_keys SET used_at = ?, used_by_user_id = ?, dashboard_id = ? WHERE id = ?',
+                [new Date().toISOString(), userId, subDashboardId, keyData.id],
+                function(err) {
+                  if (err) {
+                    console.error('Error marking key as used:', err);
+                  }
+                  
+                  res.json({ 
+                    id: subDashboardId, 
+                    code, 
+                    name, 
+                    congregation,
+                    activated: true
+                  });
+                }
+              );
+            }
+          );
+        }
+      );
     });
   });
 });
@@ -2230,6 +2576,661 @@ app.post('/project-notes', authenticateToken, (req, res) => {
       }
       res.json({ updated: true });
     });
+});
+
+// ==================== ADMIN ROUTES ====================
+
+// Check if user is system admin
+app.get('/admin/check', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  db.get('SELECT is_system_admin FROM users WHERE id = ?', [userId], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ isAdmin: !!(row && row.is_system_admin) });
+  });
+});
+
+// Generate activation key (admin only)
+app.post('/admin/generate-key', authenticateSystemAdmin, (req, res) => {
+  const { dashboard_name, expires_in_days } = req.body;
+  const adminId = req.user.id;
+  
+  // Generate unique key
+  const key = `NEXO-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  
+  let expires_at = null;
+  if (expires_in_days && expires_in_days > 0) {
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() + parseInt(expires_in_days));
+    expires_at = expireDate.toISOString();
+  }
+  
+  db.run(
+    'INSERT INTO activation_keys (key, dashboard_name, created_by_admin_id, expires_at) VALUES (?, ?, ?, ?)',
+    [key, dashboard_name || null, adminId, expires_at],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ 
+        id: this.lastID,
+        key,
+        dashboard_name,
+        expires_at,
+        created_at: new Date().toISOString()
+      });
+    }
+  );
+});
+
+// List all activation keys (admin only)
+app.get('/admin/activation-keys', authenticateSystemAdmin, (req, res) => {
+  const query = `
+    SELECT 
+      ak.*,
+      u_created.username as created_by_username,
+      u_used.username as used_by_username
+    FROM activation_keys ak
+    LEFT JOIN users u_created ON ak.created_by_admin_id = u_created.id
+    LEFT JOIN users u_used ON ak.used_by_user_id = u_used.id
+    ORDER BY ak.created_at DESC
+  `;
+  
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Delete activation key (admin only)
+app.delete('/admin/activation-keys/:id', authenticateSystemAdmin, (req, res) => {
+  const keyId = req.params.id;
+  
+  db.run('DELETE FROM activation_keys WHERE id = ?', [keyId], function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Activation key not found' });
+    }
+    res.json({ deleted: true });
+  });
+});
+
+// Revoke/Block activation key (admin only)
+app.post('/admin/activation-keys/:id/revoke', authenticateSystemAdmin, (req, res) => {
+  const keyId = req.params.id;
+  
+  // First, get the key data to find associated dashboards
+  db.get('SELECT key, dashboard_id FROM activation_keys WHERE id = ?', [keyId], (err, keyData) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!keyData) {
+      return res.status(404).json({ error: 'Activation key not found' });
+    }
+    
+    // Revoke the key
+    db.run(
+      'UPDATE activation_keys SET revoked_at = ? WHERE id = ?',
+      [new Date().toISOString(), keyId],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        // Deactivate all dashboards that were activated with this key
+        db.run(
+          'UPDATE dashboards SET activated_at = NULL WHERE activated_by_key = ?',
+          [keyData.key],
+          function(err) {
+            if (err) {
+              console.error('Error deactivating dashboards:', err);
+            }
+            
+            const dashboardsDeactivated = this.changes;
+            res.json({ 
+              success: true,
+              message: `Chave revogada com sucesso${dashboardsDeactivated > 0 ? ` e ${dashboardsDeactivated} dashboard(s) desativado(s)` : ''}` 
+            });
+          }
+        );
+      }
+    );
+  });
+});
+
+// Restore/Unblock activation key (admin only)
+app.post('/admin/activation-keys/:id/restore', authenticateSystemAdmin, (req, res) => {
+  const keyId = req.params.id;
+  
+  // First, get the key data
+  db.get('SELECT key FROM activation_keys WHERE id = ?', [keyId], (err, keyData) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!keyData) {
+      return res.status(404).json({ error: 'Activation key not found' });
+    }
+    
+    // Restore the key
+    db.run(
+      'UPDATE activation_keys SET revoked_at = NULL WHERE id = ?',
+      [keyId],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        // Reactivate dashboards that were activated with this key
+        db.run(
+          'UPDATE dashboards SET activated_at = ? WHERE activated_by_key = ? AND activated_at IS NULL',
+          [new Date().toISOString(), keyData.key],
+          function(err) {
+            if (err) {
+              console.error('Error reactivating dashboards:', err);
+            }
+            
+            const dashboardsReactivated = this.changes;
+            res.json({ 
+              success: true,
+              message: `Chave restaurada com sucesso${dashboardsReactivated > 0 ? ` e ${dashboardsReactivated} dashboard(s) reativado(s)` : ''}` 
+            });
+          }
+        );
+      }
+    );
+  });
+});
+
+// Get all users (admin only)
+app.get('/admin/users', authenticateSystemAdmin, (req, res) => {
+  db.all(
+    `SELECT id, username, email, created_at, is_system_admin 
+     FROM users 
+     ORDER BY is_system_admin DESC, username ASC`,
+    [],
+    (err, users) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(users);
+    }
+  );
+});
+
+// Grant admin access to user (admin only)
+app.post('/admin/grant-access', authenticateSystemAdmin, (req, res) => {
+  const { username } = req.body;
+  
+  if (!username) {
+    return res.status(400).json({ error: 'Nome de usuário é obrigatório' });
+  }
+  
+  // Check if user exists
+  db.get('SELECT id, username, is_system_admin FROM users WHERE username = ?', [username], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    
+    if (user.is_system_admin === 1) {
+      return res.status(400).json({ error: 'Usuário já é administrador' });
+    }
+    
+    // Grant admin access
+    db.run(
+      'UPDATE users SET is_system_admin = 1 WHERE id = ?',
+      [user.id],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        res.json({ 
+          success: true, 
+          message: `${username} agora tem acesso de administrador` 
+        });
+      }
+    );
+  });
+});
+
+// Revoke admin access from user (admin only)
+app.post('/admin/revoke-access', authenticateSystemAdmin, (req, res) => {
+  const { username } = req.body;
+  
+  if (!username) {
+    return res.status(400).json({ error: 'Nome de usuário é obrigatório' });
+  }
+  
+  // Prevent removing admin access from yourself
+  if (username === req.user.username) {
+    return res.status(400).json({ error: 'Você não pode remover seu próprio acesso de administrador' });
+  }
+  
+  // Check if user exists
+  db.get('SELECT id, username, is_system_admin FROM users WHERE username = ?', [username], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    
+    if (user.is_system_admin !== 1) {
+      return res.status(400).json({ error: 'Usuário não é administrador' });
+    }
+    
+    // Revoke admin access
+    db.run(
+      'UPDATE users SET is_system_admin = 0 WHERE id = ?',
+      [user.id],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        res.json({ 
+          success: true, 
+          message: `Acesso de administrador removido de ${username}` 
+        });
+      }
+    );
+  });
+});
+
+// Generate password reset link (admin only)
+app.post('/admin/reset-password-link', authenticateSystemAdmin, (req, res) => {
+  const { username } = req.body;
+  
+  if (!username) {
+    return res.status(400).json({ error: 'Nome de usuário é obrigatório' });
+  }
+  
+  // Check if user exists
+  db.get('SELECT id, username FROM users WHERE username = ?', [username], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+    
+    // Generate reset token (valid for 1 hour)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000).toISOString(); // 1 hour
+    
+    // Store reset token in database
+    db.run(
+      `INSERT INTO password_resets (user_id, token, expires_at) 
+       VALUES (?, ?, ?)`,
+      [user.id, resetToken, expiresAt],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        // Generate reset link
+        const resetLink = `http://localhost:3000/reset-password.html?token=${resetToken}`;
+        
+        res.json({ 
+          success: true,
+          resetLink: resetLink,
+          expiresIn: '1 hora'
+        });
+      }
+    );
+  });
+});
+
+// Check dashboard activation status
+app.get('/dashboards/:dashboardId/activation-status', authenticateToken, (req, res) => {
+  const dashboardId = req.params.dashboardId;
+  
+  db.get(
+    'SELECT activated_at, activated_by_key FROM dashboards WHERE id = ?',
+    [dashboardId],
+    (err, dashboard) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!dashboard) {
+        return res.status(404).json({ error: 'Dashboard not found' });
+      }
+      
+      // Check if dashboard was activated with a key
+      if (dashboard.activated_by_key) {
+        // Check if the key has been revoked
+        db.get(
+          'SELECT revoked_at FROM activation_keys WHERE key = ?',
+          [dashboard.activated_by_key],
+          (err, keyData) => {
+            if (err) {
+              console.error('Error checking key status:', err);
+            }
+            
+            // If key was revoked, dashboard should be deactivated
+            const isActivated = dashboard.activated_at !== null && (!keyData || !keyData.revoked_at);
+            
+            res.json({
+              isActivated: isActivated,
+              activatedAt: dashboard.activated_at,
+              activatedByKey: dashboard.activated_by_key,
+              keyRevoked: keyData && keyData.revoked_at ? true : false
+            });
+          }
+        );
+      } else {
+        res.json({
+          isActivated: dashboard.activated_at !== null,
+          activatedAt: dashboard.activated_at,
+          activatedByKey: dashboard.activated_by_key
+        });
+      }
+    }
+  );
+});
+
+// Activate dashboard with key (any authenticated user)
+app.post('/activate-dashboard', authenticateToken, (req, res) => {
+  const { activationKey, dashboardId } = req.body;
+  const userId = req.user.id;
+  
+  if (!activationKey) {
+    return res.status(400).json({ error: 'Chave de ativação é obrigatória' });
+  }
+  
+  // Check if key exists and is valid
+  db.get('SELECT * FROM activation_keys WHERE key = ?', [activationKey.toUpperCase()], (err, keyData) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    
+    if (!keyData) {
+      return res.status(404).json({ error: 'Chave de ativação inválida' });
+    }
+    
+    // Check if key is revoked
+    if (keyData.revoked_at) {
+      return res.status(400).json({ error: 'Esta chave foi bloqueada/revogada pelo administrador' });
+    }
+    
+    // Check if key was already used - block any reuse
+    if (keyData.used_at) {
+      return res.status(400).json({ error: 'Esta chave já foi utilizada e não pode ser reutilizada' });
+    }
+    
+    // Check if expired
+    if (keyData.expires_at) {
+      const expireDate = new Date(keyData.expires_at);
+      if (expireDate < new Date()) {
+        return res.status(400).json({ error: 'Chave de ativação expirada' });
+      }
+    }
+    
+    // If dashboardId is provided, activate existing dashboard
+    if (dashboardId) {
+      // Verify user has access to this dashboard
+      db.get(
+        'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?',
+        [dashboardId, userId],
+        (err, membership) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          
+          if (!membership) {
+            return res.status(403).json({ error: 'Você não tem acesso a este dashboard' });
+          }
+          
+          // Update dashboard as activated
+          db.run(
+            'UPDATE dashboards SET activated_at = ?, activated_by_key = ? WHERE id = ?',
+            [new Date().toISOString(), activationKey.toUpperCase(), dashboardId],
+            function(err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              
+              // Mark key as used (if not already)
+              db.run(
+                'UPDATE activation_keys SET used_at = ?, used_by_user_id = ?, dashboard_id = ? WHERE id = ?',
+                [new Date().toISOString(), userId, dashboardId, keyData.id],
+                function(err) {
+                  if (err) {
+                    console.error('Error marking key as used:', err);
+                  }
+                  
+                  res.json({
+                    success: true,
+                    message: 'Dashboard ativado com sucesso!',
+                    dashboardId: dashboardId
+                  });
+                }
+              );
+            }
+          );
+        }
+      );
+      return;
+    }
+    
+    // Otherwise, create new dashboard (original behavior)
+    const dashboardName = keyData.dashboard_name || 'Novo Dashboard';
+    const code = Math.random().toString(36).substring(2, 15);
+    
+    db.run(
+      'INSERT INTO dashboards (name, owner_id, code, activated_at, activated_by_key) VALUES (?, ?, ?, ?, ?)',
+      [dashboardName, userId, code, new Date().toISOString(), activationKey.toUpperCase()],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        
+        const dashboardId = this.lastID;
+        
+        // Add user as owner
+        db.run(
+          'INSERT INTO dashboard_members (dashboard_id, user_id, status, role) VALUES (?, ?, ?, ?)',
+          [dashboardId, userId, 'owner', 'owner'],
+          function(err) {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+            
+            // Mark key as used
+            db.run(
+              'UPDATE activation_keys SET used_at = ?, used_by_user_id = ?, dashboard_id = ? WHERE id = ?',
+              [new Date().toISOString(), userId, dashboardId, keyData.id],
+              function(err) {
+                if (err) {
+                  console.error('Error marking key as used:', err);
+                }
+                
+                res.json({
+                  success: true,
+                  message: 'Dashboard criado e ativado com sucesso!',
+                  dashboard: {
+                    id: dashboardId,
+                    name: dashboardName,
+                    code: code
+                  }
+                });
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+});
+
+// ==================== ENDPOINTS PARA PREGAÇÕES ====================
+
+// Obter todas as pregações de um dashboard
+app.get('/dashboards/:id/pregacoes', authenticateToken, (req, res) => {
+  const dashboardId = req.params.id;
+  const userId = req.user.id;
+
+  // Verifica se o usuário tem acesso ao dashboard
+  db.get(
+    'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?',
+    [dashboardId, userId],
+    (err, member) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!member) {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
+      // Busca todas as pregações do dashboard
+      db.all(
+        'SELECT * FROM pregacoes WHERE dashboard_id = ? ORDER BY modificado_em DESC',
+        [dashboardId],
+        (err, pregacoes) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.json(pregacoes);
+        }
+      );
+    }
+  );
+});
+
+// Criar nova pregação
+app.post('/dashboards/:id/pregacoes', authenticateToken, (req, res) => {
+  const dashboardId = req.params.id;
+  const userId = req.user.id;
+  const { titulo, conteudo, livro_biblia } = req.body;
+
+  if (!titulo || !conteudo) {
+    return res.status(400).json({ error: 'Título e conteúdo são obrigatórios' });
+  }
+
+  // Verifica se o usuário tem acesso ao dashboard
+  db.get(
+    'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?',
+    [dashboardId, userId],
+    (err, member) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!member) {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
+      // Cria a pregação
+      const agora = new Date().toISOString();
+      db.run(
+        'INSERT INTO pregacoes (dashboard_id, titulo, livro_biblia, conteudo, criado_em, modificado_em) VALUES (?, ?, ?, ?, ?, ?)',
+        [dashboardId, titulo, livro_biblia || null, conteudo, agora, agora],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.json({
+            id: this.lastID,
+            dashboard_id: dashboardId,
+            titulo,
+            livro_biblia,
+            conteudo,
+            criado_em: agora,
+            modificado_em: agora
+          });
+        }
+      );
+    }
+  );
+});
+
+// Atualizar pregação
+app.put('/dashboards/:dashboardId/pregacoes/:id', authenticateToken, (req, res) => {
+  const dashboardId = req.params.dashboardId;
+  const pregacaoId = req.params.id;
+  const userId = req.user.id;
+  const { titulo, conteudo, livro_biblia } = req.body;
+
+  if (!titulo || !conteudo) {
+    return res.status(400).json({ error: 'Título e conteúdo são obrigatórios' });
+  }
+
+  // Verifica se o usuário tem acesso ao dashboard
+  db.get(
+    'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?',
+    [dashboardId, userId],
+    (err, member) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!member) {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
+      // Atualiza a pregação
+      const agora = new Date().toISOString();
+      db.run(
+        'UPDATE pregacoes SET titulo = ?, livro_biblia = ?, conteudo = ?, modificado_em = ? WHERE id = ? AND dashboard_id = ?',
+        [titulo, livro_biblia || null, conteudo, agora, pregacaoId, dashboardId],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          if (this.changes === 0) {
+            return res.status(404).json({ error: 'Pregação não encontrada' });
+          }
+          res.json({ success: true, modificado_em: agora });
+        }
+      );
+    }
+  );
+});
+
+// Excluir pregação
+app.delete('/dashboards/:dashboardId/pregacoes/:id', authenticateToken, (req, res) => {
+  const dashboardId = req.params.dashboardId;
+  const pregacaoId = req.params.id;
+  const userId = req.user.id;
+
+  // Verifica se o usuário tem acesso ao dashboard
+  db.get(
+    'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?',
+    [dashboardId, userId],
+    (err, member) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!member) {
+        return res.status(403).json({ error: 'Acesso negado' });
+      }
+
+      // Exclui a pregação
+      db.run(
+        'DELETE FROM pregacoes WHERE id = ? AND dashboard_id = ?',
+        [pregacaoId, dashboardId],
+        function(err) {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          if (this.changes === 0) {
+            return res.status(404).json({ error: 'Pregação não encontrada' });
+          }
+          res.json({ success: true });
+        }
+      );
+    }
+  );
 });
 
 app.listen(PORT, () => {

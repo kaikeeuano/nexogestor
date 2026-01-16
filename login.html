@@ -46,6 +46,22 @@
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('token', data.token);
+                    
+                    // Verificar se é admin do sistema
+                    const adminCheck = await fetch(`${API_BASE}/admin/check`, {
+                        headers: { 'Authorization': `Bearer ${data.token}` }
+                    });
+                    
+                    if (adminCheck.ok) {
+                        const adminData = await adminCheck.json();
+                        if (adminData.isAdmin) {
+                            // Redireciona direto para o painel admin
+                            window.location.href = 'admin.html';
+                            return;
+                        }
+                    }
+                    
+                    // Se não for admin, mostra link normal para dashboard
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('dashboardLink').style.display = 'block';
                 } else {

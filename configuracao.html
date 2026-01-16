@@ -89,6 +89,12 @@
     </style>
 </head>
 <body>
+    <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
+        <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; width: fit-content; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="font-size: 28px;">⚙️</span>
+            <h2 style="margin: 0; font-size: 20px;">NEXO GESTOR</h2>
+        </a>
+    </div>
     <nav class="nav-list">
         <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
         <li class="nav-item"><a href="gestao.html">Gestão</a></li>
@@ -182,17 +188,55 @@
         <div class="config-section">
             <h2>Sub-Dashboards por Congregação</h2>
             <p style="color: #666; margin-bottom: 15px;">Crie dashboards limitados a uma única congregação, onde apenas membros dessa congregação podem ser adicionados.</p>
+            
+            <!-- Método de criação -->
             <div class="form-group">
-                <label for="subDashboardName">Nome do Sub-Dashboard:</label>
-                <input type="text" id="subDashboardName" placeholder="Ex: Dashboard Congregação Central">
+                <label>Método de Criação:</label>
+                <div style="display: flex; gap: 15px; margin-top: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="subDashMethod" value="direct" checked onchange="toggleSubDashMethod()">
+                        <span>🚀 Criação Direta</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="subDashMethod" value="key" onchange="toggleSubDashMethod()">
+                        <span>🎫 Com Chave de Ativação</span>
+                    </label>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="subDashboardCongregation">Congregação:</label>
-                <select id="subDashboardCongregation">
-                    <option value="">Selecione uma congregação</option>
-                </select>
+
+            <!-- Formulário de criação direta -->
+            <div id="directSubDashForm">
+                <div class="form-group">
+                    <label for="subDashboardName">Nome do Sub-Dashboard:</label>
+                    <input type="text" id="subDashboardName" placeholder="Ex: Dashboard Congregação Central">
+                </div>
+                <div class="form-group">
+                    <label for="subDashboardCongregation">Congregação:</label>
+                    <select id="subDashboardCongregation">
+                        <option value="">Selecione uma congregação</option>
+                    </select>
+                </div>
+                <button type="button" class="btn" id="createSubDashboardBtn">Criar Sub-Dashboard</button>
             </div>
-            <button type="button" class="btn" id="createSubDashboardBtn">Criar Sub-Dashboard</button>
+
+            <!-- Formulário com chave de ativação -->
+            <div id="keySubDashForm" style="display: none;">
+                <div class="form-group">
+                    <label for="subDashActivationKey">Chave de Ativação:</label>
+                    <input type="text" id="subDashActivationKey" placeholder="NEXO-XXXXXXXX-XXXXXXXX" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="subDashKeyName">Nome do Sub-Dashboard:</label>
+                    <input type="text" id="subDashKeyName" placeholder="Ex: Dashboard Congregação Central">
+                </div>
+                <div class="form-group">
+                    <label for="subDashKeyCongregation">Congregação:</label>
+                    <select id="subDashKeyCongregation">
+                        <option value="">Selecione uma congregação</option>
+                    </select>
+                </div>
+                <button type="button" class="btn" id="createSubDashWithKeyBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🎫 Criar com Chave</button>
+            </div>
             
             <div id="subDashboardsList" class="member-list" style="margin-top: 20px;">
                 <!-- Sub-dashboards will be loaded here -->
@@ -384,7 +428,22 @@
                 }
             });
 
-            // Create Sub-Dashboard
+            // Toggle between sub-dashboard creation methods
+            window.toggleSubDashMethod = function() {
+                const method = document.querySelector('input[name="subDashMethod"]:checked').value;
+                const directForm = document.getElementById('directSubDashForm');
+                const keyForm = document.getElementById('keySubDashForm');
+                
+                if (method === 'direct') {
+                    directForm.style.display = 'block';
+                    keyForm.style.display = 'none';
+                } else {
+                    directForm.style.display = 'none';
+                    keyForm.style.display = 'block';
+                }
+            };
+
+            // Create Sub-Dashboard (direct)
             document.getElementById('createSubDashboardBtn').addEventListener('click', async () => {
                 const name = document.getElementById('subDashboardName').value.trim();
                 const congregation = document.getElementById('subDashboardCongregation').value;
@@ -422,6 +481,59 @@
                     }
                 } catch (error) {
                     console.error('Error creating sub-dashboard:', error);
+                    alert('Erro de conexão ao criar sub-dashboard.');
+                }
+            });
+
+            // Create Sub-Dashboard with activation key
+            document.getElementById('createSubDashWithKeyBtn').addEventListener('click', async () => {
+                const activationKey = document.getElementById('subDashActivationKey').value.trim().toUpperCase();
+                const name = document.getElementById('subDashKeyName').value.trim();
+                const congregation = document.getElementById('subDashKeyCongregation').value;
+                
+                if (!activationKey) {
+                    alert('Por favor, insira a chave de ativação.');
+                    return;
+                }
+                
+                if (!name) {
+                    alert('Por favor, digite o nome do sub-dashboard.');
+                    return;
+                }
+                
+                if (!congregation) {
+                    alert('Por favor, selecione uma congregação.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('http://localhost:3000/config/subdashboards/with-key', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'dashboard-id': dashboardId
+                        },
+                        body: JSON.stringify({ 
+                            activationKey,
+                            name, 
+                            congregation 
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('subDashActivationKey').value = '';
+                        document.getElementById('subDashKeyName').value = '';
+                        document.getElementById('subDashKeyCongregation').value = '';
+                        loadSubDashboards();
+                        alert(`✅ Sub-dashboard criado e ativado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
+                    } else {
+                        const errorData = await response.json();
+                        alert(`❌ Erro ao criar sub-dashboard: ${errorData.error || response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('Error creating sub-dashboard with key:', error);
                     alert('Erro de conexão ao criar sub-dashboard.');
                 }
             });
@@ -491,6 +603,9 @@
                 const select = document.getElementById('subDashboardCongregation');
                 select.innerHTML = '<option value="">Selecione uma congregação</option>';
                 
+                const selectKey = document.getElementById('subDashKeyCongregation');
+                selectKey.innerHTML = '<option value="">Selecione uma congregação</option>';
+                
                 congregations.forEach(cong => {
                     // Add to list
                     const item = document.createElement('div');
@@ -514,11 +629,16 @@
                     item.appendChild(actions);
                     list.appendChild(item);
                     
-                    // Add to select
+                    // Add to both selects
                     const option = document.createElement('option');
                     option.value = cong.name;
                     option.textContent = cong.name;
                     select.appendChild(option);
+                    
+                    const optionKey = document.createElement('option');
+                    optionKey.value = cong.name;
+                    optionKey.textContent = cong.name;
+                    selectKey.appendChild(optionKey);
                 });
             } catch (error) {
                 console.error('Error loading congregations:', error);

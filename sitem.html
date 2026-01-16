@@ -6,9 +6,160 @@
     <title>NEXO GESTOR - Dashboard</title>
     <link rel="stylesheet" href="staly.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Modal de Bloqueio */
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .lock-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .lock-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .lock-modal h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .lock-modal p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .activation-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .activation-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .unlock-btn {
+            width: 100%;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .unlock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .unlock-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #090;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .dashboard-locked {
+            filter: blur(5px);
+            pointer-events: none;
+            user-select: none;
+        }
+    </style>
 </head>
 <body>
+    <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
+        <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; width: fit-content; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="font-size: 28px;">📊</span>
+            <h2 style="margin: 0; font-size: 20px;">NEXO GESTOR</h2>
+        </a>
+    </div>
+    <!-- Modal de Bloqueio do Dashboard -->
+    <div id="lockOverlay" class="lock-overlay" style="display: none;">
+        <div class="lock-modal">
+            <div class="lock-icon">🔒</div>
+            <h2>Dashboard Bloqueado</h2>
+            <p>Este dashboard requer uma chave de ativação para ser acessado. Por favor, insira a chave fornecida pelo administrador.</p>
+            
+            <input 
+                type="text" 
+                id="activationKeyInput" 
+                class="activation-input" 
+                placeholder="NEXO-XXXXXXXX-XXXXXXXX"
+                maxlength="50"
+            >
+            
+            <button id="unlockBtn" class="unlock-btn">
+                🔓 Desbloquear Dashboard
+            </button>
+            
+            <button onclick="window.location.href='dashboard.html'" style="width: 100%; padding: 12px 30px; background: #e2e8f0; color: #4a5568; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 12px; transition: all 0.3s;" onmouseover="this.style.background='#cbd5e0'" onmouseout="this.style.background='#e2e8f0'">
+                ← Voltar aos Meus Dashboards
+            </button>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+        </div>
+    </div>
+
     <nav class="nav-list">
+        <li class="nav-item"><a href="dashboard.html">← Meus Dashboards</a></li>
         <li class="nav-item"><a href="sitem.html" class="active">Dashboard</a></li>
         <li class="nav-item"><a href="gestao.html">Gestão</a></li>
         <li class="nav-item"><a href="agenda.html">Agenda</a></li>
@@ -147,7 +298,131 @@
         if (!token || !dashboardId) {
             window.location.href = 'login.html';
         } else {
-            initDashboard();
+            checkDashboardActivation();
+        }
+
+        // Verifica se o dashboard está ativado
+        async function checkDashboardActivation() {
+            try {
+                const response = await fetch(`http://localhost:3000/dashboards/${dashboardId}/activation-status`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'dashboard-id': dashboardId 
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Erro ao verificar status de ativação');
+                    initDashboard();
+                    return;
+                }
+
+                const data = await response.json();
+                
+                if (!data.isActivated) {
+                    // Dashboard não está ativado - mostrar modal de bloqueio
+                    if (data.keyRevoked) {
+                        showLockModal('A chave de ativação deste dashboard foi revogada pelo administrador. Entre em contato para obter uma nova chave.');
+                    } else {
+                        showLockModal();
+                    }
+                } else {
+                    // Dashboard está ativado - carregar normalmente
+                    initDashboard();
+                }
+            } catch (error) {
+                console.error('Erro ao verificar ativação:', error);
+                // Em caso de erro, carrega o dashboard normalmente
+                initDashboard();
+            }
+        }
+
+        // Mostra o modal de bloqueio
+        function showLockModal(customMessage) {
+            const overlay = document.getElementById('lockOverlay');
+            const mainContent = document.querySelector('main');
+            
+            overlay.style.display = 'flex';
+            mainContent.classList.add('dashboard-locked');
+            
+            // Se houver mensagem customizada, atualizar o texto
+            if (customMessage) {
+                const modalText = overlay.querySelector('p');
+                modalText.textContent = customMessage;
+                modalText.style.color = '#c00';
+                modalText.style.fontWeight = '600';
+            }
+            
+            // Event listener para o botão de desbloqueio
+            document.getElementById('unlockBtn').addEventListener('click', unlockDashboard);
+            
+            // Permite desbloquear com Enter
+            document.getElementById('activationKeyInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    unlockDashboard();
+                }
+            });
+        }
+
+        // Função para desbloquear o dashboard
+        async function unlockDashboard() {
+            const keyInput = document.getElementById('activationKeyInput');
+            const unlockBtn = document.getElementById('unlockBtn');
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            
+            const activationKey = keyInput.value.trim().toUpperCase();
+            
+            if (!activationKey) {
+                errorMsg.textContent = 'Por favor, insira uma chave de ativação';
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+                return;
+            }
+            
+            unlockBtn.disabled = true;
+            unlockBtn.textContent = '🔄 Verificando...';
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            try {
+                const response = await fetch('http://localhost:3000/activate-dashboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        activationKey: activationKey,
+                        dashboardId: dashboardId 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successMsg.textContent = '✅ Dashboard ativado com sucesso!';
+                    successMsg.style.display = 'block';
+                    
+                    // Aguarda 1.5s e então esconde o modal e carrega o dashboard
+                    setTimeout(() => {
+                        document.getElementById('lockOverlay').style.display = 'none';
+                        document.querySelector('main').classList.remove('dashboard-locked');
+                        initDashboard();
+                    }, 1500);
+                } else {
+                    errorMsg.textContent = data.error || 'Chave de ativação inválida ou expirada';
+                    errorMsg.style.display = 'block';
+                    unlockBtn.disabled = false;
+                    unlockBtn.textContent = '🔓 Desbloquear Dashboard';
+                }
+            } catch (error) {
+                console.error('Erro ao ativar dashboard:', error);
+                errorMsg.textContent = 'Erro ao verificar a chave. Tente novamente.';
+                errorMsg.style.display = 'block';
+                unlockBtn.disabled = false;
+                unlockBtn.textContent = '🔓 Desbloquear Dashboard';
+            }
         }
 
         async function initDashboard() {
