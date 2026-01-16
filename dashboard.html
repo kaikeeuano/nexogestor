@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Dashboards</title>
+    <link rel="stylesheet" href="staly.css">
+</head>
+<body>
+    <main class="dashboards">
+        <h1>Meus Dashboards</h1>
+        <button id="createDashboard">Criar Novo Dashboard</button>
+        <button id="joinDashboard">Entrar em Dashboard Existente</button>
+
+        <section style="margin-top:14px; padding:12px; border:1px solid #ddd; border-radius:8px; background:#f7f9ff;">
+            <h2>Crescimento por Período</h2>
+            <p>Acompanhe a evolução de membros e dashboards criando relatórios por período na página de membros. Use o filtro de datas e congregação para ver o total de adesões.</p>
+        </section>
+        
+        <div id="createForm" style="display: none;">
+            <h2>Criar Dashboard</h2>
+            <input type="text" id="dashboardName" placeholder="Nome do Dashboard">
+            <button id="submitCreate">Criar</button>
+            <button id="cancelCreate">Cancelar</button>
+        </div>
+        
+        <div id="joinForm" style="display: none;">
+            <h2>Entrar em Dashboard</h2>
+            <input type="text" id="joinCode" placeholder="Código do Dashboard">
+            <button id="submitJoin">Entrar</button>
+            <button id="cancelJoin">Cancelar</button>
+        </div>
+        
+        <div id="dashboardList"></div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const token = localStorage.getItem('token');
+
+        async function loadDashboards() {
+            console.log('🔄 Carregando dashboards...');
+            console.log('Token:', token ? 'Presente' : 'Ausente');
+            
+            try {
+                const response = await fetch(`${API_BASE}/dashboards`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                console.log('Resposta da API:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const dashboards = await response.json();
+                console.log('Dashboards recebidos:', dashboards);
+                
+                const list = document.getElementById('dashboardList');
+                list.innerHTML = '<h2>Dashboards Disponíveis</h2>';
+                
+                if (!dashboards || dashboards.length === 0) {
+                    list.innerHTML += '<p style="color:#666;padding:20px;text-align:center;">Nenhum dashboard encontrado. Crie um novo ou entre em um existente.</p>';
+                    return;
+                }
+                
+                dashboards.forEach(dashboard => {
+                    const div = document.createElement('div');
+                    div.className = 'dashboard-item';
+
+                    const h3 = document.createElement('h3');
+                    h3.textContent = dashboard.name;
+
+                    const p = document.createElement('p');
+                    p.textContent = `ID: ${dashboard.code || dashboard.id}`;
+
+                    const btn = document.createElement('button');
+                    btn.textContent = 'Acessar';
+                    btn.addEventListener('click', () => selectDashboard(dashboard.id));
+
+                    div.appendChild(h3);
+                    div.appendChild(p);
+                    div.appendChild(btn);
+
+                    list.appendChild(div);
+                });
+                
+                console.log('✅ Dashboards carregados com sucesso!');
+            } catch (error) {
+                console.error('❌ Erro ao carregar dashboards:', error);
+                const list = document.getElementById('dashboardList');
+                list.innerHTML = '<h2>Dashboards Disponíveis</h2>';
+                list.innerHTML += '<p style="color:red;padding:20px;text-align:center;">❌ Erro ao carregar dashboards. Verifique se o servidor está rodando.</p>';
+                alert('Erro ao carregar dashboards: ' + error.message);
+            }
+        }
+
+        document.getElementById('createDashboard').addEventListener('click', () => {
+            document.getElementById('createForm').style.display = 'block';
+            document.getElementById('joinForm').style.display = 'none';
+        });
+
+        document.getElementById('joinDashboard').addEventListener('click', () => {
+            document.getElementById('joinForm').style.display = 'block';
+            document.getElementById('createForm').style.display = 'none';
+        });
+
+        document.getElementById('submitCreate').addEventListener('click', async () => {
+            const name = document.getElementById('dashboardName').value;
+            
+            if (!name.trim()) {
+                alert('⚠️ Por favor, digite um nome para o dashboard');
+                return;
+            }
+            
+            console.log('📝 Criando dashboard:', name);
+            
+            try {
+                const response = await fetch(`${API_BASE}/dashboards`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name })
+                });
+                
+                console.log('Resposta:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Dashboard criado:', data);
+                    alert(`✅ Dashboard "${name}" criado com sucesso!\nCódigo: ${data.code}`);
+                    localStorage.setItem('dashboardId', data.id);
+                    window.location.href = 'sitem.html';
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    console.error('❌ Erro:', error);
+                    alert('❌ Erro ao criar dashboard: ' + (error.error || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('❌ Erro de conexão:', error);
+                alert('❌ Erro ao conectar com o servidor');
+            }
+        });
+
+        document.getElementById('submitJoin').addEventListener('click', async () => {
+            const code = document.getElementById('joinCode').value;
+            
+            if (!code.trim()) {
+                alert('⚠️ Por favor, digite o código do dashboard');
+                return;
+            }
+            
+            console.log('🔑 Entrando no dashboard com código:', code);
+            
+            try {
+                const response = await fetch(`${API_BASE}/dashboards/join`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ code })
+                });
+                
+                console.log('Resposta:', response.status);
+                
+                if (response.ok) {
+                    alert('✅ Solicitação enviada com sucesso! Aguarde aprovação do dono do dashboard.');
+                    document.getElementById('joinForm').style.display = 'none';
+                    document.getElementById('joinCode').value = '';
+                    await loadDashboards();
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    console.error('❌ Erro:', error);
+                    if (response.status === 404) {
+                        alert('❌ Dashboard não encontrado. Verifique o código digitado.');
+                    } else {
+                        alert('❌ Erro ao entrar no dashboard: ' + (error.error || 'Erro desconhecido'));
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Erro de conexão:', error);
+                alert('❌ Erro ao conectar com o servidor');
+            }
+        });
+
+        document.getElementById('cancelCreate').addEventListener('click', () => {
+            document.getElementById('createForm').style.display = 'none';
+        });
+
+        document.getElementById('cancelJoin').addEventListener('click', () => {
+            document.getElementById('joinForm').style.display = 'none';
+        });
+
+        function selectDashboard(id) {
+            localStorage.setItem('dashboardId', id);
+            window.location.href = 'sitem.html';
+        }
+
+        if (!token) {
+            window.location.href = 'login.html';
+        } else {
+            loadDashboards();
+        }
+    </script>
+</body>
+</html>

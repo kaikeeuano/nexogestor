@@ -1,0 +1,22 @@
+// Get observations with scheduled dates to show in agenda
+app.get('/scheduled-observations', authenticateToken, (req, res) => {
+  const dashboardId = req.headers['dashboard-id'];
+  db.all(`SELECT 
+    po.id, 
+    po.text as title, 
+    po.observation_date as date,
+    'Observação de Projeto' as description
+    FROM project_observations po
+    WHERE po.observation_date IS NOT NULL
+    AND EXISTS (
+      SELECT 1 FROM projects p 
+      WHERE p.id = po.project_id AND p.dashboard_id = ?
+    )
+    ORDER BY po.observation_date`, [dashboardId], (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json(rows || []);
+    });
+});

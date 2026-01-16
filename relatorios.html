@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Relatórios</title>
+    <link rel="stylesheet" href="staly.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        main.reports {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px !important;
+        }
+
+        #reportHeader {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 32px !important;
+            margin-bottom: 32px !important;
+            display: flex !important;
+            gap: 20px !important;
+            align-items: center !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        #reportHeader img {
+            max-height: 80px !important;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #reportHeader h1 {
+            font-size: 28px !important;
+            font-weight: 700 !important;
+            margin-bottom: 8px !important;
+        }
+
+        #reportHeader p {
+            margin: 4px 0 0 0 !important;
+            opacity: 0.95;
+            font-size: 14px;
+        }
+
+        #reportMeta {
+            font-size: 12px !important;
+            opacity: 0.85;
+        }
+
+        /* Filter section */
+        #filterSection {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        #filterSection h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        #filterControls {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 16px !important;
+            align-items: flex-end !important;
+        }
+
+        #filterControls > div {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #filterControls label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #filterControls input[type="date"],
+        #filterControls select {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        #filterControls input[type="date"]:focus,
+        #filterControls select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #filterControls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        #generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        #printReport, #exportCsv {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        #printReport:hover, #exportCsv:hover {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+        }
+
+        /* Summary cards */
+        #summary {
+            margin-top: 24px !important;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .summary-card.total { border-left-color: #667eea; }
+        .summary-card.active { border-left-color: #48bb78; }
+        .summary-card.inactive { border-left-color: #f56565; }
+        .summary-card.new { border-left-color: #ed8936; }
+
+        .summary-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .summary-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .summary-card .percentage {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Summary table */
+        .summary-table {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .summary-table h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .summary-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .summary-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .summary-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Main table section */
+        #reportTableSection {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        #reportTableSection h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        #reportTable {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+        }
+
+        #reportTable thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #reportTable th {
+            color: white;
+            padding: 16px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #reportTable tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s ease;
+        }
+
+        #reportTable tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        #reportTable td {
+            padding: 14px 12px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        #reportTable tbody tr:nth-child(even) {
+            background: #fafbfc;
+        }
+
+        /* Footer */
+        #printFooter {
+            margin-top: 32px !important;
+            padding-top: 16px !important;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* Print styles */
+        @media print {
+            body * { visibility: hidden; }
+            #reportRoot, #reportRoot * { visibility: visible !important; }
+            #reportRoot { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 16px; }
+            #reportHeader { background: white !important; color: #333 !important; border: 2px solid #667eea !important; }
+            #reportNav, #filterControls, #printReport, #exportCsv { display: none !important; }
+            #reportTable th { background: #667eea !important; color: white !important; }
+            #reportTable tbody tr:nth-child(even) { background: #f5f5f5 !important; }
+            .summary-card, .summary-table { box-shadow: none !important; border: 1px solid #ddd !important; }
+        }
+
+        @media (max-width: 768px) {
+            main.reports {
+                padding: 16px !important;
+            }
+
+            #reportHeader {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                padding: 20px !important;
+            }
+
+            #filterControls {
+                flex-direction: column !important;
+            }
+
+            #filterControls > div,
+            #filterControls button {
+                width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #reportTable {
+                font-size: 12px;
+            }
+
+            #reportTable th,
+            #reportTable td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-list" id="reportNav">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">projetos</a></li>
+        <li class="nav-item"><a href="membros.html">membros</a></li>
+        <li class="nav-item"><a href="relatorios.html" class="active">relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">driv fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">driv doc</a></li>
+        <li class="nav-item"><a href="configuracao.html">configurações</a></li>
+        <li class="nav-item"><button id="logout">Logout</button></li>
+    </nav>
+
+    <main class="reports" id="reportRoot">
+        <div id="reportHeader">
+            <img id="reportLogo" alt="Logo" style="display:none;">
+            <div>
+                <h1 id="reportTitle">Relatórios de Membros</h1>
+                <p id="reportSubtitle">Resumo do período selecionado.</p>
+                <p id="reportMeta"></p>
+            </div>
+        </div>
+
+        <section id="filterSection">
+            <h3>🔍 Filtros</h3>
+            <div id="filterControls">
+                <div>
+                    <label for="startDate">Data Inicial</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div>
+                    <label for="endDate">Data Final</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div>
+                    <label for="congFilter">Congregação</label>
+                    <select id="congFilter">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <button id="generate">📊 Gerar Relatório</button>
+                <button id="printReport">🖨️ Imprimir</button>
+                <button id="exportCsv">📥 Exportar CSV</button>
+            </div>
+        </section>
+
+        <section id="summary"></section>
+
+        <section id="reportTableSection" style="display:none;">
+            <h3>📋 Detalhes dos Membros</h3>
+            <table id="reportTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Congregação</th>
+                        <th>Cargo</th>
+                        <th>Status</th>
+                        <th>Data Criação</th>
+                        <th>Data Nasc.</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <div id="printFooter">
+            <small id="footerText"></small>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const MEMBERS_URL = `${API_BASE}/members`;
+        const CONG_URL = `${API_BASE}/config/congregations`;
+        const CONFIG_URL = `${API_BASE}/config`;
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+        let allMembers = [];
+        let dashboardConfig = null;
+        let currentFilteredMembers = [];
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            loadConfig().then(() => {
+                loadCongregations();
+                loadMembers();
+            });
+        }
+
+        async function loadConfig() {
+            try {
+                const resp = await fetch(CONFIG_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                if (resp.ok) {
+                    dashboardConfig = await resp.json();
+                    applyHeader();
+                }
+            } catch (err) {
+                console.error('loadConfig error', err);
+            }
+        }
+
+        function applyHeader() {
+            const titleEl = document.getElementById('reportTitle');
+            const subEl = document.getElementById('reportSubtitle');
+            const logoEl = document.getElementById('reportLogo');
+            const name = dashboardConfig && dashboardConfig.name ? dashboardConfig.name : 'Dashboard';
+            titleEl.textContent = `${name} - Relatórios de Membros`;
+            subEl.textContent = 'Resumo do período selecionado.';
+            if (dashboardConfig && dashboardConfig.logo) {
+                logoEl.src = `/uploads/${dashboardConfig.logo}`;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
+            }
+        }
+
+        async function loadCongregations() {
+            try {
+                const resp = await fetch(CONG_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                if (!resp.ok) throw new Error(`Congregations failed ${resp.status}`);
+                const rows = await resp.json();
+                const select = document.getElementById('congFilter');
+                select.innerHTML = '<option value="">Todas</option>';
+                rows.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.name;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('loadCongregations error', err);
+            }
+        }
+
+        async function loadMembers() {
+            try {
+                const resp = await fetch(MEMBERS_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                if (!resp.ok) throw new Error(`Members failed ${resp.status}`);
+                const rows = await resp.json();
+                allMembers = Array.isArray(rows) ? rows : [];
+                generateReport();
+            } catch (err) {
+                console.error('loadMembers error', err);
+                document.querySelector('#reportTable tbody').innerHTML = '<tr><td colspan="6">Erro ao carregar membros</td></tr>';
+            }
+        }
+
+        function generateReport() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const cong = document.getElementById('congFilter').value;
+            const tbody = document.querySelector('#reportTable tbody');
+            const summarySection = document.getElementById('summary');
+            const tableSection = document.getElementById('reportTableSection');
+            const subEl = document.getElementById('reportSubtitle');
+            const metaEl = document.getElementById('reportMeta');
+
+            const filtered = allMembers.filter(m => {
+                const created = m.created_at || '';
+                const inPeriod = (!start || created >= start) && (!end || created <= end);
+                const matchCong = !cong || m.congregation === cong;
+                return inPeriod && matchCong;
+            });
+            currentFilteredMembers = filtered;
+
+            const periodText = `${start || 'início'} até ${end || 'hoje'}`;
+            const congText = cong ? ` | ${cong}` : ' | Todas as congregações';
+            subEl.textContent = `Período: ${periodText}${congText}`;
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR');
+            const timeStr = now.toLocaleTimeString('pt-BR');
+            metaEl.textContent = `Gerado em ${dateStr} às ${timeStr}`;
+
+            // Calcula variações e estatísticas
+            const beforeStart = allMembers.filter(m => {
+                const created = m.created_at || '';
+                return start ? created < start : true;
+            }).length;
+            const untilEnd = allMembers.filter(m => {
+                const created = m.created_at || '';
+                return end ? created <= end : true;
+            }).length;
+            const variation = untilEnd - beforeStart;
+            const newInPeriod = filtered.length;
+
+            // Contagens
+            const total = filtered.length;
+            const active = filtered.filter(m => (m.status || 'active') !== 'inactive').length;
+            const inactive = total - active;
+            const byCong = {};
+            filtered.forEach(m => {
+                const key = m.congregation || 'Sem congregação';
+                byCong[key] = (byCong[key] || 0) + 1;
+            });
+
+            // Helper para porcentagens
+            const pct = (part, whole) => {
+                if (!whole || whole === 0) return '0%';
+                return `${((part / whole) * 100).toFixed(1)}%`;
+            };
+            const variationPct = (beforeStart > 0) ? `${((variation / beforeStart) * 100).toFixed(1)}%` : 'N/A';
+
+            // Renderiza cards de resumo
+            let summaryHTML = '<div class="summary-grid">';
+            
+            summaryHTML += `
+                <div class="summary-card total">
+                    <div class="label">Total no Período</div>
+                    <div class="value">${total}</div>
+                </div>
+            `;
+            
+            summaryHTML += `
+                <div class="summary-card active">
+                    <div class="label">Ativos</div>
+                    <div class="value">${active}</div>
+                    <div class="percentage">${pct(active, total)}</div>
+                </div>
+            `;
+            
+            summaryHTML += `
+                <div class="summary-card inactive">
+                    <div class="label">Inativos</div>
+                    <div class="value">${inactive}</div>
+                    <div class="percentage">${pct(inactive, total)}</div>
+                </div>
+            `;
+            
+            summaryHTML += `
+                <div class="summary-card new">
+                    <div class="label">Novos Neste Período</div>
+                    <div class="value">${newInPeriod}</div>
+                </div>
+            `;
+
+            if (start || end) {
+                summaryHTML += `
+                    <div class="summary-card" style="border-left-color: #9f7aea;">
+                        <div class="label">Variação vs Início</div>
+                        <div class="value">${variation >= 0 ? '+' : ''}${variation}</div>
+                        <div class="percentage">${variationPct}</div>
+                    </div>
+                `;
+            }
+
+            summaryHTML += '</div>';
+
+            // Tabela de congregações se houver dados
+            if (Object.keys(byCong).length > 0) {
+                summaryHTML += '<div class="summary-table"><h4>📍 Membros por Congregação</h4><table><thead><tr><th>Congregação</th><th>Quantidade</th><th>Percentual</th></tr></thead><tbody>';
+                Object.entries(byCong).forEach(([k, v]) => {
+                    summaryHTML += `<tr><td>${k}</td><td>${v}</td><td>${pct(v, total)}</td></tr>`;
+                });
+                summaryHTML += '</tbody></table></div>';
+            }
+
+            summarySection.innerHTML = summaryHTML;
+
+            // Rodapé
+            const foot = document.getElementById('footerText');
+            const dashName = (dashboardConfig && dashboardConfig.name) ? dashboardConfig.name : 'Dashboard';
+            foot.textContent = `${dashName} • Relatório de Membros • ${dateStr} ${timeStr}`;
+
+            // Tabela de detalhes
+            tableSection.style.display = filtered.length > 0 ? 'block' : 'none';
+            tbody.innerHTML = '';
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="6">Nenhum resultado para o filtro.</td></tr>';
+                return;
+            }
+            filtered.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${m.name || ''}</strong></td>
+                    <td>${m.congregation || ''}</td>
+                    <td>${m.cargo || ''}</td>
+                    <td><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; background:${(m.status === 'inactive') ? '#fee' : '#efe'}; color:${(m.status === 'inactive') ? '#c33' : '#3c3'};">${(m.status === 'inactive') ? 'Inativo' : 'Ativo'}</span></td>
+                    <td>${m.created_at || ''}</td>
+                    <td>${m.birth_date || ''}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportToCSV() {
+            const rows = currentFilteredMembers;
+            if (!rows || !rows.length) {
+                alert('Nenhum dado para exportar. Gere o relatório primeiro.');
+                return;
+            }
+            const headers = ['Nome','Congregação','Cargo','Status','Data Criação','Data Nasc.'];
+            const csvRows = [];
+            csvRows.push(headers.join(','));
+            rows.forEach(m => {
+                const line = [
+                    (m.name || '').replace(/,/g, ';'),
+                    (m.congregation || '').replace(/,/g, ';'),
+                    (m.cargo || '').replace(/,/g, ';'),
+                    (m.status === 'inactive') ? 'Inativo' : 'Ativo',
+                    (m.created_at || ''),
+                    (m.birth_date || '')
+                ];
+                csvRows.push(line.join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const dashName = (dashboardConfig && dashboardConfig.name) ? dashboardConfig.name : 'dashboard';
+            a.download = `${dashName.toLowerCase().replace(/\s+/g,'_')}_relatorio.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('generate').addEventListener('click', generateReport);
+        document.getElementById('printReport').addEventListener('click', printReport);
+        document.getElementById('exportCsv').addEventListener('click', exportToCSV);
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        });
+
+        // Reaplica header quando config já carregada ao trocar filtros
+        document.getElementById('startDate').addEventListener('change', () => generateReport());
+        document.getElementById('endDate').addEventListener('change', () => generateReport());
+        document.getElementById('congFilter').addEventListener('change', () => generateReport());
+    </script>
+</body>
+</html>

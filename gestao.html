@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Gestão</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="permissions.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        main.gestao {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px !important;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Dashboard Cards Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .metric-card .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .metric-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .metric-card .subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .metric-card .action-btn {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card .action-btn:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
+        }
+
+        .quick-actions h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .action-item {
+            padding: 16px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .action-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .action-item .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .action-item .label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .activity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 12px;
+            border-left: 3px solid #667eea;
+            background: #f9f9f9;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .activity-item .title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .activity-item .meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Upcoming Events */
+        .event-item {
+            padding: 12px;
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe4b3 100%);
+            border-left: 4px solid #FF9800;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .event-item .date {
+            font-weight: 700;
+            color: #FF9800;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .event-item .title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        @media (max-width: 1024px) {
+            .activity-section,
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html" class="active">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+    
+    <main class="gestao">
+        <div class="page-header">
+            <h1>🎯 Gestão Geral</h1>
+            <p>Visão geral e controle completo do seu dashboard</p>
+        </div>
+
+        <!-- Métricas principais -->
+        <div class="dashboard-grid">
+            <div class="metric-card">
+                <span class="icon">👥</span>
+                <div class="label">Total de Membros</div>
+                <div class="value" id="totalMembers">0</div>
+                <div class="subtitle" id="activeMembersText">Carregando...</div>
+                <button class="action-btn" onclick="window.location.href='membros.html'">Ver Membros</button>
+            </div>
+
+            <div class="metric-card">
+                <span class="icon">📊</span>
+                <div class="label">Projetos Ativos</div>
+                <div class="value" id="activeProjects">0</div>
+                <div class="subtitle" id="projectsStatusText">Carregando...</div>
+                <button class="action-btn" onclick="window.location.href='projetos.html'">Ver Projetos</button>
+            </div>
+
+            <div class="metric-card">
+                <span class="icon">💰</span>
+                <div class="label">Saldo do Mês</div>
+                <div class="value" id="monthBalance">R$ 0</div>
+                <div class="subtitle" id="balanceText">Carregando...</div>
+                <button class="action-btn" onclick="window.location.href='financeiro.html'">Ver Financeiro</button>
+            </div>
+
+            <div class="metric-card">
+                <span class="icon">📅</span>
+                <div class="label">Próximos Eventos</div>
+                <div class="value" id="upcomingEvents">0</div>
+                <div class="subtitle" id="eventsText">Carregando...</div>
+                <button class="action-btn" onclick="window.location.href='agenda.html'">Ver Agenda</button>
+            </div>
+        </div>
+
+        <!-- Ações rápidas -->
+        <div class="quick-actions">
+            <h2>⚡ Ações Rápidas</h2>
+            <div class="actions-grid">
+                <div class="action-item" onclick="window.location.href='membros.html'">
+                    <div class="icon">➕</div>
+                    <div class="label">Novo Membro</div>
+                </div>
+                <div class="action-item" onclick="window.location.href='projetos.html'">
+                    <div class="icon">📋</div>
+                    <div class="label">Novo Projeto</div>
+                </div>
+                <div class="action-item" onclick="window.location.href='financeiro.html'">
+                    <div class="icon">💵</div>
+                    <div class="label">Nova Transação</div>
+                </div>
+                <div class="action-item" onclick="window.location.href='agenda.html'">
+                    <div class="icon">📆</div>
+                    <div class="label">Novo Evento</div>
+                </div>
+                <div class="action-item" onclick="window.location.href='relatorios.html'">
+                    <div class="icon">📊</div>
+                    <div class="label">Gerar Relatório</div>
+                </div>
+                <div class="action-item" onclick="window.location.href='configuracao.html'">
+                    <div class="icon">⚙️</div>
+                    <div class="label">Configurações</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atividade recente e eventos -->
+        <div class="activity-section">
+            <div class="activity-card">
+                <h2>📰 Atividades Recentes</h2>
+                <div class="activity-list" id="recentActivity">
+                    <p style="color: #999; text-align: center;">Carregando atividades...</p>
+                </div>
+            </div>
+
+            <div class="activity-card">
+                <h2>📅 Próximos Eventos</h2>
+                <div class="activity-list" id="upcomingEventsList">
+                    <p style="color: #999; text-align: center;">Carregando eventos...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estatísticas e gráficos -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>📊 Status dos Projetos</h3>
+                <div id="projectStats"></div>
+            </div>
+
+            <div class="chart-card">
+                <h3>💰 Resumo Financeiro</h3>
+                <div id="financialStats"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            window.permissionManager.loadUserRole().then(() => {
+                window.permissionManager.applyRestrictions('gestao');
+            });
+        }
+
+        // Headers padrão para todas as requisições
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'dashboard-id': dashboardId
+        };
+
+        // Carregar todas as métricas ao carregar a página
+        window.addEventListener('load', () => {
+            loadMembers();
+            loadProjects();
+            loadFinancial();
+            loadEvents();
+            loadRecentActivity();
+        });
+
+        // Carregar membros
+        async function loadMembers() {
+            try {
+                const response = await fetch(`${API_BASE}/members`, { headers });
+                const members = await response.json();
+                
+                const total = members.length;
+                const active = members.filter(m => m.status !== 'inactive').length;
+                
+                document.getElementById('totalMembers').textContent = total;
+                document.getElementById('activeMembersText').textContent = `${active} ativos`;
+            } catch (err) {
+                console.error('Erro ao carregar membros:', err);
+                document.getElementById('totalMembers').textContent = '0';
+                document.getElementById('activeMembersText').textContent = 'Erro ao carregar';
+            }
+        }
+
+        // Carregar projetos
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/projects`, { headers });
+                const projects = await response.json();
+                
+                const active = projects.filter(p => p.status === 'em andamento').length;
+                const planning = projects.filter(p => p.status === 'planejamento').length;
+                const completed = projects.filter(p => p.status === 'concluido').length;
+                
+                document.getElementById('activeProjects').textContent = active;
+                document.getElementById('projectsStatusText').textContent = `${planning} em planejamento, ${completed} concluídos`;
+                
+                // Renderizar estatísticas de projetos
+                renderProjectStats({ planning, active, completed, total: projects.length });
+            } catch (err) {
+                console.error('Erro ao carregar projetos:', err);
+                document.getElementById('activeProjects').textContent = '0';
+                document.getElementById('projectsStatusText').textContent = 'Erro ao carregar';
+            }
+        }
+
+        // Carregar financeiro
+        async function loadFinancial() {
+            try {
+                const now = new Date();
+                const month = now.getMonth() + 1;
+                const year = now.getFullYear();
+                
+                const response = await fetch(`${API_BASE}/transactions?month=${month}&year=${year}`, { headers });
+                const transactions = await response.json();
+                
+                const income = transactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                
+                const expense = transactions
+                    .filter(t => t.type === 'expense')
+                    .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+                
+                const balance = income - expense;
+                
+                document.getElementById('monthBalance').textContent = `R$ ${balance.toFixed(2)}`;
+                document.getElementById('balanceText').textContent = `Receitas: R$ ${income.toFixed(2)} | Despesas: R$ ${expense.toFixed(2)}`;
+                
+                // Renderizar estatísticas financeiras
+                renderFinancialStats({ income, expense, balance });
+            } catch (err) {
+                console.error('Erro ao carregar financeiro:', err);
+                document.getElementById('monthBalance').textContent = 'R$ 0.00';
+                document.getElementById('balanceText').textContent = 'Erro ao carregar';
+            }
+        }
+
+        // Carregar eventos
+        async function loadEvents() {
+            try {
+                const response = await fetch(`${API_BASE}/events`, { headers });
+                const events = await response.json();
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const upcoming = events.filter(e => {
+                    const eventDate = new Date(e.date);
+                    return eventDate >= today;
+                }).sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                document.getElementById('upcomingEvents').textContent = upcoming.length;
+                document.getElementById('eventsText').textContent = upcoming.length > 0 
+                    ? `Próximo: ${new Date(upcoming[0].date).toLocaleDateString('pt-BR')}`
+                    : 'Nenhum evento próximo';
+                
+                // Renderizar lista de eventos próximos
+                renderUpcomingEvents(upcoming.slice(0, 5));
+            } catch (err) {
+                console.error('Erro ao carregar eventos:', err);
+                document.getElementById('upcomingEvents').textContent = '0';
+                document.getElementById('eventsText').textContent = 'Erro ao carregar';
+            }
+        }
+
+        // Carregar atividade recente
+        async function loadRecentActivity() {
+            try {
+                // Combinar dados de várias fontes
+                const [membersRes, projectsRes, transactionsRes] = await Promise.all([
+                    fetch(`${API_BASE}/members`, { headers }),
+                    fetch(`${API_BASE}/projects`, { headers }),
+                    fetch(`${API_BASE}/transactions`, { headers })
+                ]);
+                
+                const members = await membersRes.json();
+                const projects = await projectsRes.json();
+                const transactions = await transactionsRes.json();
+                
+                const activities = [];
+                
+                // Membros recentes (últimos 7 dias)
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                
+                members.forEach(m => {
+                    if (m.created_at && new Date(m.created_at) >= weekAgo) {
+                        activities.push({
+                            title: `Novo membro: ${m.name}`,
+                            meta: `Adicionado em ${new Date(m.created_at).toLocaleString('pt-BR')}`,
+                            date: new Date(m.created_at)
+                        });
+                    }
+                });
+                
+                // Projetos recentes
+                projects.slice(0, 3).forEach(p => {
+                    activities.push({
+                        title: `Projeto: ${p.title}`,
+                        meta: `Status: ${p.status}`,
+                        date: new Date()
+                    });
+                });
+                
+                // Transações recentes
+                transactions.slice(0, 5).forEach(t => {
+                    activities.push({
+                        title: `${t.type === 'income' ? 'Receita' : 'Despesa'}: ${t.description}`,
+                        meta: `R$ ${parseFloat(t.amount).toFixed(2)} - ${new Date(t.date).toLocaleDateString('pt-BR')}`,
+                        date: new Date(t.date)
+                    });
+                });
+                
+                // Ordenar por data
+                activities.sort((a, b) => b.date - a.date);
+                
+                renderRecentActivity(activities.slice(0, 10));
+            } catch (err) {
+                console.error('Erro ao carregar atividades:', err);
+                document.getElementById('recentActivity').innerHTML = '<p style="color: #999;">Erro ao carregar atividades</p>';
+            }
+        }
+
+        // Renderizar atividades recentes
+        function renderRecentActivity(activities) {
+            const container = document.getElementById('recentActivity');
+            
+            if (activities.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center;">Nenhuma atividade recente</p>';
+                return;
+            }
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-item">
+                    <div class="title">${activity.title}</div>
+                    <div class="meta">${activity.meta}</div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar eventos próximos
+        function renderUpcomingEvents(events) {
+            const container = document.getElementById('upcomingEventsList');
+            
+            if (events.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center;">Nenhum evento próximo</p>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="event-item">
+                    <div class="date">${new Date(event.date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}</div>
+                    <div class="title">${event.title}</div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar estatísticas de projetos
+        function renderProjectStats(stats) {
+            const container = document.getElementById('projectStats');
+            
+            const total = stats.total || 1;
+            const planningPct = ((stats.planning / total) * 100).toFixed(1);
+            const activePct = ((stats.active / total) * 100).toFixed(1);
+            const completedPct = ((stats.completed / total) * 100).toFixed(1);
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 16px;">
+                    <div class="stat-row">
+                        <span class="stat-label">Planejamento</span>
+                        <span class="stat-value">${stats.planning}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${planningPct}%; background: #FFA726;"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <div class="stat-row">
+                        <span class="stat-label">Em Andamento</span>
+                        <span class="stat-value">${stats.active}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${activePct}%; background: #42A5F5;"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="stat-row">
+                        <span class="stat-label">Concluídos</span>
+                        <span class="stat-value">${stats.completed}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${completedPct}%; background: #66BB6A;"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Renderizar estatísticas financeiras
+        function renderFinancialStats(stats) {
+            const container = document.getElementById('financialStats');
+            
+            const total = stats.income + stats.expense;
+            const incomePct = total > 0 ? ((stats.income / total) * 100).toFixed(1) : 0;
+            const expensePct = total > 0 ? ((stats.expense / total) * 100).toFixed(1) : 0;
+            
+            container.innerHTML = `
+                <div class="stat-row" style="margin-bottom: 16px;">
+                    <span class="stat-label">Receitas</span>
+                    <span class="stat-value" style="color: #66BB6A;">R$ ${stats.income.toFixed(2)}</span>
+                </div>
+                <div class="progress-bar" style="margin-bottom: 24px;">
+                    <div class="progress-fill" style="width: ${incomePct}%; background: #66BB6A;"></div>
+                </div>
+                
+                <div class="stat-row" style="margin-bottom: 16px;">
+                    <span class="stat-label">Despesas</span>
+                    <span class="stat-value" style="color: #EF5350;">R$ ${stats.expense.toFixed(2)}</span>
+                </div>
+                <div class="progress-bar" style="margin-bottom: 24px;">
+                    <div class="progress-fill" style="width: ${expensePct}%; background: #EF5350;"></div>
+                </div>
+                
+                <div class="stat-row" style="padding-top: 16px; border-top: 2px solid #e0e0e0;">
+                    <span class="stat-label" style="font-weight: 700; color: #333;">Saldo</span>
+                    <span class="stat-value" style="color: ${stats.balance >= 0 ? '#66BB6A' : '#EF5350'};">R$ ${stats.balance.toFixed(2)}</span>
+                </div>
+            `;
+        }
+
+        // Logout
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('isOwner');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

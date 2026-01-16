@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Agenda</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="permissions.js"></script>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html" class="active">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+    
+    <main class="agenda">
+        <h1>Agenda</h1>
+        <form id="eventForm">
+            <label for="date">Data:</label>
+            <input type="date" id="date" required>
+            <label for="title">Título:</label>
+            <input type="text" id="title" required>
+            <label for="description">Descrição:</label>
+            <textarea id="description"></textarea>
+            <button type="submit">Adicionar Evento</button>
+        </form>
+        
+        <button id="printCalendar">Imprimir Calendário</button>
+        
+        <div id="calendarModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Imprimir Calendário</h2>
+                <form id="calendarForm">
+                    <label for="startDate">Data Inicial:</label>
+                    <input type="date" id="startDate" required>
+                    <label for="endDate">Data Final:</label>
+                    <input type="date" id="endDate" required>
+                    <button type="submit">Gerar e Imprimir</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="eventModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="eventTitle"></h2>
+                <p id="eventDate"></p>
+                <p id="eventDescription"></p>
+                <h3>Observações</h3>
+                <div id="observationsList"></div>
+                <form id="observationForm">
+                    <textarea id="observationText" placeholder="Adicionar observação..." required></textarea>
+                    <button type="submit">Adicionar Observação</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="eventsList"></div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const API_URL = 'http://localhost:3000/events';
+            const OBS_URL = 'http://localhost:3000/scheduled-observations';
+            const token = localStorage.getItem('token');
+            const dashboardId = localStorage.getItem('dashboardId');
+
+            if (!token || !dashboardId) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Aplicar restrições de permissão
+            window.permissionManager.loadUserRole().then(() => {
+                window.permissionManager.applyRestrictions('agenda');
+            });
+
+            async function loadEvents() {
+                try {
+                    const [eventsResp, obsResp] = await Promise.all([
+                        fetch(API_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } }),
+                        fetch(OBS_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } })
+                    ]);
+
+                    if (!eventsResp.ok) throw new Error('Failed to load events');
+                    if (!obsResp.ok) throw new Error('Failed to load project observations');
+
+                    const events = await eventsResp.json();
+                    const observations = await obsResp.json();
+
+                    // Marcar o tipo para exibição
+                    const normalizedObs = (observations || []).map(o => ({
+                        ...o,
+                        type: 'project_observation'
+                    }));
+
+                    const combined = [...(events || []), ...normalizedObs];
+
+                    // Ordena por data ascendente
+                    combined.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+                    displayEvents(combined);
+                } catch (error) {
+                    console.error('Error loading events:', error);
+                    document.getElementById('eventsList').innerHTML = '<p>Erro ao carregar eventos. Verifique se o servidor está rodando.</p>';
+                }
+            }
+
+            function displayEvents(events) {
+                const eventsList = document.getElementById('eventsList');
+                eventsList.innerHTML = '';
+                events.forEach(event => {
+                    const isProjectObs = event.type === 'project_observation';
+
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'event';
+                    eventDiv.addEventListener('click', () => openEventModal(event));
+
+                    const header = document.createElement('div');
+                    header.style.display = 'flex';
+                    header.style.alignItems = 'center';
+                    header.style.gap = '8px';
+
+                    const titleEl = document.createElement('h3');
+                    titleEl.textContent = event.title || 'Observação de Projeto';
+                    header.appendChild(titleEl);
+
+                    if (isProjectObs) {
+                        const badge = document.createElement('span');
+                        badge.textContent = 'Observação de Projeto';
+                        badge.style.background = '#ff9800';
+                        badge.style.color = '#fff';
+                        badge.style.padding = '2px 8px';
+                        badge.style.borderRadius = '12px';
+                        badge.style.fontSize = '12px';
+                        header.appendChild(badge);
+                    }
+
+                    const dateEl = document.createElement('p');
+                    dateEl.textContent = `Data: ${event.date}`;
+
+                    const descEl = document.createElement('p');
+                    descEl.textContent = event.description || (isProjectObs ? 'Observação agendada vinculada a um projeto.' : '');
+
+                    eventDiv.appendChild(header);
+                    eventDiv.appendChild(dateEl);
+                    eventDiv.appendChild(descEl);
+
+                    if (!isProjectObs) {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = 'Excluir';
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            deleteEvent(event.id);
+                        });
+                        eventDiv.appendChild(deleteBtn);
+                    }
+
+                    eventsList.appendChild(eventDiv);
+                });
+            }
+
+            async function addEvent(event) {
+                event.preventDefault();
+                const date = document.getElementById('date').value;
+                const title = document.getElementById('title').value;
+                const description = document.getElementById('description').value;
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+                        body: JSON.stringify({ date, title, description })
+                    });
+                    if (!response.ok) {
+                        throw new Error('Failed to save event');
+                    }
+                    document.getElementById('eventForm').reset();
+                    loadEvents();
+                } catch (error) {
+                    console.error('Error saving event:', error);
+                    alert('Erro ao salvar evento. Verifique se o servidor está rodando.');
+                }
+            }
+
+            async function deleteEvent(id) {
+                try {
+                    await fetch(`${API_URL}/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                    });
+                    loadEvents();
+                } catch (error) {
+                    console.error('Error deleting event:', error);
+                    alert('Erro ao excluir evento.');
+                }
+            }
+
+            // Event listeners
+            document.getElementById('eventForm').addEventListener('submit', addEvent);
+            loadEvents();
+
+            // Calendar print functionality
+            document.getElementById('printCalendar').addEventListener('click', () => {
+                document.getElementById('calendarModal').style.display = 'block';
+            });
+
+            document.querySelector('#calendarModal .close').addEventListener('click', () => {
+                document.getElementById('calendarModal').style.display = 'none';
+            });
+
+            // Event details functionality
+            let currentEventId = null;
+
+            function openEventModal(event) {
+                const isProjectObs = event.type === 'project_observation';
+                currentEventId = isProjectObs ? null : event.id;
+
+                document.getElementById('eventTitle').textContent = event.title || 'Observação de Projeto';
+                document.getElementById('eventDate').textContent = `Data: ${event.date}`;
+                document.getElementById('eventDescription').textContent = event.description || (isProjectObs ? 'Observação agendada vinculada a um projeto.' : '');
+                document.getElementById('eventModal').style.display = 'block';
+
+                // Hide observation controls for project observations
+                const obsHeader = document.querySelector('#eventModal h3');
+                const obsList = document.getElementById('observationsList');
+                const obsForm = document.getElementById('observationForm');
+
+                if (isProjectObs) {
+                    obsHeader.style.display = 'none';
+                    obsList.style.display = 'none';
+                    obsForm.style.display = 'none';
+                } else {
+                    obsHeader.style.display = 'block';
+                    obsList.style.display = 'block';
+                    obsForm.style.display = 'block';
+                    loadObservations();
+                }
+            }
+
+            document.querySelector('#eventModal .close').addEventListener('click', () => {
+                document.getElementById('eventModal').style.display = 'none';
+                currentEventId = null;
+            });
+
+            async function loadObservations() {
+                try {
+                    const response = await fetch(`${API_URL.replace('events', 'observations')}/${currentEventId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const observations = await response.json();
+                    const observationsList = document.getElementById('observationsList');
+                    console.log('loadObservations: got', observations.length, 'observations');
+                    observationsList.innerHTML = '';
+                    observations.forEach(obs => {
+                        const obsDiv = document.createElement('div');
+                        obsDiv.className = 'observation';
+
+                        const p = document.createElement('p');
+                        p.textContent = obs.observation;
+
+                        const small = document.createElement('small');
+                        small.textContent = `Por: ${obs.email} em ${new Date(obs.created_at).toLocaleString()}`;
+
+                        const btn = document.createElement('button');
+                        btn.textContent = 'Excluir';
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            try {
+                                await deleteObservation(obs.id);
+                                // reload observations after deletion
+                                await loadObservations();
+                            } catch (err) {
+                                console.error('Error deleting observation via button:', err);
+                            }
+                        });
+
+                        obsDiv.appendChild(p);
+                        obsDiv.appendChild(small);
+                        obsDiv.appendChild(btn);
+
+                        observationsList.appendChild(obsDiv);
+                    });
+                } catch (error) {
+                    console.error('Error loading observations:', error);
+                }
+            }
+
+            document.getElementById('observationForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const observation = document.getElementById('observationText').value;
+                try {
+                    await fetch(API_URL.replace('events', 'observations'), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ event_id: currentEventId, observation })
+                    });
+                    document.getElementById('observationText').value = '';
+                    loadObservations();
+                } catch (error) {
+                    console.error('Error saving observation:', error);
+                    alert('Erro ao salvar observação.');
+                }
+            });
+
+            async function deleteObservation(id) {
+                try {
+                    await fetch(`${API_URL.replace('events', 'observations')}/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    loadObservations();
+                } catch (error) {
+                    console.error('Error deleting observation:', error);
+                }
+            }
+
+            document.getElementById('calendarForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
+                
+                try {
+                    const [eventsResp, obsResp] = await Promise.all([
+                        fetch(API_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } }),
+                        fetch(OBS_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } })
+                    ]);
+                    const allEvents = await eventsResp.json();
+                    const observations = await obsResp.json();
+
+                    const normalizedObs = (observations || []).map(o => ({ ...o, type: 'project_observation' }));
+                    const combined = [...(allEvents || []), ...normalizedObs];
+                    
+                    // Filter events in the date range
+                    const eventsInRange = combined.filter(event => {
+                        const eventDate = new Date(event.date);
+                        return eventDate >= startDate && eventDate <= endDate;
+                    });
+                    
+                    // Generate calendar HTML
+                    const calendarHTML = generateCalendarHTML(eventsInRange, startDate, endDate);
+                    
+                    // Print
+                    printCalendar(calendarHTML);
+                    document.getElementById('calendarModal').style.display = 'none';
+                } catch (error) {
+                    console.error('Error generating calendar:', error);
+                    alert('Erro ao gerar calendário.');
+                }
+            });
+
+            function generateCalendarHTML(events, startDate, endDate) {
+                const eventsByDate = {};
+                events.forEach(event => {
+                    const date = event.date;
+                    if (!eventsByDate[date]) eventsByDate[date] = [];
+                    eventsByDate[date].push(event);
+                });
+
+                let html = `
+                    <html>
+                    <head>
+                        <title>Calendário de Eventos</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+                            .day { border: 1px solid #ccc; padding: 5px; min-height: 80px; }
+                            .day-header { font-weight: bold; background-color: #f0f0f0; }
+                            .event { background-color: #e3f2fd; margin: 2px 0; padding: 2px; font-size: 12px; }
+                            h1 { text-align: center; }
+                            .month { page-break-after: always; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Calendário de Eventos</h1>
+                        <p>Período: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}</p>
+                `;
+
+                const currentDate = new Date(startDate);
+                while (currentDate <= endDate) {
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+                    const monthName = currentDate.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+                    
+                    html += `<div class="month"><h2>${monthName}</h2>`;
+                    html += '<div class="calendar">';
+                    
+                    // Days of week
+                    const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                    daysOfWeek.forEach(day => {
+                        html += `<div class="day day-header">${day}</div>`;
+                    });
+                    
+                    // First day of month
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    const startDayOfWeek = firstDay.getDay();
+                    
+                    // Empty cells for days before first day
+                    for (let i = 0; i < startDayOfWeek; i++) {
+                        html += '<div class="day"></div>';
+                    }
+                    
+                    // Days of month
+                    for (let day = 1; day <= lastDay.getDate(); day++) {
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        const dayEvents = eventsByDate[dateStr] || [];
+                        
+                        html += `<div class="day">
+                            <strong>${day}</strong>
+                            ${dayEvents.map(event => {
+                                const prefix = event.type === 'project_observation' ? 'Obs: ' : '';
+                                return `<div class="event">${prefix}${event.title}</div>`;
+                            }).join('')}
+                        </div>`;
+                    }
+                    
+                    html += '</div></div>';
+                    
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    currentDate.setDate(1);
+                }
+                
+                html += '</body></html>';
+                return html;
+            }
+
+            function printCalendar(html) {
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    // Popup blocked — open in same tab as fallback
+                    const fallback = window.open('', '_self');
+                    fallback.document.open();
+                    fallback.document.write(html);
+                    fallback.document.close();
+                    fallback.focus();
+                    fallback.onload = () => { try { fallback.print(); } catch (err) { console.error(err); } };
+                    return;
+                }
+                try {
+                    printWindow.document.open();
+                    printWindow.document.write(html);
+                    printWindow.document.close();
+                    printWindow.focus();
+                    printWindow.onload = () => { try { printWindow.print(); printWindow.close(); } catch (err) { console.error('Print failed:', err); } };
+                } catch (err) {
+                    console.error('Error opening print window:', err);
+                    alert('Não foi possível abrir a janela de impressão. Verifique bloqueadores de popups.');
+                }
+            }
+
+            document.getElementById('logout').addEventListener('click', function() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('dashboardId');
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Dashboard</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html" class="active">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+    
+    <main class="dashboard">
+        <div class="container">
+            <!-- Dashboard Header -->
+            <div class="card" id="dashHeader" style="display:flex;align-items:center;gap:16px;margin-bottom:2rem;border-left:4px solid var(--primary-color)">
+                <img id="dashLogo" alt="Logo" style="height:60px;display:none;border-radius:8px">
+                <div style="flex:1">
+                    <h1 id="dashName" style="margin:0;font-size:1.75rem"></h1>
+                    <p id="dashCongregation" style="margin:0;color:var(--gray-600);font-size:0.95rem"></p>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="widgets">
+                <div class="card stat-card">
+                    <h3>Total de Membros</h3>
+                    <div class="stat-value" id="membersCount">0</div>
+                    <div class="stat-label">Membros cadastrados</div>
+                </div>
+                <div class="card stat-card" style="border-left-color:var(--secondary-color)">
+                    <h3>Projetos Ativos</h3>
+                    <div class="stat-value" id="projectsCount">0</div>
+                    <div class="stat-label">Em andamento</div>
+                </div>
+                <div class="card stat-card" style="border-left-color:var(--warning-color)">
+                    <h3>Próximos Eventos</h3>
+                    <div class="stat-value" id="upcomingEventsCount">0</div>
+                    <div class="stat-label">Agendados</div>
+                </div>
+                <div class="card stat-card" style="border-left-color:var(--secondary-color)">
+                    <h3>Entradas (mês)</h3>
+                    <div class="stat-value" id="dashMonthIncome" style="font-size:1.5rem">R$ 0,00</div>
+                    <div class="stat-label">Receitas do mês</div>
+                </div>
+                <div class="card stat-card" style="border-left-color:var(--danger-color)">
+                    <h3>Saídas (mês)</h3>
+                    <div class="stat-value" id="dashMonthExpense" style="font-size:1.5rem">R$ 0,00</div>
+                    <div class="stat-label">Despesas do mês</div>
+                </div>
+                <div class="card stat-card" style="border-left-color:var(--primary-color)">
+                    <h3>Saldo (mês)</h3>
+                    <div class="stat-value" id="dashMonthNet" style="font-size:1.5rem">R$ 0,00</div>
+                    <div class="stat-label">Balanço atual</div>
+                </div>
+            </div>
+
+            <!-- Charts and Lists Section -->
+            <div class="grid grid-2" style="margin-top:2rem">
+                <div class="card">
+                    <h2>📊 Entradas x Saídas</h2>
+                    <canvas id="financeChart" height="200"></canvas>
+                </div>
+                <div class="card">
+                    <h2>💰 Transações Recentes</h2>
+                    <div id="recentTransactionsList" style="max-height:300px;overflow-y:auto"></div>
+                    <a href="financeiro.html" style="margin-top:1rem">Ver todos →</a>
+                </div>
+            </div>
+
+            <div class="grid grid-2" style="margin-top:1.5rem">
+                <div class="card">
+                    <h2>📅 Próximos Eventos</h2>
+                    <div id="upcomingEventsList" style="max-height:300px;overflow-y:auto"></div>
+                    <a href="agenda.html" style="margin-top:1rem">Ver agenda completa →</a>
+                </div>
+                <div class="card">
+                    <h2>🎂 Aniversariantes do Mês</h2>
+                    <div id="birthdaysList" style="max-height:300px;overflow-y:auto"></div>
+                    <a href="membros.html" style="margin-top:1rem">Ver todos os membros →</a>
+                </div>
+            </div>
+
+            <!-- Quick Access Cards -->
+            <h2 style="margin-top:3rem;margin-bottom:1.5rem;color:var(--gray-800)">Acesso Rápido</h2>
+            <div class="grid grid-4">
+                <a href="gestao.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">👤</div>
+                    <h3 style="color:var(--gray-900)">Gestão DP</h3>
+                    <p>Gerencie dados pessoais</p>
+                </a>
+                <a href="agenda.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">📅</div>
+                    <h3 style="color:var(--gray-900)">Agenda</h3>
+                    <p>Organize seus eventos</p>
+                </a>
+                <a href="projetos.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">📋</div>
+                    <h3 style="color:var(--gray-900)">Projetos</h3>
+                    <p>Acompanhe projetos</p>
+                </a>
+                <a href="membros.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">👥</div>
+                    <h3 style="color:var(--gray-900)">Membros</h3>
+                    <p>Gerencie membros</p>
+                </a>
+                <a href="drivfotos.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">📸</div>
+                    <h3 style="color:var(--gray-900)">Drive Fotos</h3>
+                    <p>Acesse suas fotos</p>
+                </a>
+                <a href="drivdoc.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">📄</div>
+                    <h3 style="color:var(--gray-900)">Drive Docs</h3>
+                    <p>Gerencie documentos</p>
+                </a>
+                <a href="financeiro.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">💵</div>
+                    <h3 style="color:var(--gray-900)">Financeiro</h3>
+                    <p>Controle financeiro</p>
+                </a>
+                <a href="configuracao.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
+                    <div style="font-size:3rem;margin-bottom:1rem">⚙️</div>
+                    <h3 style="color:var(--gray-900)">Configurações</h3>
+                    <p>Ajuste preferências</p>
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            initDashboard();
+        }
+
+        async function initDashboard() {
+            await Promise.all([
+                loadConfig(),
+                loadMembers(),
+                loadProjects(),
+                loadEvents(),
+                loadBirthdays(),
+                loadFinance()
+            ]);
+        }
+
+        function formatCurrency(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        async function loadConfig() {
+            const res = await fetch('http://localhost:3000/config', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            const nameEl = document.getElementById('dashName');
+            const congEl = document.getElementById('dashCongregation');
+            const logoEl = document.getElementById('dashLogo');
+            nameEl.textContent = data.name || '';
+            congEl.textContent = data.code ? `ID: ${data.code}${data.congregation ? ' | ' + data.congregation : ''}` : (data.congregation || '');
+            if (data.logo) {
+                logoEl.src = `uploads/${data.logo}`;
+                logoEl.style.display = 'block';
+            }
+        }
+
+        async function loadBirthdays() {
+            const response = await fetch('http://localhost:3000/members', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            const members = await response.json();
+            const today = new Date();
+            const currentMonth = today.getMonth() + 1;
+            const currentDay = today.getDate();
+            const birthdays = members.filter(member => {
+                if (!member.birth_date) return false;
+                const [year, month, day] = member.birth_date.split('-');
+                return parseInt(month) === currentMonth && parseInt(day) >= currentDay;
+            }).slice(0, 5);
+            const birthdaysList = document.getElementById('birthdaysList');
+            birthdaysList.innerHTML = birthdays.map(m => `<p>${m.name} - ${m.birth_date}</p>`).join('') || '<p>Nenhum aniversário próximo.</p>';
+        }
+
+        async function loadMembers() {
+            const res = await fetch('http://localhost:3000/members', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            const members = await res.json();
+            document.getElementById('membersCount').textContent = members.length;
+        }
+
+        async function loadProjects() {
+            const res = await fetch('http://localhost:3000/projects', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            const projects = await res.json();
+            document.getElementById('projectsCount').textContent = projects.length;
+        }
+
+        async function loadEvents() {
+            const res = await fetch('http://localhost:3000/events', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            const events = await res.json();
+            const now = new Date();
+            const upcoming = events.filter(e => {
+                const d = new Date(e.date);
+                return d >= now;
+            }).sort((a,b) => new Date(a.date) - new Date(b.date)).slice(0,5);
+            document.getElementById('upcomingEventsCount').textContent = upcoming.length;
+            const list = document.getElementById('upcomingEventsList');
+            list.innerHTML = upcoming.map(e => `<p>${new Date(e.date).toLocaleDateString('pt-BR')} - ${e.title}</p>`).join('') || '<p>Sem eventos próximos.</p>';
+        }
+
+        async function loadFinance() {
+            const now = new Date();
+            const months = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+            }
+            const requests = months.map(m => fetch(`http://localhost:3000/transactions?month=${m.month}&year=${m.year}`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            }).then(r => r.json()));
+            const results = await Promise.all(requests);
+            const labels = months.map(m => `${String(m.month).padStart(2,'0')}/${m.year}`);
+            const incomes = results.map(rows => rows.filter(r => r.type === 'income').reduce((s,r)=>s+parseFloat(r.amount||0),0));
+            const expenses = results.map(rows => rows.filter(r => r.type === 'expense').reduce((s,r)=>s+parseFloat(r.amount||0),0));
+            const currentIdx = results.length - 1;
+            const monthIncome = incomes[currentIdx] || 0;
+            const monthExpense = expenses[currentIdx] || 0;
+            document.getElementById('dashMonthIncome').textContent = formatCurrency(monthIncome);
+            document.getElementById('dashMonthExpense').textContent = formatCurrency(monthExpense);
+            document.getElementById('dashMonthNet').textContent = formatCurrency(monthIncome - monthExpense);
+            renderFinanceChart(labels, incomes, expenses);
+            const allRes = await fetch('http://localhost:3000/transactions', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            const all = await allRes.json();
+            const recent = all.slice(0,5);
+            const recentList = document.getElementById('recentTransactionsList');
+            recentList.innerHTML = recent.map(t => `<p>${new Date(t.date).toLocaleDateString('pt-BR')} - ${t.description} - ${formatCurrency(parseFloat(t.amount))} (${t.type === 'income' ? 'Entrada' : 'Saída'})</p>`).join('') || '<p>Sem transações.</p>';
+        }
+
+        function renderFinanceChart(labels, incomes, expenses) {
+            const ctx = document.getElementById('financeChart');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Entradas',
+                            data: incomes,
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)'
+                        },
+                        {
+                            label: 'Saídas',
+                            data: expenses,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

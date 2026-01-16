@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Dashboard de Membros</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .member-list {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .print-only {
+            display: none;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .dashboard {
+                padding: 0;
+            }
+            .chart-card {
+                box-shadow: none;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-list no-print">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">projetos</a></li>
+        <li class="nav-item"><a href="membros.html">membros</a></li>
+        <li class="nav-item"><a href="financeiro.html">financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">driv fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">driv doc</a></li>
+        <li class="nav-item"><a href="configuracao.html">configurações</a></li>
+        <li class="nav-item"><button id="logout">Logout</button></li>
+    </nav>
+    
+    <main class="dashboard">
+        <div class="print-header print-only">
+            <h1 id="printTitle">Relatório de Membros</h1>
+            <p id="printDate"></p>
+        </div>
+
+        <h1 class="no-print">Análise de Membros</h1>
+        
+        <div class="controls no-print">
+            <button onclick="window.print()" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Imprimir Relatório</button>
+            <a href="membros.html" style="text-decoration: none; color: #007bff;">Voltar para Lista</a>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>Crescimento por Período</h2>
+                <canvas id="growthChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h2>Membros por Congregação</h2>
+                <canvas id="congregationChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h2>Status dos Membros</h2>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <div class="member-list">
+            <h2>Gerenciamento de Membros</h2>
+            <div class="controls no-print">
+                <input type="text" id="searchInput" placeholder="Buscar membro..." style="padding: 8px; width: 300px;">
+                <select id="statusFilter" style="padding: 8px;">
+                    <option value="all">Todos os Status</option>
+                    <option value="active">Ativos</option>
+                    <option value="inactive">Inativos</option>
+                </select>
+            </div>
+            <table id="membersTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Congregação</th>
+                        <th>Cargo</th>
+                        <th>Data Entrada</th>
+                        <th>Status</th>
+                        <th class="no-print">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="membersBody"></tbody>
+            </table>
+        </div>
+    </main>
+    
+    <script>
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+        let allMembers = [];
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            initDashboard();
+        }
+
+        async function initDashboard() {
+            await loadConfig();
+            await loadMembers();
+            document.getElementById('printDate').textContent = new Date().toLocaleDateString('pt-BR');
+        }
+
+        async function loadConfig() {
+            try {
+                const res = await fetch('http://localhost:3000/config', {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.name) document.getElementById('printTitle').textContent = `${data.name} - Relatório de Membros`;
+                }
+            } catch (e) {
+                console.error('Error loading config:', e);
+            }
+        }
+
+        async function loadMembers() {
+            try {
+                const res = await fetch('http://localhost:3000/members', {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                allMembers = await res.json();
+                renderCharts();
+                filterMembers();
+            } catch (e) {
+                console.error('Error loading members:', e);
+            }
+        }
+
+        function renderCharts() {
+            // Growth Chart (By Month)
+            const growthData = {};
+            allMembers.forEach(m => {
+                const date = m.created_at ? m.created_at.substring(0, 7) : 'N/A'; // YYYY-MM
+                if (date === 'N/A') return;
+                growthData[date] = (growthData[date] || 0) + 1;
+            });
+            
+            const sortedMonths = Object.keys(growthData).sort();
+            let cumulative = 0;
+            const growthDataset = sortedMonths.map(month => {
+                cumulative += growthData[month];
+                return cumulative;
+            });
+
+            new Chart(document.getElementById('growthChart'), {
+                type: 'line',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [{
+                        label: 'Total de Membros',
+                        data: growthDataset,
+                        borderColor: '#2ecc71',
+                        tension: 0.1,
+                        fill: true,
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)'
+                    }]
+                }
+            });
+
+            // Congregation Chart
+            const congData = {};
+            allMembers.forEach(m => {
+                const cong = m.congregation || 'Sem Congregação';
+                congData[cong] = (congData[cong] || 0) + 1;
+            });
+
+            new Chart(document.getElementById('congregationChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(congData),
+                    datasets: [{
+                        label: 'Membros por Congregação',
+                        data: Object.values(congData),
+                        backgroundColor: '#3498db'
+                    }]
+                }
+            });
+
+            // Status Chart
+            const statusData = { active: 0, inactive: 0 };
+            allMembers.forEach(m => {
+                const status = m.status || 'active';
+                statusData[status] = (statusData[status] || 0) + 1;
+            });
+
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ativos', 'Inativos'],
+                    datasets: [{
+                        data: [statusData.active, statusData.inactive],
+                        backgroundColor: ['#2ecc71', '#e74c3c']
+                    }]
+                }
+            });
+        }
+
+        function filterMembers() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const filtered = allMembers.filter(m => {
+                const matchesSearch = m.name.toLowerCase().includes(search) || 
+                                    (m.congregation && m.congregation.toLowerCase().includes(search));
+                const matchesStatus = statusFilter === 'all' || (m.status || 'active') === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(members) {
+            const tbody = document.getElementById('membersBody');
+            tbody.innerHTML = members.map(m => `
+                <tr>
+                    <td>${m.name}</td>
+                    <td>${m.congregation || '-'}</td>
+                    <td>${m.cargo || '-'}</td>
+                    <td>${m.created_at ? new Date(m.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                    <td>
+                        <span class="status-badge status-${m.status || 'active'}" 
+                              onclick="toggleStatus(${m.id}, '${m.status || 'active'}')">
+                            ${(m.status || 'active') === 'active' ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td class="no-print">
+                        <button onclick="toggleStatus(${m.id}, '${m.status || 'active'}')" 
+                                style="background:none;border:none;color:#007bff;cursor:pointer">
+                            Alterar Status
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function toggleStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            if (!confirm(`Deseja alterar o status para ${newStatus === 'active' ? 'Ativo' : 'Inativo'}?`)) return;
+
+            try {
+                // We need to send other required fields too, or backend will set them to null if we use PUT replacement
+                // Current backend implementation of PUT updates specific fields provided in body.
+                // Let's check server.js implementation again.
+                // It does partial update if fields are provided? No, it looks like it constructs query dynamically.
+                // Yes: let query = 'UPDATE...'; if (status) ...
+                // But it requires name, congregation, cargo, birth_date in body to be present or it might fail if they are NOT NULL in DB?
+                // Wait, the PUT route extracts: const { name, congregation, cargo, birth_date, status, created_at } = req.body;
+                // And then: let query = 'UPDATE members SET name = ?, congregation = ?, cargo = ?, birth_date = ?';
+                // This implies it ALWAYS updates name, congregation, cargo, birth_date.
+                // So I need to send the existing values for these fields.
+                
+                const member = allMembers.find(m => m.id === id);
+                if (!member) return;
+
+                const res = await fetch(`http://localhost:3000/members/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'dashboard-id': dashboardId
+                    },
+                    body: JSON.stringify({
+                        name: member.name,
+                        congregation: member.congregation,
+                        cargo: member.cargo,
+                        birth_date: member.birth_date,
+                        status: newStatus
+                    })
+                });
+
+                if (res.ok) {
+                    // Update local state and re-render
+                    member.status = newStatus;
+                    renderCharts(); // Re-render charts to reflect status change
+                    filterMembers();
+                } else {
+                    alert('Erro ao atualizar status');
+                }
+            } catch (e) {
+                console.error('Error updating status:', e);
+                alert('Erro ao atualizar status');
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterMembers);
+        document.getElementById('statusFilter').addEventListener('change', filterMembers);
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

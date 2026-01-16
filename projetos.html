@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Projetos</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="permissions.js"></script>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html" class="active">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+    
+    <!-- Container de Notificações -->
+    <div id="notificationContainer" style="position:fixed;top:60px;right:20px;z-index:9999;max-width:400px;"></div>
+    
+    <main class="projetos">
+        <h1>Projetos</h1>
+        <button id="toggleView">➕ Adicionar Novo Projeto</button>
+        
+        <div id="registrationView" style="display: none;">
+            <h2>Cadastro de Projeto</h2>
+            <form id="projectForm">
+                <div class="form-group">
+                    <label for="title">Título: *</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Descrição:</label>
+                    <textarea id="description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">📅 Data de Início:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label for="endDate">📅 Data Prevista de Conclusão:</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label for="status">Status:</label>
+                    <select id="status">
+                        <option value="planejamento">Planejamento</option>
+                        <option value="em andamento">Em Andamento</option>
+                        <option value="concluido">Concluído</option>
+                    </select>
+                    <small style="color: #666; display: block; margin-top: 5px;">💡 O status será atualizado automaticamente conforme as datas passam</small>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">✅ Cadastrar Projeto</button>
+                    <button type="button" id="cancelRegistration" class="btn">Cancelar</button>
+                </div>
+            </form>
+        </div>
+        
+        <div id="listView">
+            <div class="filters">
+                <h2>Filtros</h2>
+                <label for="filterTitle">Título:</label>
+                <input type="text" id="filterTitle">
+                <label for="filterStatus">Status:</label>
+                <select id="filterStatus">
+                    <option value="">Todos</option>
+                    <option value="planejamento">Planejamento</option>
+                    <option value="em andamento">Em Andamento</option>
+                    <option value="concluido">Concluído</option>
+                </select>
+                <button id="applyFilter">Aplicar Filtro</button>
+                <button id="printButton">Imprimir</button>
+            </div>
+            
+            <div id="projectsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;"></div>
+        </div>
+
+        <div id="projectDetail" style="display: none;">
+            <button id="backToProjects">← Voltar para Lista</button>
+            
+            <div id="projectViewMode">
+                <h2 id="projectTitle"></h2>
+                <p id="projectDescription" style="color: #666; margin-bottom: 20px;"></p>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button id="editProjectBtn">✏️ Editar</button>
+                    <button id="deleteProjectBtn" style="background-color: #f44336;">🗑️ Deletar</button>
+                </div>
+            </div>
+
+            <div id="projectEditMode" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>Editar Projeto</h3>
+                <form id="editProjectForm" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <label for="editTitle">Título:</label>
+                        <input type="text" id="editTitle" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label for="editDescription">Descrição:</label>
+                        <textarea id="editDescription" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label for="editStartDate">Data de Início:</label>
+                            <input type="date" id="editStartDate" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label for="editEndDate">Data de Conclusão:</label>
+                            <input type="date" id="editEndDate" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="editStatus">Status:</label>
+                        <select id="editStatus" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="planejamento">Planejamento</option>
+                            <option value="em andamento">Em Andamento</option>
+                            <option value="concluido">Concluído</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">💾 Salvar</button>
+                        <button type="button" id="cancelEditBtn" style="background-color: #ddd; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Abas de funcionalidades -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd;">
+                <button class="tab-btn" data-tab="observations" style="background: none; border: none; padding: 10px 20px; cursor: pointer; font-size: 14px; border-bottom: 3px solid #4CAF50;">📝 Observações</button>
+                <button class="tab-btn" data-tab="files" style="background: none; border: none; padding: 10px 20px; cursor: pointer; font-size: 14px;">📎 Arquivos</button>
+                <button class="tab-btn" data-tab="notes" style="background: none; border: none; padding: 10px 20px; cursor: pointer; font-size: 14px;">📓 Anotações</button>
+            </div>
+
+            <!-- Abas de conteúdo -->
+            <div id="observations-tab" class="tab-content">
+                <h3>Observações do Projeto</h3>
+                <div id="observationsList" style="margin-top: 15px;"></div>
+                <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+                    <label for="newObservation">Adicionar Observação:</label>
+                    <textarea id="newObservation" rows="3" style="width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 12px;"></textarea>
+                    
+                    <label for="observationDate" style="display: block; margin-top: 10px;">📅 Data (opcional - para adicionar à agenda):</label>
+                    <input type="date" id="observationDate" style="padding: 8px; margin-top: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 12px;">
+                    
+                    <button id="addObservationBtn" style="margin-top: 10px;">✅ Adicionar</button>
+                </div>
+            </div>
+
+            <div id="files-tab" class="tab-content" style="display: none;">
+                <h3>Upload de Arquivos</h3>
+                <div id="uploadArea" class="upload-area" style="border: 2px dashed #4CAF50; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                    <p>Arraste arquivos aqui ou clique para selecionar</p>
+                    <input type="file" id="projectFiles" multiple style="display: none;">
+                    <button id="selectFilesBtn" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Selecionar Arquivos</button>
+                </div>
+                <div id="filesList" style="margin-top: 20px;"></div>
+            </div>
+
+            <div id="notes-tab" class="tab-content" style="display: none;">
+                <h3>Anotações do Projeto</h3>
+                <textarea id="projectNotes" rows="10" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"></textarea>
+                <button id="saveNotesBtn" style="margin-top: 10px; padding: 10px 20px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">💾 Salvar Anotações</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:3000/projects';
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+        let allProjects = [];
+        let currentProjectId = null;
+
+        // Sistema de Notificações
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            
+            const colors = {
+                success: { bg: '#10b981', icon: '✅' },
+                error: { bg: '#ef4444', icon: '❌' },
+                warning: { bg: '#f59e0b', icon: '⚠️' },
+                info: { bg: '#3b82f6', icon: 'ℹ️' }
+            };
+            
+            const style = colors[type] || colors.info;
+            
+            notification.style.cssText = `
+                background: ${style.bg};
+                color: white;
+                padding: 16px 20px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 14px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <span style="font-size:20px;">${style.icon}</span>
+                <span style="flex:1;">${message}</span>
+                <button onclick="this.parentElement.remove()" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:0;width:24px;height:24px;">&times;</button>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 10000);
+        }
+        
+        // Adicionar animações CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            window.permissionManager.loadUserRole().then(() => {
+                window.permissionManager.applyRestrictions('projetos');
+                setupEventListeners();
+                loadProjects();
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('projectForm').addEventListener('submit', addProject);
+            document.getElementById('applyFilter').addEventListener('click', applyFilter);
+            document.getElementById('printButton').addEventListener('click', printList);
+            document.getElementById('toggleView').addEventListener('click', toggleView);
+            document.getElementById('cancelRegistration').addEventListener('click', cancelRegistration);
+            document.getElementById('backToProjects').addEventListener('click', backToProjects);
+            document.getElementById('addObservationBtn').addEventListener('click', addObservation);
+            document.getElementById('selectFilesBtn').addEventListener('click', () => document.getElementById('projectFiles').click());
+            document.getElementById('projectFiles').addEventListener('change', handleFileSelect);
+            document.getElementById('saveNotesBtn').addEventListener('click', saveProjectNotes);
+            document.getElementById('deleteProjectBtn').addEventListener('click', deleteCurrentProject);
+            document.getElementById('editProjectBtn').addEventListener('click', editCurrentProject);
+            document.getElementById('cancelEditBtn').addEventListener('click', cancelEditProject);
+            document.getElementById('editProjectForm').addEventListener('submit', saveEditedProject);
+            document.getElementById('logout').addEventListener('click', logout);
+
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', switchTab);
+            });
+
+            // Drag and drop for files
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.backgroundColor = '#e8f5e9';
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.backgroundColor = 'transparent';
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.backgroundColor = 'transparent';
+                const files = e.dataTransfer.files;
+                handleFileSelect({ target: { files } });
+            });
+        }
+
+        function switchTab(e) {
+            const tabName = e.target.dataset.tab;
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active style from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.style.borderBottom = 'none';
+                btn.style.color = '#666';
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            e.target.style.borderBottom = '3px solid #4CAF50';
+            e.target.style.color = '#4CAF50';
+        }
+
+        async function loadProjects() {
+            try {
+                const response = await fetch(API_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                allProjects = await response.json();
+                
+                // Atualizar status automaticamente baseado nas datas
+                allProjects.forEach(project => {
+                    project.status = calculateProjectStatus(project);
+                });
+                
+                displayProjects(allProjects);
+            } catch (err) {
+                console.error('Error loading projects:', err);
+                showNotification('Erro ao carregar projetos', 'error');
+            }
+        }
+
+        function calculateProjectStatus(project) {
+            if (!project.start_date || !project.end_date) {
+                return project.status; // Retorna status original se não houver datas
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const startDate = new Date(project.start_date);
+            const endDate = new Date(project.end_date);
+            
+            // Se hoje é anterior à data de início, projeto está em planejamento
+            if (today < startDate) {
+                return 'planejamento';
+            }
+            
+            // Se hoje é posterior à data de conclusão, projeto está concluído
+            if (today > endDate) {
+                return 'concluido';
+            }
+            
+            // Se hoje está entre as datas, projeto está em andamento
+            return 'em andamento';
+        }
+
+        function displayProjects(projects) {
+            const projectsList = document.getElementById('projectsList');
+            projectsList.innerHTML = '';
+            
+            if (projects.length === 0) {
+                projectsList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">Nenhum projeto criado. Clique em "➕ Adicionar Novo Projeto" para começar.</p>';
+                return;
+            }
+
+            projects.forEach(project => {
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project';
+                projectDiv.style.cursor = 'pointer';
+                projectDiv.style.padding = '20px';
+                projectDiv.style.border = '1px solid #ddd';
+                projectDiv.style.borderRadius = '8px';
+                projectDiv.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                projectDiv.style.transition = 'all 0.3s ease';
+                projectDiv.addEventListener('mouseenter', () => {
+                    projectDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                    projectDiv.style.transform = 'translateY(-2px)';
+                });
+                projectDiv.addEventListener('mouseleave', () => {
+                    projectDiv.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    projectDiv.style.transform = 'translateY(0)';
+                });
+                projectDiv.addEventListener('click', () => openProject(project.id, project.title, project.description, project.status));
+
+                const h3 = document.createElement('h3');
+                h3.textContent = project.title;
+                h3.style.margin = '0 0 10px 0';
+
+                const desc = document.createElement('p');
+                desc.textContent = project.description || 'Sem descrição';
+                desc.style.color = '#666';
+                desc.style.fontSize = '14px';
+                desc.style.margin = '0 0 10px 0';
+
+                // Adicionar datas se existirem
+                const datesDiv = document.createElement('div');
+                datesDiv.style.fontSize = '12px';
+                datesDiv.style.color = '#888';
+                datesDiv.style.marginBottom = '10px';
+                
+                let datesText = '';
+                if (project.start_date) {
+                    const startFormatted = new Date(project.start_date).toLocaleDateString('pt-BR');
+                    datesText += `📅 Início: ${startFormatted}`;
+                }
+                if (project.end_date) {
+                    const endFormatted = new Date(project.end_date).toLocaleDateString('pt-BR');
+                    datesText += (datesText ? ' | ' : '') + `🏁 Conclusão: ${endFormatted}`;
+                }
+                
+                if (datesText) {
+                    datesDiv.textContent = datesText;
+                    projectDiv.appendChild(h3);
+                    projectDiv.appendChild(desc);
+                    projectDiv.appendChild(datesDiv);
+                } else {
+                    projectDiv.appendChild(h3);
+                    projectDiv.appendChild(desc);
+                }
+
+                const statusBadge = document.createElement('span');
+                statusBadge.textContent = project.status;
+                statusBadge.style.display = 'inline-block';
+                statusBadge.style.padding = '4px 12px';
+                statusBadge.style.borderRadius = '20px';
+                statusBadge.style.fontSize = '12px';
+                statusBadge.style.fontWeight = 'bold';
+                
+                if (project.status === 'planejamento') {
+                    statusBadge.style.backgroundColor = '#FFF9C4';
+                    statusBadge.style.color = '#F57F17';
+                } else if (project.status === 'em andamento') {
+                    statusBadge.style.backgroundColor = '#BBDEFB';
+                    statusBadge.style.color = '#1565C0';
+                } else {
+                    statusBadge.style.backgroundColor = '#C8E6C9';
+                    statusBadge.style.color = '#2E7D32';
+                }
+
+                projectDiv.appendChild(statusBadge);
+
+                projectsList.appendChild(projectDiv);
+            });
+        }
+
+        function openProject(id, title, description, status) {
+            currentProjectId = id;
+            
+            // Buscar dados completos do projeto
+            const project = allProjects.find(p => p.id === id);
+            
+            document.getElementById('listView').style.display = 'none';
+            document.getElementById('registrationView').style.display = 'none';
+            document.getElementById('projectDetail').style.display = 'block';
+            document.getElementById('projectTitle').textContent = title;
+            document.getElementById('projectDescription').textContent = `Descrição: ${description || 'Sem descrição'} | Status: ${status}`;
+            
+            // Preencher dados na forma de edição (oculta)
+            if (project) {
+                document.getElementById('editTitle').value = project.title || '';
+                document.getElementById('editDescription').value = project.description || '';
+                document.getElementById('editStartDate').value = project.start_date || '';
+                document.getElementById('editEndDate').value = project.end_date || '';
+                document.getElementById('editStatus').value = project.status || 'planejamento';
+            }
+            
+            loadObservations();
+            loadProjectFiles();
+            loadProjectNotes();
+        }
+
+        function backToProjects() {
+            document.getElementById('projectDetail').style.display = 'none';
+            document.getElementById('listView').style.display = 'block';
+            document.getElementById('projectViewMode').style.display = 'block';
+            document.getElementById('projectEditMode').style.display = 'none';
+            currentProjectId = null;
+        }
+
+        function editCurrentProject() {
+            document.getElementById('projectViewMode').style.display = 'none';
+            document.getElementById('projectEditMode').style.display = 'block';
+        }
+
+        function cancelEditProject() {
+            document.getElementById('projectViewMode').style.display = 'block';
+            document.getElementById('projectEditMode').style.display = 'none';
+        }
+
+        async function saveEditedProject(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('editTitle').value;
+            const description = document.getElementById('editDescription').value;
+            const status = document.getElementById('editStatus').value;
+            const startDate = document.getElementById('editStartDate').value;
+            const endDate = document.getElementById('editEndDate').value;
+            
+            try {
+                const response = await fetch(`http://localhost:3000/projects/${currentProjectId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}`,
+                        'dashboard-id': dashboardId 
+                    },
+                    body: JSON.stringify({ title, description, status, startDate, endDate })
+                });
+
+                if (response.ok) {
+                    showNotification('Projeto salvo com sucesso!', 'success');
+                    cancelEditProject();
+                    loadProjects(); // Recarregar lista
+                    
+                    // Atualizar exibição atual
+                    const project = allProjects.find(p => p.id === currentProjectId);
+                    if (project) {
+                        document.getElementById('projectTitle').textContent = title;
+                        document.getElementById('projectDescription').textContent = `Descrição: ${description || 'Sem descrição'} | Status: ${status}`;
+                    }
+                } else {
+                    showNotification('Erro ao salvar projeto', 'error');
+                }
+            } catch (err) {
+                console.error('Error saving project:', err);
+                showNotification('Erro ao salvar projeto', 'error');
+            }
+        }
+
+        async function addObservation() {
+            if (!currentProjectId) {
+                showNotification('Selecione um projeto antes de adicionar observação.', 'warning');
+                return;
+            }
+            const text = document.getElementById('newObservation').value;
+            const date = document.getElementById('observationDate').value;
+            
+            if (!text.trim()) {
+                showNotification('Digite uma observação', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/project-observations', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}`,
+                        'dashboard-id': dashboardId
+                    },
+                    body: JSON.stringify({ 
+                        project_id: currentProjectId, 
+                        text,
+                        observation_date: date || null
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('newObservation').value = '';
+                    document.getElementById('observationDate').value = '';
+                    showNotification('Observação adicionada com sucesso!', 'success');
+                    loadObservations();
+                } else {
+                    let msg = 'Erro ao adicionar observação';
+                    try {
+                        const data = await response.json();
+                        if (data && data.error) msg += `: ${data.error}`;
+                    } catch (_) {
+                        // ignore parse errors
+                    }
+                    showNotification(msg, 'error');
+                }
+            } catch (err) {
+                console.error('Error adding observation:', err);
+                showNotification('Erro ao adicionar observação', 'error');
+            }
+        }
+
+        async function loadObservations() {
+            try {
+                const response = await fetch(`http://localhost:3000/project-observations?project_id=${currentProjectId}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                const observations = await response.json();
+                const observationsList = document.getElementById('observationsList');
+                observationsList.innerHTML = '';
+
+                if (observations.length === 0) {
+                    observationsList.innerHTML = '<p style="color: #999;">Nenhuma observação ainda.</p>';
+                    return;
+                }
+
+                observations.forEach(obs => {
+                    const obsDiv = document.createElement('div');
+                    obsDiv.style.padding = '12px';
+                    obsDiv.style.marginBottom = '10px';
+                    obsDiv.style.backgroundColor = '#f9f9f9';
+                    obsDiv.style.borderLeft = '4px solid ' + (obs.observation_date ? '#FF9800' : '#4CAF50');
+                    obsDiv.style.borderRadius = '4px';
+
+                    const text = document.createElement('p');
+                    text.textContent = obs.text;
+                    text.style.margin = '0 0 5px 0';
+
+                    const metaDiv = document.createElement('div');
+                    metaDiv.style.fontSize = '12px';
+                    metaDiv.style.color = '#999';
+                    metaDiv.style.display = 'flex';
+                    metaDiv.style.gap = '15px';
+                    metaDiv.style.alignItems = 'center';
+                    metaDiv.style.flexWrap = 'wrap';
+                    
+                    const userSpan = document.createElement('small');
+                    userSpan.textContent = '👤 ' + (obs.user_name || 'Usuário Desconhecido');
+                    userSpan.style.fontWeight = 'bold';
+                    userSpan.style.color = '#333';
+                    
+                    const createdDate = document.createElement('small');
+                    createdDate.textContent = '📝 ' + new Date(obs.created_at).toLocaleString('pt-BR');
+                    
+                    let obsDateSpan = null;
+                    if (obs.observation_date) {
+                        obsDateSpan = document.createElement('small');
+                        obsDateSpan.textContent = '📅 Agendado: ' + new Date(obs.observation_date + 'T00:00:00').toLocaleDateString('pt-BR');
+                        obsDateSpan.style.color = '#FF9800';
+                        obsDateSpan.style.fontWeight = 'bold';
+                    }
+
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = '✏️';
+                    editBtn.style.background = 'none';
+                    editBtn.style.border = 'none';
+                    editBtn.style.cursor = 'pointer';
+                    editBtn.style.fontSize = '14px';
+                    editBtn.addEventListener('click', () => editObservation(obs));
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '🗑️';
+                    deleteBtn.style.background = 'none';
+                    deleteBtn.style.border = 'none';
+                    deleteBtn.style.cursor = 'pointer';
+                    deleteBtn.style.fontSize = '14px';
+                    deleteBtn.addEventListener('click', async () => {
+                        if (confirm('Deletar observação?')) {
+                            await fetch(`http://localhost:3000/project-observations/${obs.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                            });
+                            loadObservations();
+                        }
+                    });
+
+                    const actions = document.createElement('div');
+                    actions.style.display = 'flex';
+                    actions.style.gap = '8px';
+                    actions.style.marginLeft = 'auto';
+
+                    metaDiv.appendChild(userSpan);
+                    metaDiv.appendChild(createdDate);
+                    if (obsDateSpan) {
+                        metaDiv.appendChild(obsDateSpan);
+                    }
+                    actions.appendChild(editBtn);
+                    actions.appendChild(deleteBtn);
+                    metaDiv.appendChild(actions);
+
+                    obsDiv.appendChild(text);
+                    obsDiv.appendChild(metaDiv);
+                    observationsList.appendChild(obsDiv);
+                });
+            } catch (err) {
+                console.error('Error loading observations:', err);
+            }
+        }
+
+        async function editObservation(obs) {
+            const newText = prompt('Editar observação:', obs.text || '');
+            if (newText === null) return; // cancel
+
+            const newDate = prompt('Editar data (AAAA-MM-DD, deixe vazio para remover):', obs.observation_date || '');
+            if (newDate === null) return; // cancel
+
+            try {
+                const response = await fetch(`http://localhost:3000/project-observations/${obs.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'dashboard-id': dashboardId
+                    },
+                    body: JSON.stringify({
+                        text: newText.trim(),
+                        observation_date: newDate.trim() || null
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao atualizar observação');
+                }
+
+                loadObservations();
+            } catch (err) {
+                console.error('Error editing observation:', err);
+                showNotification('Erro ao editar observação', 'error');
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            Array.from(files).forEach(file => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('project_id', currentProjectId);
+
+                fetch('http://localhost:3000/project-files', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                }).then(resp => {
+                    if (resp.ok) {
+                        loadProjectFiles();
+                    }
+                }).catch(err => console.error('Upload failed:', err));
+            });
+        }
+
+        async function loadProjectFiles() {
+            try {
+                const response = await fetch(`http://localhost:3000/project-files?project_id=${currentProjectId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const files = await response.json();
+                const filesList = document.getElementById('filesList');
+                filesList.innerHTML = '';
+
+                if (files.length === 0) {
+                    filesList.innerHTML = '<p style="color: #999; margin-top: 20px;">Nenhum arquivo enviado ainda.</p>';
+                    return;
+                }
+
+                files.forEach(file => {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.style.padding = '10px';
+                    fileDiv.style.marginBottom = '10px';
+                    fileDiv.style.backgroundColor = '#f5f5f5';
+                    fileDiv.style.borderRadius = '4px';
+                    fileDiv.style.display = 'flex';
+                    fileDiv.style.justifyContent = 'space-between';
+                    fileDiv.style.alignItems = 'center';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = '📄 ' + file.name;
+                    nameSpan.style.flex = '1';
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '🗑️ Deletar';
+                    deleteBtn.style.padding = '5px 10px';
+                    deleteBtn.style.backgroundColor = '#f44336';
+                    deleteBtn.style.color = 'white';
+                    deleteBtn.style.border = 'none';
+                    deleteBtn.style.borderRadius = '3px';
+                    deleteBtn.style.cursor = 'pointer';
+                    deleteBtn.style.fontSize = '12px';
+                    deleteBtn.addEventListener('click', async () => {
+                        if (confirm('Deletar arquivo?')) {
+                            await fetch(`http://localhost:3000/project-files/${file.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            loadProjectFiles();
+                        }
+                    });
+
+                    fileDiv.appendChild(nameSpan);
+                    fileDiv.appendChild(deleteBtn);
+                    filesList.appendChild(fileDiv);
+                });
+            } catch (err) {
+                console.error('Error loading files:', err);
+            }
+        }
+
+        async function loadProjectNotes() {
+            try {
+                const response = await fetch(`http://localhost:3000/project-notes?project_id=${currentProjectId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                document.getElementById('projectNotes').value = data.notes || '';
+            } catch (err) {
+                console.error('Error loading notes:', err);
+            }
+        }
+
+        async function saveProjectNotes() {
+            const notes = document.getElementById('projectNotes').value;
+            try {
+                const response = await fetch('http://localhost:3000/project-notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ project_id: currentProjectId, notes })
+                });
+
+                if (response.ok) {
+                    showNotification('Anotações salvas com sucesso!', 'success');
+                } else {
+                    showNotification('Erro ao salvar anotações', 'error');
+                }
+            } catch (err) {
+                console.error('Error saving notes:', err);
+                showNotification('Erro ao salvar anotações', 'error');
+            }
+        }
+
+        async function addProject(event) {
+            event.preventDefault();
+            
+            console.log('📝 Iniciando cadastro de projeto...');
+            
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const status = document.getElementById('status').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            console.log('Dados do formulário:', { title, description, status, startDate, endDate });
+            
+            if (!title.trim()) {
+                showNotification('Por favor, preencha o título do projeto', 'warning');
+                return;
+            }
+            
+            const projectData = { title, description, status, startDate, endDate };
+            console.log('Enviando para API:', API_URL, projectData);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}`, 
+                        'dashboard-id': dashboardId 
+                    },
+                    body: JSON.stringify(projectData)
+                });
+
+                console.log('Resposta da API:', response.status, response.statusText);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Projeto criado com ID:', result.id);
+                    showNotification('Projeto cadastrado com sucesso!', 'success');
+                    document.getElementById('projectForm').reset();
+                    toggleView();
+                    await loadProjects();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('❌ Erro do servidor:', errorData);
+                    showNotification('Erro ao cadastrar projeto: ' + (errorData.error || 'Erro desconhecido'), 'error');
+                }
+            } catch (err) {
+                console.error('❌ Erro de conexão:', err);
+                showNotification('Erro ao conectar com o servidor. Verifique se o servidor está rodando.', 'error');
+            }
+        }
+
+        async function deleteCurrentProject() {
+            if (!confirm('Tem certeza que deseja deletar este projeto e todos os seus dados?')) {
+                return;
+            }
+
+            try {
+                await fetch(`${API_URL}/${currentProjectId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                backToProjects();
+                loadProjects();
+            } catch (err) {
+                console.error('Error deleting project:', err);
+            }
+        }
+
+        function applyFilter() {
+            const filterTitle = document.getElementById('filterTitle').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filtered = allProjects.filter(project => {
+                const matchTitle = filterTitle === '' || project.title.toLowerCase().includes(filterTitle);
+                const matchStatus = filterStatus === '' || project.status === filterStatus;
+                return matchTitle && matchStatus;
+            });
+            displayProjects(filtered);
+        }
+
+        function toggleView() {
+            const registrationView = document.getElementById('registrationView');
+            const listView = document.getElementById('listView');
+            const button = document.getElementById('toggleView');
+            if (registrationView.style.display === 'none') {
+                registrationView.style.display = 'block';
+                listView.style.display = 'none';
+                button.textContent = '← Voltar para Lista';
+            } else {
+                registrationView.style.display = 'none';
+                listView.style.display = 'block';
+                button.textContent = '➕ Adicionar Novo Projeto';
+            }
+        }
+
+        function cancelRegistration() {
+            toggleView();
+        }
+
+        function printList() {
+            window.print();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

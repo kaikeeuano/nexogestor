@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Configurações</title>
+    <link rel="stylesheet" href="staly.css">
+    <style>
+        .config-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .config-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .member-list {
+            margin-top: 20px;
+        }
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .member-info {
+            flex-grow: 1;
+        }
+        .member-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending {
+            background: #ffc107;
+            color: #212529;
+        }
+        .status-member {
+            background: #28a745;
+            color: white;
+        }
+        .status-owner {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html" class="active">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+
+    <main class="dashboard">
+        <h1>Configurações do Dashboard</h1>
+
+        <div class="config-section">
+            <h2>Informações do Dashboard</h2>
+            <div style="background: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div>
+                        <strong>ID do Dashboard:</strong>
+                        <span id="dashboardIdDisplay" style="font-family: monospace; background: white; padding: 5px 10px; border-radius: 3px; margin-left: 5px;">-</span>
+                    </div>
+                    <div>
+                        <strong>Código de Acesso:</strong>
+                        <span id="dashboardCodeDisplay" style="font-family: monospace; background: white; padding: 5px 10px; border-radius: 3px; margin-left: 5px; cursor: pointer;" title="Clique para copiar">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>Informações da Congregação</h2>
+            <form id="congregationForm">
+                <div class="form-group">
+                    <label for="dashboardName">Nome do Dashboard:</label>
+                    <input type="text" id="dashboardName" required>
+                </div>
+                <div class="form-group">
+                    <label for="congregationName">Nome da Congregação:</label>
+                    <input type="text" id="congregationName" placeholder="Digite o nome da congregação">
+                </div>
+                <div class="form-group">
+                    <label for="logoUpload">Logo do Dashboard:</label>
+                    <input type="file" id="logoUpload" accept="image/*">
+                    <div id="logoPreview" style="margin-top: 10px;">
+                        <!-- Logo preview will be shown here -->
+                    </div>
+                </div>
+                <button type="submit" class="btn">Salvar Configurações</button>
+            </form>
+        </div>
+
+        <div class="config-section">
+            <h2>Gerenciar Congregações</h2>
+            <div class="form-group">
+                <label for="newCongregation">Adicionar Congregação:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="newCongregation" placeholder="Nome da congregação">
+                    <button type="button" class="btn" id="addCongregationBtn" style="width: auto; white-space: nowrap;">Adicionar</button>
+                </div>
+            </div>
+            <div id="congregationsList" class="member-list">
+                <!-- Congregations will be loaded here -->
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>Gerenciar Cargos</h2>
+            <div class="form-group">
+                <label for="newRole">Adicionar Cargo:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="newRole" placeholder="Nome do cargo">
+                    <button type="button" class="btn" id="addRoleBtn" style="width: auto; white-space: nowrap;">Adicionar</button>
+                </div>
+            </div>
+            <div id="rolesList" class="member-list">
+                <!-- Roles will be loaded here -->
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>Solicitações de Membros dos Sub-Dashboards</h2>
+            <div id="subDashboardRequests" class="member-list">
+                <!-- Sub-dashboard member requests will be loaded here -->
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>Sub-Dashboards por Congregação</h2>
+            <p style="color: #666; margin-bottom: 15px;">Crie dashboards limitados a uma única congregação, onde apenas membros dessa congregação podem ser adicionados.</p>
+            <div class="form-group">
+                <label for="subDashboardName">Nome do Sub-Dashboard:</label>
+                <input type="text" id="subDashboardName" placeholder="Ex: Dashboard Congregação Central">
+            </div>
+            <div class="form-group">
+                <label for="subDashboardCongregation">Congregação:</label>
+                <select id="subDashboardCongregation">
+                    <option value="">Selecione uma congregação</option>
+                </select>
+            </div>
+            <button type="button" class="btn" id="createSubDashboardBtn">Criar Sub-Dashboard</button>
+            
+            <div id="subDashboardsList" class="member-list" style="margin-top: 20px;">
+                <!-- Sub-dashboards will be loaded here -->
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>Gerenciamento de Membros</h2>
+            <div id="membersList" class="member-list">
+                <!-- Members will be loaded here -->
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2>Conta do Usuário</h2>
+            <div class="form-group">
+                <button class="btn" id="changePasswordBtn">Trocar Senha</button>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div id="changePasswordModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-pw">&times;</span>
+                <h2>Trocar Senha</h2>
+                <form id="changePasswordForm">
+                    <label for="currentPassword">Senha Atual:</label>
+                    <input type="password" id="currentPassword" required>
+                    <label for="newPassword">Nova Senha:</label>
+                    <input type="password" id="newPassword" required>
+                    <label for="confirmPassword">Confirmar Nova Senha:</label>
+                    <input type="password" id="confirmPassword" required>
+                    <div style="margin-top:10px;">
+                        <button type="submit" class="btn">Salvar</button>
+                        <button type="button" class="btn btn-danger" id="cancelChangePw">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            const dashboardId = localStorage.getItem('dashboardId');
+
+            if (!token || !dashboardId) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            loadConfiguration();
+            loadCongregations();
+            loadRoles();
+            loadMembers();
+            loadSubDashboards();
+            loadSubDashboardRequests();
+
+            // Congregation form submit
+            document.getElementById('congregationForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('dashboardName').value;
+                const congregation = document.getElementById('congregationName').value;
+                const logoFile = document.getElementById('logoUpload').files[0];
+
+                try {
+                    // Update basic config
+                    const response = await fetch('http://localhost:3000/config', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'dashboard-id': dashboardId
+                        },
+                        body: JSON.stringify({ name, congregation })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to update configuration');
+                    }
+
+                    // Upload logo if selected
+                    if (logoFile) {
+                        const formData = new FormData();
+                        formData.append('logo', logoFile);
+                        
+                        const logoResponse = await fetch('http://localhost:3000/config/logo', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'dashboard-id': dashboardId
+                            },
+                            body: formData
+                        });
+                        
+                        if (!logoResponse.ok) {
+                            console.error('Failed to upload logo');
+                            alert('Configurações salvas, mas erro ao enviar logo.');
+                        }
+                    }
+
+                    alert('Configurações salvas com sucesso!');
+                    loadConfiguration(); // Reload to show new logo
+                } catch (error) {
+                    console.error('Error updating configuration:', error);
+                    alert('Erro ao salvar configurações.');
+                }
+            });
+
+            // Add Congregation
+            document.getElementById('addCongregationBtn').addEventListener('click', async () => {
+                const nameInput = document.getElementById('newCongregation');
+                const name = nameInput.value.trim();
+                
+                if (!name) {
+                    alert('Por favor, digite o nome da congregação.');
+                    nameInput.focus();
+                    return;
+                }
+
+                console.log('Tentando adicionar congregação:', name);
+
+                try {
+                    const response = await fetch('http://localhost:3000/config/congregations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'dashboard-id': dashboardId
+                        },
+                        body: JSON.stringify({ name })
+                    });
+                    
+                    console.log('Resposta status:', response.status);
+                    
+                    if (response.ok) {
+                        nameInput.value = '';
+                        loadCongregations();
+                        alert('Congregação adicionada com sucesso!');
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Erro servidor:', errorData);
+                        alert(`Erro ao adicionar congregação: ${errorData.error || response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('Error adding congregation:', error);
+                    alert('Erro de conexão ao adicionar congregação.');
+                }
+            });
+
+            // Add Role
+            document.getElementById('addRoleBtn').addEventListener('click', async () => {
+                const nameInput = document.getElementById('newRole');
+                const name = nameInput.value.trim();
+                
+                if (!name) {
+                    alert('Por favor, digite o nome do cargo.');
+                    nameInput.focus();
+                    return;
+                }
+
+                console.log('Tentando adicionar cargo:', name);
+
+                try {
+                    const response = await fetch('http://localhost:3000/config/roles', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'dashboard-id': dashboardId
+                        },
+                        body: JSON.stringify({ name })
+                    });
+                    
+                    console.log('Resposta status:', response.status);
+
+                    if (response.ok) {
+                        nameInput.value = '';
+                        loadRoles();
+                        alert('Cargo adicionado com sucesso!');
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Erro servidor:', errorData);
+                        alert(`Erro ao adicionar cargo: ${errorData.error || response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('Error adding role:', error);
+                    alert('Erro de conexão ao adicionar cargo.');
+                }
+            });
+
+            // Create Sub-Dashboard
+            document.getElementById('createSubDashboardBtn').addEventListener('click', async () => {
+                const name = document.getElementById('subDashboardName').value.trim();
+                const congregation = document.getElementById('subDashboardCongregation').value;
+                
+                if (!name) {
+                    alert('Por favor, digite o nome do sub-dashboard.');
+                    return;
+                }
+                
+                if (!congregation) {
+                    alert('Por favor, selecione uma congregação.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('http://localhost:3000/config/subdashboards', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'dashboard-id': dashboardId
+                        },
+                        body: JSON.stringify({ name, congregation })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('subDashboardName').value = '';
+                        document.getElementById('subDashboardCongregation').value = '';
+                        loadSubDashboards();
+                        alert(`Sub-dashboard criado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Erro ao criar sub-dashboard: ${errorData.error || response.statusText}`);
+                    }
+                } catch (error) {
+                    console.error('Error creating sub-dashboard:', error);
+                    alert('Erro de conexão ao criar sub-dashboard.');
+                }
+            });
+
+            // Change password UI
+            document.getElementById('changePasswordBtn').addEventListener('click', () => {
+                document.getElementById('changePasswordModal').style.display = 'block';
+            });
+            document.querySelector('.close-pw').addEventListener('click', () => {
+                document.getElementById('changePasswordModal').style.display = 'none';
+            });
+            document.getElementById('cancelChangePw').addEventListener('click', () => {
+                document.getElementById('changePasswordModal').style.display = 'none';
+            });
+
+            document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (newPassword !== confirmPassword) {
+                    alert('A nova senha e a confirmação não coincidem.');
+                    return;
+                }
+                if (newPassword.length < 6) {
+                    alert('A nova senha deve ter ao menos 6 caracteres.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('http://localhost:3000/change-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert('Senha alterada com sucesso. Você será desconectado e deverá entrar novamente.');
+                        // Logout the user
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('dashboardId');
+                        window.location.href = 'login.html';
+                    } else {
+                        alert(data.error || 'Erro ao alterar senha');
+                    }
+                } catch (err) {
+                    console.error('Error changing password:', err);
+                    alert('Erro de conexão ao alterar senha.');
+                }
+            });
+        });
+
+        async function loadCongregations() {
+            try {
+                const response = await fetch('http://localhost:3000/config/congregations', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                const congregations = await response.json();
+                const list = document.getElementById('congregationsList');
+                list.innerHTML = '';
+                
+                // Populate sub-dashboard congregation select
+                const select = document.getElementById('subDashboardCongregation');
+                select.innerHTML = '<option value="">Selecione uma congregação</option>';
+                
+                congregations.forEach(cong => {
+                    // Add to list
+                    const item = document.createElement('div');
+                    item.className = 'member-item';
+
+                    const info = document.createElement('div');
+                    info.className = 'member-info';
+                    const strong = document.createElement('strong');
+                    strong.textContent = cong.name;
+                    info.appendChild(strong);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'member-actions';
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'btn btn-danger';
+                    delBtn.textContent = 'Excluir';
+                    delBtn.addEventListener('click', async () => { await deleteCongregation(cong.id); });
+                    actions.appendChild(delBtn);
+
+                    item.appendChild(info);
+                    item.appendChild(actions);
+                    list.appendChild(item);
+                    
+                    // Add to select
+                    const option = document.createElement('option');
+                    option.value = cong.name;
+                    option.textContent = cong.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading congregations:', error);
+            }
+        }
+
+        async function deleteCongregation(id) {
+            if (!confirm('Tem certeza que deseja excluir esta congregação?')) return;
+            try {
+                const response = await fetch(`http://localhost:3000/config/congregations/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                if (response.ok) {
+                    loadCongregations();
+                    loadSubDashboards(); // Reload sub-dashboards as well
+                } else {
+                    alert('Erro ao excluir congregação');
+                }
+            } catch (error) {
+                console.error('Error deleting congregation:', error);
+            }
+        }
+
+        async function loadRoles() {
+            try {
+                const response = await fetch('http://localhost:3000/config/roles', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                const roles = await response.json();
+                const list = document.getElementById('rolesList');
+                list.innerHTML = '';
+                
+                roles.forEach(role => {
+                    const item = document.createElement('div');
+                    item.className = 'member-item';
+
+                    const info = document.createElement('div');
+                    info.className = 'member-info';
+                    const strong = document.createElement('strong');
+                    strong.textContent = role.name;
+                    info.appendChild(strong);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'member-actions';
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'btn btn-danger';
+                    delBtn.textContent = 'Excluir';
+                    delBtn.addEventListener('click', async () => { await deleteRole(role.id); });
+                    actions.appendChild(delBtn);
+
+                    item.appendChild(info);
+                    item.appendChild(actions);
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading roles:', error);
+            }
+        }
+
+        async function deleteRole(id) {
+            if (!confirm('Tem certeza que deseja excluir este cargo?')) return;
+            try {
+                const response = await fetch(`http://localhost:3000/config/roles/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                if (response.ok) {
+                    loadRoles();
+                } else {
+                    alert('Erro ao excluir cargo');
+                }
+            } catch (error) {
+                console.error('Error deleting role:', error);
+            }
+        }
+
+        async function loadSubDashboards() {
+            try {
+                const response = await fetch('http://localhost:3000/config/subdashboards', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                const subDashboards = await response.json();
+                const list = document.getElementById('subDashboardsList');
+                list.innerHTML = '';
+                
+                if (subDashboards.length === 0) {
+                    list.innerHTML = '<p style="color: #666;">Nenhum sub-dashboard criado ainda.</p>';
+                    return;
+                }
+                
+                subDashboards.forEach(sub => {
+                    const item = document.createElement('div');
+                    item.className = 'member-item';
+
+                    const info = document.createElement('div');
+                    info.className = 'member-info';
+                    const strong = document.createElement('strong');
+                    strong.textContent = sub.name;
+                    info.appendChild(strong);
+                    info.appendChild(document.createElement('br'));
+                    
+                    const idBadge = document.createElement('span');
+                    idBadge.className = 'status-badge';
+                    idBadge.style.background = '#17a2b8';
+                    idBadge.style.color = 'white';
+                    idBadge.textContent = `ID: ${sub.id}`;
+                    info.appendChild(idBadge);
+                    info.appendChild(document.createTextNode(' '));
+                    
+                    const congBadge = document.createElement('span');
+                    congBadge.className = 'status-badge status-member';
+                    congBadge.textContent = `Congregação: ${sub.restricted_congregation}`;
+                    info.appendChild(congBadge);
+                    info.appendChild(document.createTextNode(' '));
+                    
+                    const codeBadge = document.createElement('span');
+                    codeBadge.className = 'status-badge';
+                    codeBadge.style.background = '#6c757d';
+                    codeBadge.style.color = 'white';
+                    codeBadge.textContent = `Código: ${sub.code}`;
+                    codeBadge.style.cursor = 'pointer';
+                    codeBadge.title = 'Clique para copiar';
+                    codeBadge.addEventListener('click', () => {
+                        navigator.clipboard.writeText(sub.code);
+                        alert('Código copiado para a área de transferência!');
+                    });
+                    info.appendChild(codeBadge);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'member-actions';
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'btn btn-danger';
+                    delBtn.textContent = 'Excluir';
+                    delBtn.addEventListener('click', async () => { await deleteSubDashboard(sub.id); });
+                    actions.appendChild(delBtn);
+
+                    item.appendChild(info);
+                    item.appendChild(actions);
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading sub-dashboards:', error);
+                document.getElementById('subDashboardsList').innerHTML = '<p style="color: red;">Erro ao carregar sub-dashboards.</p>';
+            }
+        }
+
+        async function deleteSubDashboard(id) {
+            if (!confirm('Tem certeza que deseja excluir este sub-dashboard? Todos os dados associados serão perdidos.')) return;
+            try {
+                const response = await fetch(`http://localhost:3000/config/subdashboards/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                if (response.ok) {
+                    loadSubDashboards();
+                    alert('Sub-dashboard excluído com sucesso!');
+                } else {
+                    alert('Erro ao excluir sub-dashboard');
+                }
+            } catch (error) {
+                console.error('Error deleting sub-dashboard:', error);
+                alert('Erro de conexão ao excluir sub-dashboard.');
+            }
+        }
+
+        async function loadSubDashboardRequests() {
+            try {
+                const response = await fetch('http://localhost:3000/config/subdashboards/requests', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+                
+                console.log('Sub-dashboard requests response:', response.status);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        // Endpoint not found, might be old server version
+                        console.log('Endpoint not found - server may need restart');
+                        document.getElementById('subDashboardRequests').innerHTML = '<p style="color: #ff9800;">⚠️ Reinicie o servidor para ativar esta funcionalidade.</p>';
+                        return;
+                    }
+                    if (response.status === 403) {
+                        console.log('Not authorized to view requests');
+                        return;
+                    }
+                    throw new Error('Failed to load requests');
+                }
+                
+                const requests = await response.json();
+                console.log('Sub-dashboard requests:', requests);
+                const container = document.getElementById('subDashboardRequests');
+                container.innerHTML = '';
+                
+                if (requests.length === 0) {
+                    container.innerHTML = '<p style="color: #666;">Nenhuma solicitação pendente.</p>';
+                    return;
+                }
+                
+                requests.forEach(req => {
+                    const item = document.createElement('div');
+                    item.className = 'member-item';
+
+                    const info = document.createElement('div');
+                    info.className = 'member-info';
+                    const strong = document.createElement('strong');
+                    strong.textContent = req.username;
+                    info.appendChild(strong);
+                    info.appendChild(document.createElement('br'));
+                    
+                    const subBadge = document.createElement('span');
+                    subBadge.className = 'status-badge';
+                    subBadge.style.background = '#17a2b8';
+                    subBadge.style.color = 'white';
+                    subBadge.textContent = `Sub-Dashboard: ${req.dashboard_name}`;
+                    info.appendChild(subBadge);
+                    info.appendChild(document.createTextNode(' '));
+                    
+                    const congBadge = document.createElement('span');
+                    congBadge.className = 'status-badge status-member';
+                    congBadge.textContent = `Congregação: ${req.congregation}`;
+                    info.appendChild(congBadge);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'member-actions';
+                    
+                    const acceptBtn = document.createElement('button');
+                    acceptBtn.className = 'btn';
+                    acceptBtn.textContent = 'Aceitar';
+                    acceptBtn.addEventListener('click', async () => { 
+                        await approveSubDashboardRequest(req.dashboard_id, req.request_id); 
+                    });
+                    
+                    const rejectBtn = document.createElement('button');
+                    rejectBtn.className = 'btn btn-danger';
+                    rejectBtn.textContent = 'Rejeitar';
+                    rejectBtn.addEventListener('click', async () => { 
+                        await rejectSubDashboardRequest(req.dashboard_id, req.request_id); 
+                    });
+                    
+                    actions.appendChild(acceptBtn);
+                    actions.appendChild(rejectBtn);
+
+                    item.appendChild(info);
+                    item.appendChild(actions);
+                    container.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error loading sub-dashboard requests:', error);
+                const container = document.getElementById('subDashboardRequests');
+                if (container) {
+                    container.innerHTML = '<p style="color: red;">Erro ao carregar solicitações. Verifique o console.</p>';
+                }
+            }
+        }
+
+        async function approveSubDashboardRequest(dashboardId, requestId) {
+            try {
+                const response = await fetch(`http://localhost:3000/config/subdashboards/${dashboardId}/accept`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    },
+                    body: JSON.stringify({ requestId })
+                });
+
+                if (response.ok) {
+                    alert('Membro aprovado com sucesso!');
+                    loadSubDashboardRequests();
+                } else {
+                    const error = await response.json();
+                    alert(`Erro ao aprovar: ${error.error || response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error approving request:', error);
+                alert('Erro de conexão ao aprovar solicitação.');
+            }
+        }
+
+        async function rejectSubDashboardRequest(dashboardId, requestId) {
+            if (!confirm('Tem certeza que deseja rejeitar esta solicitação?')) return;
+            
+            try {
+                const response = await fetch(`http://localhost:3000/config/subdashboards/${dashboardId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    },
+                    body: JSON.stringify({ requestId })
+                });
+
+                if (response.ok) {
+                    alert('Solicitação rejeitada!');
+                    loadSubDashboardRequests();
+                } else {
+                    const error = await response.json();
+                    alert(`Erro ao rejeitar: ${error.error || response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error rejecting request:', error);
+                alert('Erro de conexão ao rejeitar solicitação.');
+            }
+        }
+
+        async function loadConfiguration() {
+            try {
+                const response = await fetch('http://localhost:3000/config', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        alert('Você não tem permissão para acessar as configurações.');
+                        window.location.href = 'sitem.html';
+                        return;
+                    }
+                    if (response.status === 404) {
+                        let isDashboardError = false;
+                        try {
+                            const data = await response.json();
+                            if (data && data.error === 'Dashboard not found') {
+                                isDashboardError = true;
+                            }
+                        } catch (e) {
+                            // Ignora erro de parsing, assume que não é erro de dashboard
+                        }
+
+                        if (isDashboardError) {
+                            alert('Dashboard não encontrado ou configuração indisponível. Por favor, selecione um dashboard novamente.');
+                            localStorage.removeItem('dashboardId');
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            alert('Erro: Rota de configuração não encontrada (404). O servidor pode estar desatualizado. Por favor, reinicie o servidor (node server.js).');
+                        }
+                        return;
+                    }
+                    throw new Error(`Failed to load configuration: ${response.status} ${response.statusText}`);
+                }
+
+                const config = await response.json();
+                document.getElementById('dashboardName').value = config.name || '';
+                document.getElementById('congregationName').value = config.congregation || '';
+                
+                // Display dashboard ID and code
+                document.getElementById('dashboardIdDisplay').textContent = localStorage.getItem('dashboardId');
+                document.getElementById('dashboardCodeDisplay').textContent = config.code || 'N/A';
+                document.getElementById('dashboardCodeDisplay').addEventListener('click', () => {
+                    if (config.code) {
+                        navigator.clipboard.writeText(config.code);
+                        alert('Código copiado para a área de transferência!');
+                    }
+                });
+                
+                if (config.logo) {
+                    const preview = document.getElementById('logoPreview');
+                    preview.innerHTML = `<img src="http://localhost:3000/uploads/${config.logo}" alt="Logo" style="max-height: 100px;">`;
+                }
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+                alert(`Erro ao carregar configurações: ${error.message}`);
+            }
+        }
+
+        async function loadMembers() {
+            try {
+                const response = await fetch('http://localhost:3000/config/members', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load members');
+                }
+
+                const members = await response.json();
+                displayMembers(members);
+            } catch (error) {
+                console.error('Error loading members:', error);
+                document.getElementById('membersList').innerHTML = '<p>Erro ao carregar membros.</p>';
+            }
+        }
+
+        function displayMembers(members) {
+            const membersList = document.getElementById('membersList');
+            membersList.innerHTML = '';
+
+            if (members.length === 0) {
+                membersList.innerHTML = '<p>Nenhum membro encontrado.</p>';
+                return;
+            }
+
+            members.forEach(member => {
+                const memberDiv = document.createElement('div');
+                memberDiv.className = 'member-item';
+
+                const statusClass = member.status === 'pending' ? 'status-pending' :
+                                  member.status === 'owner' ? 'status-owner' : 'status-member';
+
+                const info = document.createElement('div');
+                info.className = 'member-info';
+                const strong = document.createElement('strong');
+                strong.textContent = member.username;
+                info.appendChild(strong);
+                if (member.email) {
+                    const br = document.createElement('br');
+                    const small = document.createElement('small');
+                    small.textContent = member.email;
+                    info.appendChild(br);
+                    info.appendChild(small);
+                }
+                info.appendChild(document.createElement('br'));
+                const statusSpan = document.createElement('span');
+                statusSpan.className = `status-badge ${statusClass}`;
+                statusSpan.textContent = getStatusText(member.status);
+                info.appendChild(statusSpan);
+                if (member.role) {
+                    const roleSpan = document.createElement('span');
+                    roleSpan.className = 'status-badge';
+                    roleSpan.textContent = getRoleText(member.role);
+                    info.appendChild(roleSpan);
+                }
+
+                const actions = document.createElement('div');
+                actions.className = 'member-actions';
+
+                if (member.status === 'pending') {
+                    const acceptBtn = document.createElement('button');
+                    acceptBtn.className = 'btn';
+                    acceptBtn.textContent = 'Aceitar';
+                    acceptBtn.addEventListener('click', () => acceptMember(member.id));
+
+                    const rejectBtn = document.createElement('button');
+                    rejectBtn.className = 'btn btn-danger';
+                    rejectBtn.textContent = 'Rejeitar';
+                    rejectBtn.addEventListener('click', () => rejectMember(member.id));
+
+                    actions.appendChild(acceptBtn);
+                    actions.appendChild(rejectBtn);
+                } else if (member.status === 'member') {
+                    const select = document.createElement('select');
+                    const optMember = document.createElement('option');
+                    optMember.value = 'member';
+                    optMember.textContent = 'Membro (apenas leitura)';
+                    const optAdmin = document.createElement('option');
+                    optAdmin.value = 'tesoureiro';
+                    optAdmin.textContent = 'Tesoureiro';
+                    const optSecretario = document.createElement('option');
+                    optSecretario.value = 'secretario';
+                    optSecretario.textContent = 'Secretário';
+                    const optMidia = document.createElement('option');
+                    optMidia.value = 'midia';
+                    optMidia.textContent = 'Mídia';
+                    const optAdminFull = document.createElement('option');
+                    optAdminFull.value = 'admin';
+                    optAdminFull.textContent = 'Administrador (Acesso Total)';
+                    if (member.role === 'member') optMember.selected = true;
+                    if (member.role === 'tesoureiro') optAdmin.selected = true;
+                    if (member.role === 'secretario') optSecretario.selected = true;
+                    if (member.role === 'midia') optMidia.selected = true;
+                    if (member.role === 'admin') optAdminFull.selected = true;
+                    select.appendChild(optMember);
+                    select.appendChild(optAdmin);
+                    select.appendChild(optSecretario);
+                    select.appendChild(optMidia);
+                    select.appendChild(optAdminFull);
+                    select.addEventListener('change', (e) => changeRole(member.id, e.target.value));
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn btn-danger';
+                    removeBtn.textContent = 'Remover';
+                    removeBtn.addEventListener('click', () => removeMember(member.id));
+
+                    actions.appendChild(select);
+                    actions.appendChild(removeBtn);
+                }
+
+                memberDiv.appendChild(info);
+                memberDiv.appendChild(actions);
+                membersList.appendChild(memberDiv);
+            });
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'pending': return 'Pendente';
+                case 'member': return 'Membro';
+                case 'owner': return 'Proprietário';
+                default: return status;
+            }
+        }
+
+        function getRoleText(role) {
+            switch (role) {
+                case 'admin': return 'Administrador';
+                case 'member': return 'Membro';
+                default: return role;
+            }
+        }
+
+        function getMemberActions(member) {
+            // Deprecated: actions are now rendered using DOM methods in displayMembers for security and reliability.
+            return '';
+        }
+
+        async function acceptMember(memberId) {
+            try {
+                const response = await fetch(`http://localhost:3000/dashboards/${localStorage.getItem('dashboardId')}/accept`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    },
+                    body: JSON.stringify({ requestId: memberId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to accept member');
+                }
+
+                alert('Membro aceito com sucesso!');
+                loadMembers();
+            } catch (error) {
+                console.error('Error accepting member:', error);
+                alert('Erro ao aceitar membro.');
+            }
+        }
+
+        async function rejectMember(memberId) {
+            try {
+                const response = await fetch(`http://localhost:3000/config/members/$\{memberId\}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reject member');
+                }
+
+                alert('Solicitação rejeitada!');
+                loadMembers();
+            } catch (error) {
+                console.error('Error rejecting member:', error);
+                alert('Erro ao rejeitar solicitação.');
+            }
+        }
+
+        async function changeRole(memberId, role) {
+            try {
+                const response = await fetch(`http://localhost:3000/config/members/${memberId}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    },
+                    body: JSON.stringify({ role })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to change role');
+                }
+
+                alert('Função atualizada com sucesso!');
+                loadMembers();
+            } catch (error) {
+                console.error('Error changing role:', error);
+                alert('Erro ao alterar função.');
+            }
+        }
+
+        async function removeMember(memberId) {
+            if (!confirm('Tem certeza que deseja remover este membro?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/config/members/$\{memberId\}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'dashboard-id': localStorage.getItem('dashboardId')
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to remove member');
+                }
+
+                alert('Membro removido com sucesso!');
+                loadMembers();
+            } catch (error) {
+                console.error('Error removing member:', error);
+                alert('Erro ao remover membro.');
+            }
+        }
+
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

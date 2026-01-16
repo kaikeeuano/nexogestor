@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Drive Documentos</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="permissions.js"></script>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html" class="active">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+    
+    <main class="drive">
+        <h1>Drive de Documentos</h1>
+        <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt" multiple>
+        <button id="uploadDocs">Enviar Documentos</button>
+        <div id="docsList"></div>
+    </main>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+        let docsFolderId = null;
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            initDocsFolder();
+            window.permissionManager.loadUserRole().then(() => {
+                window.permissionManager.applyRestrictions('drivdoc');
+            });
+        }
+
+        async function initDocsFolder() {
+            let response = await fetch('http://localhost:3000/folders?type=docs', {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            let folders = await response.json();
+            if (folders.length === 0) {
+                // Create default folder
+                response = await fetch('http://localhost:3000/folders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+                    body: JSON.stringify({ name: 'Documentos', type: 'docs' })
+                });
+                const newFolder = await response.json();
+                docsFolderId = newFolder.id;
+            } else {
+                docsFolderId = folders[0].id;
+            }
+            loadDocs();
+        }
+
+        async function loadDocs() {
+            const response = await fetch(`http://localhost:3000/files?folder_id=${docsFolderId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const files = await response.json();
+            const docsList = document.getElementById('docsList');
+            docsList.innerHTML = '';
+            files.forEach(file => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file';
+
+                const a = document.createElement('a');
+                a.href = `/uploads/${file.filename}`;
+                a.target = '_blank';
+                a.textContent = file.name;
+
+                const btn = document.createElement('button');
+                btn.textContent = 'Excluir';
+                btn.addEventListener('click', async () => { await deleteFile(file.id); });
+
+                fileDiv.appendChild(a);
+                fileDiv.appendChild(btn);
+                docsList.appendChild(fileDiv);
+            });
+        }
+
+        document.getElementById('uploadDocs').addEventListener('click', async () => {
+            const files = document.getElementById('docUpload').files;
+            for (let file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('folder_id', docsFolderId);
+                formData.append('name', file.name);
+                await fetch('http://localhost:3000/files', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+            }
+            loadDocs();
+        });
+
+        async function deleteFile(id) {
+            await fetch(`http://localhost:3000/files/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            loadDocs();
+        }
+
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

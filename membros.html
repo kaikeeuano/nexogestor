@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Membros</title>
+    <link rel="stylesheet" href="staly.css">
+    <script src="permissions.js"></script>
+</head>
+<body>
+    <nav class="nav-list">
+        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html" class="active">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
+    </nav>
+    
+    <main class="membros">
+        <h1>Membros</h1>
+        <div id="subDashboardAlert" style="display: none; background: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-bottom: 15px; border-radius: 5px; color: #856404;">
+            <strong>⚠️ Sub-Dashboard:</strong> <span id="subDashboardMessage"></span>
+        </div>
+        <div class="actions">
+            <button id="addMemberBtn">Adicionar Membro</button>
+            <a href="dashboard_membros.html" style="background-color: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block;">Ver Dashboard</a>
+            <input type="text" id="searchName" placeholder="Buscar por nome">
+            <select id="filterCargo">
+                <option value="">Todos os Cargos</option>
+            </select>
+            <button id="printButton">Imprimir Lista</button>
+        </div>
+
+        <section class="reports" style="margin-top:16px; padding:12px; border:1px solid #ddd; border-radius:8px; background:#f9f9f9;">
+            <h2>Relatórios</h2>
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+                <div>
+                    <label for="reportStart">Início</label>
+                    <input type="date" id="reportStart">
+                </div>
+                <div>
+                    <label for="reportEnd">Fim</label>
+                    <input type="date" id="reportEnd">
+                </div>
+                <div>
+                    <label for="reportCongregation">Congregação</label>
+                    <select id="reportCongregation">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+                <button id="generateReportBtn">Gerar Relatório</button>
+            </div>
+            <div id="reportResults" style="margin-top:12px;"></div>
+        </section>
+        
+        <div id="memberModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modalTitle">Adicionar Membro</h2>
+                <form id="memberForm">
+                    <label for="name">Nome:</label>
+                    <input type="text" id="name" required>
+                    <label for="congregation">Congregação:</label>
+                    <select id="congregation" required>
+                        <option value="">Selecione</option>
+                    </select>
+                    <label for="cargo">Cargo:</label>
+                    <select id="cargo">
+                        <option value="">Selecione</option>
+                    </select>
+                    <label for="birthDate">Data de Nascimento:</label>
+                    <input type="date" id="birthDate">
+                    <label for="photo">Foto:</label>
+                    <input type="file" id="photo" accept="image/*">
+                    <button type="button" id="submitMember">Salvar</button>
+                    <button type="button" id="cancelMember">Cancelar</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="printModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-print">&times;</span>
+                <h2>Opções de Impressão</h2>
+                <div class="form-group">
+                    <label>Filtrar por:</label>
+                    <select id="printType">
+                        <option value="all">Todos</option>
+                        <option value="congregation">Congregação</option>
+                        <option value="role">Cargo</option>
+                    </select>
+                </div>
+                <div class="form-group" id="printFilterValueGroup" style="display: none;">
+                    <label>Selecione:</label>
+                    <select id="printFilterValue">
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="confirmPrintBtn">Imprimir</button>
+                    <button type="button" id="cancelPrintBtn">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="printSection" style="display: none;">
+            <div class="print-header" id="printHeaderContent">
+                <!-- Header content populated dynamically -->
+            </div>
+            <table id="printTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Congregação</th>
+                        <th>Cargo</th>
+                    </tr>
+                </thead>
+                <tbody id="printTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Print Preview Modal -->
+        <div id="printPreview" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close-preview">&times;</span>
+                <h2>Preview do HTML de Impressão</h2>
+                <p>Verifique abaixo o HTML que será impresso. Se estiver correto, feche o preview e confirme a impressão.</p>
+                <pre id="printPreviewContent" style="white-space:pre-wrap;word-wrap:break-word;max-height:400px;overflow:auto;background:#f7f7f7;padding:10px;border:1px solid #ddd"></pre>
+            </div>
+        </div>
+        
+        <table id="membersTable">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Nome</th>
+                    <th>Congregação</th>
+                    <th>Cargo</th>
+                    <th>Data de Nascimento</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="membersBody"></tbody>
+        </table>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:3000/members';
+        const CONFIG_CONG_URL = 'http://localhost:3000/config/congregations';
+        const CONFIG_ROLES_URL = 'http://localhost:3000/config/roles';
+        const CONFIG_URL = 'http://localhost:3000/config';
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
+        let allMembers = [];
+        let editingMember = null;
+        let dashboardConfig = null;
+        let congregationsList = [];
+        let rolesList = [];
+
+        if (!token || !dashboardId) {
+            window.location.href = 'login.html';
+        } else {
+            // Load config first, then congregations
+            loadConfig().then(() => {
+                loadCongregations();
+            });
+            loadRoles();
+            loadMembers();
+            // Apply permission restrictions
+            window.permissionManager.loadUserRole().then(() => {
+                window.permissionManager.applyRestrictions('membros');
+            });
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('http://localhost:3000/dashboard/info', {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                dashboardConfig = await response.json();
+                
+                // Show alert if this is a sub-dashboard
+                if (dashboardConfig.isSubDashboard && dashboardConfig.restrictedCongregation) {
+                    const alert = document.getElementById('subDashboardAlert');
+                    const message = document.getElementById('subDashboardMessage');
+                    message.textContent = `Este dashboard é limitado apenas à congregação "${dashboardConfig.restrictedCongregation}". Só é possível adicionar/editar membros desta congregação.`;
+                    alert.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+            }
+        }
+
+        async function loadCongregations() {
+            // Wait for config to load if not loaded yet
+            if (!dashboardConfig) {
+                await loadConfig();
+            }
+            
+            try {
+                // If sub-dashboard, just set the restricted congregation directly
+                const select = document.getElementById('congregation');
+                const reportSelect = document.getElementById('reportCongregation');
+                
+                if (dashboardConfig && dashboardConfig.isSubDashboard && dashboardConfig.restrictedCongregation) {
+                    select.innerHTML = '';
+                    const option = document.createElement('option');
+                    option.value = dashboardConfig.restrictedCongregation;
+                    option.textContent = dashboardConfig.restrictedCongregation;
+                    option.selected = true;
+                    select.appendChild(option);
+                    select.disabled = true;
+                    
+                    reportSelect.innerHTML = '<option value="">Todas</option>';
+                    const reportOpt = document.createElement('option');
+                    reportOpt.value = dashboardConfig.restrictedCongregation;
+                    reportOpt.textContent = dashboardConfig.restrictedCongregation;
+                    reportSelect.appendChild(reportOpt);
+                    
+                    // No need to fetch congregations list for sub-dashboard
+                    return;
+                }
+                
+                // For main dashboard, fetch congregations
+                const response = await fetch(CONFIG_CONG_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                const congregations = await response.json();
+                congregationsList = congregations;
+                
+                select.innerHTML = '<option value="">Selecione</option>';
+                reportSelect.innerHTML = '<option value="">Todas</option>';
+                
+                congregations.forEach(cong => {
+                    const option = document.createElement('option');
+                    option.value = cong.name;
+                    option.textContent = cong.name;
+                    select.appendChild(option);
+
+                    const reportOpt = document.createElement('option');
+                    reportOpt.value = cong.name;
+                    reportOpt.textContent = cong.name;
+                    reportSelect.appendChild(reportOpt);
+                });
+            } catch (error) {
+                console.error('Error loading congregations:', error);
+            }
+        }
+
+        async function loadRoles() {
+            try {
+                const response = await fetch(CONFIG_ROLES_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                const roles = await response.json();
+                rolesList = roles; // Store for print modal
+                
+                // Populate Filter Select
+                const filterSelect = document.getElementById('filterCargo');
+                filterSelect.innerHTML = '<option value="">Todos os Cargos</option>';
+                
+                // Populate Form Select
+                const formSelect = document.getElementById('cargo');
+                formSelect.innerHTML = '<option value="">Selecione (padrão: membro)</option>';
+                
+                // Add default "membro" option
+                const membroOption = document.createElement('option');
+                membroOption.value = 'membro';
+                membroOption.textContent = 'membro';
+                formSelect.appendChild(membroOption);
+
+                roles.forEach(role => {
+                    // Filter
+                    const filterOption = document.createElement('option');
+                    filterOption.value = role.name;
+                    filterOption.textContent = role.name;
+                    filterSelect.appendChild(filterOption);
+
+                    // Form
+                    const formOption = document.createElement('option');
+                    formOption.value = role.name;
+                    formOption.textContent = role.name;
+                    formSelect.appendChild(formOption);
+                });
+            } catch (error) {
+                console.error('Error loading roles:', error);
+            }
+        }
+
+        async function loadMembers() {
+            console.log('loadMembers: fetching members for dashboard', dashboardId);
+            try {
+                const response = await fetch(API_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                if (response.status === 401) {
+                    // Not authenticated — redirect to login
+                    console.warn('loadMembers: unauthorized (401). Redirecting to login.');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('dashboardId');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('loadMembers: server error', response.status, text);
+                    document.getElementById('membersBody').innerHTML = '<tr><td colspan="6">Erro ao carregar membros. Veja o console para detalhes.</td></tr>';
+                    return;
+                }
+                const members = await response.json();
+                if (!Array.isArray(members)) {
+                    console.error('loadMembers: unexpected response', members);
+                    document.getElementById('membersBody').innerHTML = '<tr><td colspan="6">Resposta inesperada do servidor.</td></tr>';
+                    return;
+                }
+                allMembers = members;
+                displayMembers(allMembers);
+            } catch (error) {
+                console.error('Error in loadMembers:', error);
+                document.getElementById('membersBody').innerHTML = '<tr><td colspan="6">Erro de conexão ao carregar membros.</td></tr>';
+            }
+        }
+
+        function displayMembers(members) {
+            const tbody = document.getElementById('membersBody');
+            tbody.innerHTML = '';
+            members.forEach(member => {
+                const row = document.createElement('tr');
+                console.log('displayMembers: rendering member', member.id);
+
+                const photoTd = document.createElement('td');
+                if (member.photo) {
+                    const img = document.createElement('img');
+                    img.src = `/uploads/${member.photo}`;
+                    img.alt = 'Foto';
+                    photoTd.appendChild(img);
+                } else {
+                    photoTd.textContent = 'Sem foto';
+                }
+
+                const nameTd = document.createElement('td');
+                nameTd.textContent = member.name;
+
+                const congTd = document.createElement('td');
+                congTd.textContent = member.congregation;
+
+                const cargoTd = document.createElement('td');
+                cargoTd.textContent = member.cargo;
+
+                const birthTd = document.createElement('td');
+                birthTd.textContent = member.birth_date || 'N/A';
+
+                const statusTd = document.createElement('td');
+                const currentStatus = member.status || 'active';
+                statusTd.textContent = currentStatus === 'inactive' ? 'Inativo' : 'Ativo';
+
+                const actionsTd = document.createElement('td');
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Editar';
+                editBtn.addEventListener('click', () => editMember(member.id));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Excluir';
+                deleteBtn.addEventListener('click', () => deleteMember(member.id));
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.textContent = currentStatus === 'inactive' ? 'Ativar' : 'Desativar';
+                toggleBtn.addEventListener('click', () => toggleMemberStatus(member.id));
+
+                actionsTd.appendChild(editBtn);
+                actionsTd.appendChild(deleteBtn);
+                actionsTd.appendChild(toggleBtn);
+
+                row.appendChild(photoTd);
+                row.appendChild(nameTd);
+                row.appendChild(congTd);
+                row.appendChild(cargoTd);
+                row.appendChild(birthTd);
+                row.appendChild(statusTd);
+                row.appendChild(actionsTd);
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function openModal(title, member = null) {
+            editingMember = member;
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('memberModal').style.display = 'block';
+            
+            if (member) {
+                // Editando membro existente
+                document.getElementById('name').value = member.name;
+                document.getElementById('congregation').value = member.congregation;
+                document.getElementById('cargo').value = member.cargo;
+                document.getElementById('birthDate').value = member.birth_date || '';
+            } else {
+                // Adicionando novo membro
+                document.getElementById('memberForm').reset();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('memberModal').style.display = 'none';
+            editingMember = null;
+        }
+
+        async function saveMember() {
+            const name = document.getElementById('name').value;
+            const congregation = document.getElementById('congregation').value;
+            const cargo = document.getElementById('cargo').value || 'membro';
+            const birthDate = document.getElementById('birthDate').value;
+            const photo = document.getElementById('photo').files[0];
+
+            if (!congregation) {
+                alert('Por favor, selecione a congregação.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('congregation', congregation);
+            formData.append('cargo', cargo);
+            formData.append('birth_date', birthDate);
+            if (photo) {
+                formData.append('photo', photo);
+            }
+
+            const method = editingMember ? 'PUT' : 'POST';
+            const url = editingMember ? `${API_URL}/${editingMember.id}` : API_URL;
+
+            try {
+                await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+                    body: formData
+                });
+                closeModal();
+                loadMembers();
+            } catch (error) {
+                console.error('Error saving member:', error);
+                alert('Erro ao salvar membro.');
+            }
+        }
+
+        async function deleteMember(id) {
+            if (confirm('Tem certeza que deseja excluir este membro?')) {
+                await fetch(`${API_URL}/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                loadMembers();
+            }
+        }
+
+        function editMember(id) {
+            const member = allMembers.find(m => m.id == id);
+            openModal('Editar Membro', member);
+        }
+
+        function applyFilters() {
+            const searchName = document.getElementById('searchName').value.toLowerCase();
+            const filterCargo = document.getElementById('filterCargo').value;
+            const filtered = allMembers.filter(member => {
+                const matchName = searchName === '' || member.name.toLowerCase().includes(searchName);
+                const matchCargo = filterCargo === '' || member.cargo === filterCargo;
+                return matchName && matchCargo;
+            });
+            displayMembers(filtered);
+        }
+
+        async function toggleMemberStatus(id) {
+            const member = allMembers.find(m => m.id == id);
+            if (!member) return;
+            const nextStatus = (member.status === 'inactive') ? 'active' : 'inactive';
+            const formData = new FormData();
+            formData.append('name', member.name || '');
+            formData.append('congregation', member.congregation || '');
+            formData.append('cargo', member.cargo || '');
+            formData.append('birth_date', member.birth_date || '');
+            formData.append('status', nextStatus);
+            if (member.created_at) formData.append('created_at', member.created_at);
+            try {
+                const resp = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+                    body: formData
+                });
+                if (!resp.ok) {
+                    const msg = await resp.text();
+                    console.error('toggle status failed', resp.status, msg);
+                    alert('Não foi possível atualizar o status.');
+                    return;
+                }
+                loadMembers();
+            } catch (err) {
+                console.error('toggle status error', err);
+                alert('Erro ao atualizar status.');
+            }
+        }
+
+        function generateReport() {
+            const start = document.getElementById('reportStart').value;
+            const end = document.getElementById('reportEnd').value;
+            const cong = document.getElementById('reportCongregation').value;
+            const resultsDiv = document.getElementById('reportResults');
+
+            const filtered = allMembers.filter(m => {
+                const created = m.created_at || '';
+                const inPeriod = (!start || created >= start) && (!end || created <= end);
+                const matchCong = !cong || m.congregation === cong;
+                return inPeriod && matchCong;
+            });
+
+            const total = filtered.length;
+            const byCong = {};
+            filtered.forEach(m => {
+                const key = m.congregation || 'Sem congregação';
+                byCong[key] = (byCong[key] || 0) + 1;
+            });
+
+            let html = `<p><strong>Total</strong>: ${total}</p>`;
+            html += '<ul>';
+            Object.entries(byCong).forEach(([k, v]) => {
+                html += `<li>${k}: ${v}</li>`;
+            });
+            html += '</ul>';
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function openPrintModal() {
+            document.getElementById('printModal').style.display = 'block';
+            document.getElementById('printType').value = 'all';
+            document.getElementById('printFilterValueGroup').style.display = 'none';
+        }
+
+        function closePrintModal() {
+            document.getElementById('printModal').style.display = 'none';
+        }
+
+        document.getElementById('printType').addEventListener('change', function() {
+            const type = this.value;
+            const filterGroup = document.getElementById('printFilterValueGroup');
+            const select = document.getElementById('printFilterValue');
+            
+            select.innerHTML = '';
+            
+            if (type === 'all') {
+                filterGroup.style.display = 'none';
+            } else if (type === 'congregation') {
+                filterGroup.style.display = 'block';
+                congregationsList.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.name;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                });
+            } else if (type === 'role') {
+                filterGroup.style.display = 'block';
+                rolesList.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.name;
+                    opt.textContent = r.name;
+                    select.appendChild(opt);
+                });
+            }
+        });
+
+        document.getElementById('confirmPrintBtn').addEventListener('click', async function() {
+            const type = document.getElementById('printType').value;
+            const value = document.getElementById('printFilterValue').value;
+
+            // Fetch the latest members from server to ensure all registered members are included
+            let membersList = [];
+            try {
+                const resp = await fetch(API_URL, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                if (!resp.ok) {
+                    throw new Error(`Failed to fetch members for print: ${resp.status}`);
+                }
+                membersList = await resp.json();
+                if (!Array.isArray(membersList)) membersList = [];
+            } catch (err) {
+                console.error('Error fetching members for print:', err);
+                alert('Erro ao obter lista de membros para impressão. Verifique o console.');
+                return;
+            }
+
+            // Apply filter to the freshly fetched list
+            let filteredMembers = membersList;
+            let filterText = 'Todos os Membros';
+
+            if (type === 'congregation') {
+                filteredMembers = membersList.filter(m => m.congregation === value);
+                filterText = `Congregação: ${value}`;
+            } else if (type === 'role') {
+                filteredMembers = membersList.filter(m => m.cargo === value);
+                filterText = `Cargo: ${value}`;
+            }
+
+            // Build rows with full columns (Nome, Congregação, Cargo, Data Nasc., Email)
+            let rowsHtml = '';
+            filteredMembers.forEach(m => {
+                rowsHtml += `<tr><td>${m.name || ''}</td><td>${m.congregation || ''}</td><td>${m.cargo || ''}</td><td>${m.birth_date || ''}</td><td>${m.email || ''}</td></tr>`;
+            });
+
+            const name = dashboardConfig ? dashboardConfig.name : 'Dashboard';
+            const logoSrc = (dashboardConfig && dashboardConfig.logo) ? `/uploads/${dashboardConfig.logo}` : '';
+
+            // Optional template PDF: if available at /assets/print_templates/umadcor.pdf, embed it
+            const templateUrl = '/assets/print_templates/umadcor.pdf';
+            const templateHtml = `<div class="template">` +
+                                  `<object data="${templateUrl}" type="application/pdf" width="100%" style="max-height:160px;">` +
+                                  `</object></div>`;
+
+            const printHtml = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Lista de Membros</title><link rel="stylesheet" href="staly.css"><style>body{font-family:Arial,Helvetica,sans-serif}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}img{max-height:80px;margin-bottom:10px}.template{margin-bottom:10px}</style></head><body><div id="printSection">` +
+                `${logoSrc ? `<div class=\"print-header\"><img src=\"${logoSrc}\" alt=\"Logo\"></div>` : ''}` +
+                `${templateHtml}` +
+                `<div class=\"print-header\"><h2>${name}</h2><h3>Lista de Membros</h3><p><strong>Filtro:</strong> ${filterText}</p></div>` +
+                `<table><thead><tr><th>Nome</th><th>Congregação</th><th>Cargo</th><th>Data Nasc.</th><th>Email</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></body></html>`;
+
+            // Try to open print window first. Show preview ONLY if the popup is blocked or opening fails.
+            try {
+                closePrintModal();
+                const printWindow = window.open('', '_blank');
+                if (!printWindow) {
+                    console.warn('Popup blocked; showing preview for manual copy.');
+                    const preview = document.getElementById('printPreview');
+                    const previewContent = document.getElementById('printPreviewContent');
+                    previewContent.textContent = printHtml;
+                    preview.style.display = 'block';
+                    return;
+                }
+
+                printWindow.document.open();
+                printWindow.document.write(printHtml);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.onload = function() {
+                    try {
+                        printWindow.print();
+                        printWindow.close();
+                    } catch (err) {
+                        console.error('Print failed:', err);
+                        // If printing failed, show preview as fallback
+                        const preview = document.getElementById('printPreview');
+                        const previewContent = document.getElementById('printPreviewContent');
+                        previewContent.textContent = printHtml;
+                        preview.style.display = 'block';
+                    }
+                };
+            } catch (err) {
+                console.error('Error opening print window:', err);
+                const preview = document.getElementById('printPreview');
+                const previewContent = document.getElementById('printPreviewContent');
+                previewContent.textContent = printHtml;
+                preview.style.display = 'block';
+            }
+        });
+
+        // Event listeners
+        document.getElementById('addMemberBtn').addEventListener('click', () => openModal('Adicionar Membro'));
+        document.getElementById('submitMember').addEventListener('click', saveMember);
+        document.getElementById('cancelMember').addEventListener('click', closeModal);
+        document.querySelector('.close').addEventListener('click', closeModal);
+        document.querySelector('.close-print').addEventListener('click', closePrintModal);
+        document.getElementById('cancelPrintBtn').addEventListener('click', closePrintModal);
+        document.getElementById('searchName').addEventListener('input', applyFilters);
+        document.getElementById('filterCargo').addEventListener('change', applyFilters);
+        document.getElementById('printButton').addEventListener('click', openPrintModal);
+        document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+
+        // Print preview modal close
+        document.querySelector('.close-preview').addEventListener('click', () => {
+            document.getElementById('printPreview').style.display = 'none';
+        });
+
+        document.getElementById('logout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('dashboardId');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
