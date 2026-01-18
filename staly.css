@@ -821,6 +821,17 @@ footer {
     transition: opacity 0.3s ease;
 }
 
+/* Nav icon and text styles */
+.nav-icon {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+    display: inline-block;
+}
+
+.nav-text {
+    display: inline-block;
+}
+
 /* Smartphones (320px - 480px) */
 @media (max-width: 480px) {
     /* Navigation Mobile */
@@ -856,6 +867,19 @@ footer {
         padding: 1rem 1.5rem;
         width: 100%;
         text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Esconder texto em telas muito pequenas */
+    .nav-text {
+        display: inline-block;
+    }
+    
+    .nav-icon {
+        font-size: 1.5rem;
+        margin-right: 0;
     }
     
     /* Container Mobile */

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="staly.css">
     <script src="permissions.js"></script>
     <script src="notify.js"></script>
+    <script src="nav-icons.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -76,6 +77,18 @@
     </main>
 
     <script>
+        let hasUnsavedChanges = false;
+        let currentEventId = null;
+
+        // Proteção contra perda de dados
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
             const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:3000'
@@ -215,8 +228,20 @@
                 }
             }
 
+            // Detectar mudanças não salvas
+            const formInputs = document.querySelectorAll('#eventForm input, #eventForm textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    hasUnsavedChanges = true;
+                });
+            });
+
             // Event listeners
-            document.getElementById('eventForm').addEventListener('submit', addEvent);
+            document.getElementById('eventForm').addEventListener('submit', (e) => {
+                addEvent(e);
+                hasUnsavedChanges = false; // Reset ao salvar
+            });
+            
             loadEvents();
 
             // Calendar print functionality
