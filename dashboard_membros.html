@@ -154,6 +154,9 @@
     </main>
     
     <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
         let allMembers = [];
@@ -172,7 +175,7 @@
 
         async function loadConfig() {
             try {
-                const res = await fetch('http://localhost:3000/config', {
+                const res = await fetch('${API_BASE}/config', {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 if (res.ok) {
@@ -186,7 +189,7 @@
 
         async function loadMembers() {
             try {
-                const res = await fetch('http://localhost:3000/members', {
+                const res = await fetch('${API_BASE}/members', {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 allMembers = await res.json();
@@ -323,7 +326,7 @@
                 const member = allMembers.find(m => m.id === id);
                 if (!member) return;
 
-                const res = await fetch(`http://localhost:3000/members/${id}`, {
+                const res = await fetch(`${API_BASE}/members/${id}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',

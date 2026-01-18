@@ -76,8 +76,11 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const API_URL = 'http://localhost:3000/events';
-            const OBS_URL = 'http://localhost:3000/scheduled-observations';
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : window.location.origin;
+            const API_URL = `${API_BASE}/events`;
+            const OBS_URL = `${API_BASE}/scheduled-observations`;
             const token = localStorage.getItem('token');
             const dashboardId = localStorage.getItem('dashboardId');
 

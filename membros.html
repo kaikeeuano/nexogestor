@@ -158,10 +158,13 @@
     </main>
 
     <script>
-        const API_URL = 'http://localhost:3000/members';
-        const CONFIG_CONG_URL = 'http://localhost:3000/config/congregations';
-        const CONFIG_ROLES_URL = 'http://localhost:3000/config/roles';
-        const CONFIG_URL = 'http://localhost:3000/config';
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
+        const API_URL = `${API_BASE}/members`;
+        const CONFIG_CONG_URL = `${API_BASE}/config/congregations`;
+        const CONFIG_ROLES_URL = `${API_BASE}/config/roles`;
+        const CONFIG_URL = `${API_BASE}/config`;
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
         let allMembers = [];
@@ -187,7 +190,7 @@
 
         async function loadConfig() {
             try {
-                const response = await fetch('http://localhost:3000/dashboard/info', {
+                const response = await fetch('${API_BASE}/dashboard/info', {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 dashboardConfig = await response.json();

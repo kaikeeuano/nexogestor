@@ -37,6 +37,9 @@
     </main>
 
     <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
         let docsFolderId = null;
@@ -51,13 +54,13 @@
         }
 
         async function initDocsFolder() {
-            let response = await fetch('http://localhost:3000/folders?type=docs', {
+            let response = await fetch('${API_BASE}/folders?type=docs', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             let folders = await response.json();
             if (folders.length === 0) {
                 // Create default folder
-                response = await fetch('http://localhost:3000/folders', {
+                response = await fetch('${API_BASE}/folders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
                     body: JSON.stringify({ name: 'Documentos', type: 'docs' })
@@ -71,7 +74,7 @@
         }
 
         async function loadDocs() {
-            const response = await fetch(`http://localhost:3000/files?folder_id=${docsFolderId}`, {
+            const response = await fetch(`${API_BASE}/files?folder_id=${docsFolderId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const files = await response.json();
@@ -103,7 +106,7 @@
                 formData.append('file', file);
                 formData.append('folder_id', docsFolderId);
                 formData.append('name', file.name);
-                await fetch('http://localhost:3000/files', {
+                await fetch('${API_BASE}/files', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -113,7 +116,7 @@
         });
 
         async function deleteFile(id) {
-            await fetch(`http://localhost:3000/files/${id}`, {
+            await fetch(`${API_BASE}/files/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -128,3 +131,4 @@
     </script>
 </body>
 </html>
+

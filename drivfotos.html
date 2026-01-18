@@ -58,6 +58,9 @@
         </div>
     </main>
     <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
         let currentFolderId = null;
@@ -80,7 +83,7 @@
         async function loadFolders() {
             try {
                 console.log('Starting loadFolders...');
-                const url = 'http://localhost:3000/folders?type=photos';
+                const url = '${API_BASE}/folders?type=photos';
                 const headers = { 
                     'Authorization': `Bearer ${token}`, 
                     'dashboard-id': dashboardId 
@@ -193,7 +196,7 @@
             if (!newName || newName === oldName) return;
             
             try {
-                const response = await fetch(`http://localhost:3000/folders/${id}`, {
+                const response = await fetch(`${API_BASE}/folders/${id}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -222,7 +225,7 @@
             }
             
             try {
-                const response = await fetch(`http://localhost:3000/folders/${id}`, {
+                const response = await fetch(`${API_BASE}/folders/${id}`, {
                     method: 'DELETE',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
@@ -262,7 +265,7 @@
             console.log('Creating folder:', name, 'with token:', token.substring(0, 20) + '...', 'dashboardId:', dashboardId);
             
             try {
-                const response = await fetch('http://localhost:3000/folders', {
+                const response = await fetch('${API_BASE}/folders', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -291,7 +294,7 @@
         });
 
         async function loadFiles() {
-            const response = await fetch(`http://localhost:3000/files?folder_id=${currentFolderId}`, {
+            const response = await fetch(`${API_BASE}/files?folder_id=${currentFolderId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const files = await response.json();
@@ -448,7 +451,7 @@
                 formData.append('folder_id', currentFolderId);
                 formData.append('name', file.name);
                 try {
-                    const resp = await fetch('http://localhost:3000/files', {
+                    const resp = await fetch('${API_BASE}/files', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
@@ -499,7 +502,7 @@
 
         async function deleteFile(id) {
             try {
-                const response = await fetch(`http://localhost:3000/files/${id}`, {
+                const response = await fetch(`${API_BASE}/files/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -522,3 +525,4 @@
             window.location.href = 'login.html';
         });
     </script>
+

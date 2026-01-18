@@ -178,7 +178,10 @@
     </main>
 
     <script>
-        const API_URL = 'http://localhost:3000/projects';
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
+        const API_URL = `${API_BASE}/projects`;
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
         let allProjects = [];
@@ -496,7 +499,7 @@
             const endDate = document.getElementById('editEndDate').value;
             
             try {
-                const response = await fetch(`http://localhost:3000/projects/${currentProjectId}`, {
+                const response = await fetch(`${API_BASE}/projects/${currentProjectId}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -540,7 +543,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/project-observations', {
+                const response = await fetch('${API_BASE}/project-observations', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -577,7 +580,7 @@
 
         async function loadObservations() {
             try {
-                const response = await fetch(`http://localhost:3000/project-observations?project_id=${currentProjectId}`, {
+                const response = await fetch(`${API_BASE}/project-observations?project_id=${currentProjectId}`, {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 const observations = await response.json();
@@ -641,7 +644,7 @@
                     deleteBtn.style.fontSize = '14px';
                     deleteBtn.addEventListener('click', async () => {
                         if (confirm('Deletar observação?')) {
-                            await fetch(`http://localhost:3000/project-observations/${obs.id}`, {
+                            await fetch(`${API_BASE}/project-observations/${obs.id}`, {
                                 method: 'DELETE',
                                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                             });
@@ -680,7 +683,7 @@
             if (newDate === null) return; // cancel
 
             try {
-                const response = await fetch(`http://localhost:3000/project-observations/${obs.id}`, {
+                const response = await fetch(`${API_BASE}/project-observations/${obs.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -713,7 +716,7 @@
                 formData.append('file', file);
                 formData.append('project_id', currentProjectId);
 
-                fetch('http://localhost:3000/project-files', {
+                fetch('${API_BASE}/project-files', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -727,7 +730,7 @@
 
         async function loadProjectFiles() {
             try {
-                const response = await fetch(`http://localhost:3000/project-files?project_id=${currentProjectId}`, {
+                const response = await fetch(`${API_BASE}/project-files?project_id=${currentProjectId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const files = await response.json();
@@ -764,7 +767,7 @@
                     deleteBtn.style.fontSize = '12px';
                     deleteBtn.addEventListener('click', async () => {
                         if (confirm('Deletar arquivo?')) {
-                            await fetch(`http://localhost:3000/project-files/${file.id}`, {
+                            await fetch(`${API_BASE}/project-files/${file.id}`, {
                                 method: 'DELETE',
                                 headers: { 'Authorization': `Bearer ${token}` }
                             });
@@ -783,7 +786,7 @@
 
         async function loadProjectNotes() {
             try {
-                const response = await fetch(`http://localhost:3000/project-notes?project_id=${currentProjectId}`, {
+                const response = await fetch(`${API_BASE}/project-notes?project_id=${currentProjectId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
@@ -796,7 +799,7 @@
         async function saveProjectNotes() {
             const notes = document.getElementById('projectNotes').value;
             try {
-                const response = await fetch('http://localhost:3000/project-notes', {
+                const response = await fetch('${API_BASE}/project-notes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ project_id: currentProjectId, notes })
@@ -924,3 +927,4 @@
     </script>
 </body>
 </html>
+

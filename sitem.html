@@ -292,6 +292,9 @@
     </main>
     
     <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
 
@@ -304,7 +307,7 @@
         // Verifica se o dashboard está ativado
         async function checkDashboardActivation() {
             try {
-                const response = await fetch(`http://localhost:3000/dashboards/${dashboardId}/activation-status`, {
+                const response = await fetch(`${API_BASE}/dashboards/${dashboardId}/activation-status`, {
                     headers: { 
                         'Authorization': `Bearer ${token}`,
                         'dashboard-id': dashboardId 
@@ -386,7 +389,7 @@
             successMsg.style.display = 'none';
             
             try {
-                const response = await fetch('http://localhost:3000/activate-dashboard', {
+                const response = await fetch(`${API_BASE}/activate-dashboard`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -441,7 +444,7 @@
         }
 
         async function loadConfig() {
-            const res = await fetch('http://localhost:3000/config', {
+            const res = await fetch('${API_BASE}/config', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             if (!res.ok) return;
@@ -458,7 +461,7 @@
         }
 
         async function loadBirthdays() {
-            const response = await fetch('http://localhost:3000/members', {
+            const response = await fetch('${API_BASE}/members', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const members = await response.json();
@@ -475,7 +478,7 @@
         }
 
         async function loadMembers() {
-            const res = await fetch('http://localhost:3000/members', {
+            const res = await fetch('${API_BASE}/members', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const members = await res.json();
@@ -483,7 +486,7 @@
         }
 
         async function loadProjects() {
-            const res = await fetch('http://localhost:3000/projects', {
+            const res = await fetch('${API_BASE}/projects', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const projects = await res.json();
@@ -491,7 +494,7 @@
         }
 
         async function loadEvents() {
-            const res = await fetch('http://localhost:3000/events', {
+            const res = await fetch('${API_BASE}/events', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const events = await res.json();
@@ -512,7 +515,7 @@
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
             }
-            const requests = months.map(m => fetch(`http://localhost:3000/transactions?month=${m.month}&year=${m.year}`, {
+            const requests = months.map(m => fetch(`${API_BASE}/transactions?month=${m.month}&year=${m.year}`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             }).then(r => r.json()));
             const results = await Promise.all(requests);
@@ -526,7 +529,7 @@
             document.getElementById('dashMonthExpense').textContent = formatCurrency(monthExpense);
             document.getElementById('dashMonthNet').textContent = formatCurrency(monthIncome - monthExpense);
             renderFinanceChart(labels, incomes, expenses);
-            const allRes = await fetch('http://localhost:3000/transactions', {
+            const allRes = await fetch('${API_BASE}/transactions', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const all = await allRes.json();
@@ -574,3 +577,5 @@
     </script>
 </body>
 </html>
+
+

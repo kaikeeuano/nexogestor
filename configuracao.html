@@ -280,6 +280,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : window.location.origin;
             const token = localStorage.getItem('token');
             const dashboardId = localStorage.getItem('dashboardId');
 
@@ -304,7 +307,7 @@
 
                 try {
                     // Update basic config
-                    const response = await fetch('http://localhost:3000/config', {
+                    const response = await fetch('${API_BASE}/config', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -323,7 +326,7 @@
                         const formData = new FormData();
                         formData.append('logo', logoFile);
                         
-                        const logoResponse = await fetch('http://localhost:3000/config/logo', {
+                        const logoResponse = await fetch('${API_BASE}/config/logo', {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`,
@@ -360,7 +363,7 @@
                 console.log('Tentando adicionar congregação:', name);
 
                 try {
-                    const response = await fetch('http://localhost:3000/config/congregations', {
+                    const response = await fetch('${API_BASE}/config/congregations', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -401,7 +404,7 @@
                 console.log('Tentando adicionar cargo:', name);
 
                 try {
-                    const response = await fetch('http://localhost:3000/config/roles', {
+                    const response = await fetch('${API_BASE}/config/roles', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -459,7 +462,7 @@
                 }
 
                 try {
-                    const response = await fetch('http://localhost:3000/config/subdashboards', {
+                    const response = await fetch('${API_BASE}/config/subdashboards', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -507,7 +510,7 @@
                 }
 
                 try {
-                    const response = await fetch('http://localhost:3000/config/subdashboards/with-key', {
+                    const response = await fetch('${API_BASE}/config/subdashboards/with-key', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -565,7 +568,7 @@
                 }
 
                 try {
-                    const response = await fetch('http://localhost:3000/change-password', {
+                    const response = await fetch('${API_BASE}/change-password', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                         body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
@@ -589,7 +592,7 @@
 
         async function loadCongregations() {
             try {
-                const response = await fetch('http://localhost:3000/config/congregations', {
+                const response = await fetch('${API_BASE}/config/congregations', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
@@ -648,7 +651,7 @@
         async function deleteCongregation(id) {
             if (!confirm('Tem certeza que deseja excluir esta congregação?')) return;
             try {
-                const response = await fetch(`http://localhost:3000/config/congregations/${id}`, {
+                const response = await fetch(`${API_BASE}/config/congregations/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -668,7 +671,7 @@
 
         async function loadRoles() {
             try {
-                const response = await fetch('http://localhost:3000/config/roles', {
+                const response = await fetch('${API_BASE}/config/roles', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
@@ -708,7 +711,7 @@
         async function deleteRole(id) {
             if (!confirm('Tem certeza que deseja excluir este cargo?')) return;
             try {
-                const response = await fetch(`http://localhost:3000/config/roles/${id}`, {
+                const response = await fetch(`${API_BASE}/config/roles/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -727,7 +730,7 @@
 
         async function loadSubDashboards() {
             try {
-                const response = await fetch('http://localhost:3000/config/subdashboards', {
+                const response = await fetch('${API_BASE}/config/subdashboards', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
@@ -801,7 +804,7 @@
         async function deleteSubDashboard(id) {
             if (!confirm('Tem certeza que deseja excluir este sub-dashboard? Todos os dados associados serão perdidos.')) return;
             try {
-                const response = await fetch(`http://localhost:3000/config/subdashboards/${id}`, {
+                const response = await fetch(`${API_BASE}/config/subdashboards/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -822,7 +825,7 @@
 
         async function loadSubDashboardRequests() {
             try {
-                const response = await fetch('http://localhost:3000/config/subdashboards/requests', {
+                const response = await fetch('${API_BASE}/config/subdashboards/requests', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
@@ -914,7 +917,7 @@
 
         async function approveSubDashboardRequest(dashboardId, requestId) {
             try {
-                const response = await fetch(`http://localhost:3000/config/subdashboards/${dashboardId}/accept`, {
+                const response = await fetch(`${API_BASE}/config/subdashboards/${dashboardId}/accept`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -941,7 +944,7 @@
             if (!confirm('Tem certeza que deseja rejeitar esta solicitação?')) return;
             
             try {
-                const response = await fetch(`http://localhost:3000/config/subdashboards/${dashboardId}/reject`, {
+                const response = await fetch(`${API_BASE}/config/subdashboards/${dashboardId}/reject`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -966,7 +969,7 @@
 
         async function loadConfiguration() {
             try {
-                const response = await fetch('http://localhost:3000/config', {
+                const response = await fetch('${API_BASE}/config', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
@@ -1018,7 +1021,7 @@
                 
                 if (config.logo) {
                     const preview = document.getElementById('logoPreview');
-                    preview.innerHTML = `<img src="http://localhost:3000/uploads/${config.logo}" alt="Logo" style="max-height: 100px;">`;
+                    preview.innerHTML = `<img src="${API_BASE}/uploads/${config.logo}" alt="Logo" style="max-height: 100px;">`;
                 }
             } catch (error) {
                 console.error('Error loading configuration:', error);
@@ -1028,7 +1031,7 @@
 
         async function loadMembers() {
             try {
-                const response = await fetch('http://localhost:3000/config/members', {
+                const response = await fetch('${API_BASE}/config/members', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
@@ -1171,7 +1174,7 @@
 
         async function acceptMember(memberId) {
             try {
-                const response = await fetch(`http://localhost:3000/dashboards/${localStorage.getItem('dashboardId')}/accept`, {
+                const response = await fetch(`${API_BASE}/dashboards/${localStorage.getItem('dashboardId')}/accept`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1195,7 +1198,7 @@
 
         async function rejectMember(memberId) {
             try {
-                const response = await fetch(`http://localhost:3000/config/members/$\{memberId\}`, {
+                const response = await fetch(`${API_BASE}/config/members/$\{memberId\}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -1217,7 +1220,7 @@
 
         async function changeRole(memberId, role) {
             try {
-                const response = await fetch(`http://localhost:3000/config/members/${memberId}/role`, {
+                const response = await fetch(`${API_BASE}/config/members/${memberId}/role`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1245,7 +1248,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/config/members/$\{memberId\}`, {
+                const response = await fetch(`${API_BASE}/config/members/$\{memberId\}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -1273,3 +1276,4 @@
     </script>
 </body>
 </html>
+
