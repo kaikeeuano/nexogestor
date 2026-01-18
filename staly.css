@@ -43,12 +43,19 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--gray-50);
     color: var(--gray-900);
     line-height: 1.6;
     min-height: 100vh;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 
@@ -885,40 +892,76 @@ footer {
     /* Container Mobile */
     .container {
         padding: 1rem;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* Divs genéricas */
+    div {
+        max-width: 100%;
+        overflow-x: hidden;
     }
     
     /* Typography Mobile */
     h1 {
         font-size: 1.5rem;
+        word-wrap: break-word;
     }
     
     h2 {
         font-size: 1.25rem;
+        word-wrap: break-word;
     }
     
     h3 {
         font-size: 1.125rem;
+        word-wrap: break-word;
+    }
+    
+    p {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     /* Cards Mobile */
     .card {
         padding: 1rem;
+        max-width: 100%;
+        overflow: hidden;
     }
     
     /* Grid Mobile */
     .grid, .grid-2, .grid-3, .grid-4 {
         grid-template-columns: 1fr;
         gap: 1rem;
+        width: 100%;
     }
     
     /* Widgets Mobile */
     .widgets {
         grid-template-columns: 1fr;
         gap: 1rem;
+        width: 100%;
     }
     
     .widget {
         min-height: auto;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    /* Main content areas */
+    main {
+        padding: 1rem;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    /* Event, Project, Member cards */
+    .event, .project, .member, .folder {
+        max-width: 100%;
+        overflow: hidden;
+        margin-bottom: 1rem;
     }
     
     /* Actions Mobile */
@@ -988,10 +1031,35 @@ footer {
     /* Forms Mobile */
     input, select, textarea {
         font-size: 16px; /* Previne zoom no iOS */
+        max-width: 100%;
+        box-sizing: border-box;
     }
     
     .form-group {
         margin-bottom: 1rem;
+        max-width: 100%;
+    }
+    
+    form {
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    /* Images and media */
+    img, video, iframe {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    /* Modals */
+    .modal-content {
+        width: 95%;
+        max-width: 95vw;
+        margin: 1rem auto;
+        padding: 1rem;
+        max-height: 90vh;
+        overflow-y: auto;
     }
     
     /* Login Mobile */
