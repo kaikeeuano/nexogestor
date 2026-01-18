@@ -2662,6 +2662,8 @@ app.post('/admin/generate-key', authenticateSystemAdmin, (req, res) => {
   const { dashboard_name, expires_in_days } = req.body;
   const adminId = req.user.id;
   
+  console.log('Gerando chave de ativação:', { dashboard_name, expires_in_days, adminId });
+  
   // Generate unique key
   const key = `NEXO-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   
@@ -2677,8 +2679,10 @@ app.post('/admin/generate-key', authenticateSystemAdmin, (req, res) => {
     [key, dashboard_name || null, adminId, expires_at],
     function(err) {
       if (err) {
+        console.error('Erro ao gerar chave de ativação:', err);
         return res.status(500).json({ error: err.message });
       }
+      console.log('Chave gerada com sucesso:', key);
       res.json({ 
         id: this.lastID,
         key,
