@@ -2819,7 +2819,7 @@ app.post('/admin/activation-keys/:id/restore', authenticateSystemAdmin, (req, re
 // Get all users (admin only)
 app.get('/admin/users', authenticateSystemAdmin, (req, res) => {
   db.all(
-    `SELECT id, username, email, created_at, is_system_admin, is_admin 
+    `SELECT id, username, email, is_system_admin, is_admin 
      FROM users 
      ORDER BY is_system_admin DESC, is_admin DESC, username ASC`,
     [],

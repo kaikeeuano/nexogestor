@@ -551,13 +551,12 @@
                             <th>Usuário</th>
                             <th>Email</th>
                             <th>Status Admin</th>
-                            <th>Criado em</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px;">
+                            <td colspan="4" style="text-align: center; padding: 40px;">
                                 Carregando...
                             </td>
                         </tr>
@@ -962,7 +961,7 @@
             if (users.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                        <td colspan="4" style="text-align: center; padding: 40px; color: #999;">
                             Nenhum usuário encontrado.
                         </td>
                     </tr>
@@ -980,7 +979,6 @@
                         <td><strong>${user.username}</strong></td>
                         <td>${user.email || '-'}</td>
                         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                        <td>${formatDate(user.created_at)}</td>
                         <td>
                             <div class="action-buttons">
                                 ${!isAdmin ? `
