@@ -2815,12 +2815,13 @@ app.post('/admin/activation-keys/:id/restore', authenticateSystemAdmin, (req, re
 // Get all users (admin only)
 app.get('/admin/users', authenticateSystemAdmin, (req, res) => {
   db.all(
-    `SELECT id, username, email, created_at, is_system_admin 
+    `SELECT id, username, email, created_at, is_system_admin, is_admin 
      FROM users 
-     ORDER BY is_system_admin DESC, username ASC`,
+     ORDER BY is_system_admin DESC, is_admin DESC, username ASC`,
     [],
     (err, users) => {
       if (err) {
+        console.error('Erro ao carregar usuários:', err);
         return res.status(500).json({ error: err.message });
       }
       res.json(users);
