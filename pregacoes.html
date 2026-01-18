@@ -634,6 +634,11 @@
         
         // ID da pregação atualmente aberta
         let pregacaoAtualId = null;
+        
+        // Controle de alterações não salvas
+        let hasUnsavedChanges = false;
+        let lastSavedContent = '';
+        let autoSaveTimeout = null;
 
         // ==================== INICIALIZAÇÃO ====================
         
@@ -721,6 +726,10 @@
             // Define ID como null (nova pregação)
             pregacaoAtualId = null;
             
+            // Reseta controle de alterações
+            hasUnsavedChanges = false;
+            lastSavedContent = '';
+            
             // Mostra o editor
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('editorForm').style.display = 'block';
@@ -787,6 +796,10 @@
                     mostrarMensagem('Pregação salva com sucesso!', 'success');
                 }
                 
+                // Marca como salvo
+                hasUnsavedChanges = false;
+                lastSavedContent = titulo + livroBiblia + conteudo;
+                
                 await carregarLista();
                 atualizarUltimaEdicao();
             } catch (error) {
@@ -798,8 +811,10 @@
         /**
          * Salva automaticamente após 2 segundos sem digitar
          */
-        let autoSaveTimeout;
         function salvarAutomatico() {
+            // Marca que há alterações não salvas
+            hasUnsavedChanges = true;
+            
             clearTimeout(autoSaveTimeout);
             autoSaveTimeout = setTimeout(() => {
                 if (pregacaoAtualId) {
@@ -822,6 +837,10 @@
             document.getElementById('tituloInput').value = pregacao.titulo;
             document.getElementById('livroBibliaInput').value = pregacao.livro_biblia || '';
             document.getElementById('conteudoEditor').innerHTML = pregacao.conteudo;
+            
+            // Marca conteúdo como salvo ao carregar
+            hasUnsavedChanges = false;
+            lastSavedContent = pregacao.titulo + (pregacao.livro_biblia || '') + pregacao.conteudo;
             
             // Mostra o editor
             document.getElementById('emptyState').style.display = 'none';
@@ -1093,7 +1112,7 @@
          * Avisa antes de sair se houver alterações não salvas
          */
         window.addEventListener('beforeunload', (e) => {
-            if (pregacaoAtualId) {
+            if (hasUnsavedChanges) {
                 e.preventDefault();
                 e.returnValue = '';
             }
