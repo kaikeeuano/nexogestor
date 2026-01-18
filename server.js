@@ -44,7 +44,10 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + file.originalname);
   }
 });
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit for videos
+});
 
 // Database setup
 const db = new sqlite3.Database('./agenda2.db', (err) => {

@@ -492,10 +492,13 @@
                         completed++;
                         updateProgress(completed, total);
                     } else {
-                        console.error('Upload error status:', resp.status, 'for file:', file.name);
+                        const errorData = await resp.json().catch(() => ({}));
+                        console.error('Upload error status:', resp.status, 'for file:', file.name, 'error:', errorData);
+                        notify.error(`Erro ao enviar ${file.name}: ${errorData.error || resp.statusText}`, { title: 'Erro no Upload' });
                     }
                 } catch (err) {
                     console.error('Upload failed for', file.name, err);
+                    notify.error(`Falha no upload de ${file.name}: ${err.message}`, { title: 'Erro no Upload' });
                 }
             });
             await Promise.all(uploadPromises);
@@ -503,6 +506,12 @@
                 uploadInProgress = false;
                 resetUploadUI();
                 loadFiles();
+                if (completed > 0) {
+                    notify.success(`${completed} de ${total} arquivo(s) enviado(s) com sucesso!`, { title: 'Upload Concluído' });
+                }
+                if (completed < total) {
+                    notify.warning(`${total - completed} arquivo(s) falharam no upload.`, { title: 'Atenção' });
+                }
             }
         });
 
