@@ -79,30 +79,113 @@
             }
         });
 
+        // Criar notificação animada
+        function showNotification(message, type = 'success', duration = 4000) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 24px;
+                background: ${type === 'success' ? 'linear-gradient(135deg, #51cf66 0%, #37b24d 100%)' : 
+                             type === 'error' ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)' : 
+                             'linear-gradient(135deg, #4c6ef5 0%, #3b5bdb 100%)'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                max-width: 400px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ⓘ';
+            notification.innerHTML = `<span style="font-size: 18px;">${icon}</span><span>${message}</span>`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+
+        // Adicionar CSS para animações
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
         document.getElementById('registerBtn').addEventListener('click', async () => {
             const username = document.getElementById('regUsername').value.trim();
             const password = document.getElementById('regPassword').value; // do not trim password
             const email = document.getElementById('regEmail').value;
             const phone = document.getElementById('regPhone').value;
+            
+            // Validação básica
+            if (!username || !password) {
+                showNotification('Por favor, preencha usuário e senha', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('registerBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Criando...';
+            
             try {
+                showNotification('Criando sua conta...', 'info', 2000);
+                
                 const response = await fetch(`${API_BASE}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password, email, phone })
                 });
+                
                 if (response.ok) {
-                    alert('Conta criada com sucesso!');
-                    document.getElementById('registerForm').style.display = 'none';
-                    document.getElementById('loginForm').style.display = 'block';
+                    showNotification(`✨ Conta criada com sucesso! Bem-vindo, ${username}!`, 'success', 5000);
+                    
+                    // Limpar campos
+                    document.getElementById('regUsername').value = '';
+                    document.getElementById('regPassword').value = '';
+                    document.getElementById('regEmail').value = '';
+                    document.getElementById('regPhone').value = '';
+                    
+                    // Mudar para login após 1.5s
+                    setTimeout(() => {
+                        document.getElementById('registerForm').style.display = 'none';
+                        document.getElementById('loginForm').style.display = 'block';
+                        showNotification('Agora você pode fazer login com suas credenciais', 'info');
+                    }, 1500);
                 } else {
                     let msg = 'Erro ao criar conta';
-                    try { const data = await response.json(); if (data && data.error) msg = data.error; } catch (e) { /* ignore */ }
+                    try { 
+                        const data = await response.json(); 
+                        if (data && data.error) msg = data.error; 
+                    } catch (e) { /* ignore */ }
+                    
                     console.warn('Register failed:', response.status, msg);
-                    alert(msg);
+                    showNotification(msg, 'error');
                 }
             } catch (err) {
                 console.error('Register error:', err);
-                alert('Erro de conexão ao tentar criar conta. Verifique se o servidor está rodando.');
+                showNotification('Erro de conexão. Verifique se o servidor está rodando.', 'error', 6000);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         });
 
