@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO GESTOR - Teste de Responsividade</title>
+    <link rel="stylesheet" href="staly.css">
+    <style>
+        .test-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .viewport-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .info-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .info-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .breakpoint-indicator {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .bp-mobile {
+            background: #ef4444;
+            color: white;
+            display: none;
+        }
+        
+        .bp-tablet {
+            background: #f59e0b;
+            color: white;
+            display: none;
+        }
+        
+        .bp-desktop {
+            background: #10b981;
+            color: white;
+            display: none;
+        }
+        
+        @media (max-width: 480px) {
+            .bp-mobile { display: block; }
+        }
+        
+        @media (min-width: 481px) and (max-width: 768px) {
+            .bp-tablet { display: block; }
+        }
+        
+        @media (min-width: 769px) {
+            .bp-desktop { display: block; }
+        }
+        
+        .component-test {
+            margin-bottom: 2rem;
+        }
+        
+        .test-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+        
+        .test-card {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .test-table {
+            width: 100%;
+            margin-top: 1rem;
+            border-collapse: collapse;
+        }
+        
+        .test-table th,
+        .test-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .test-table th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative;">
+        <h2 style="margin: 0; color: white; font-size: 20px;">📱 NEXO GESTOR - Teste de Responsividade</h2>
+    </div>
+    
+    <nav class="nav-list">
+        <li class="nav-item"><a href="index.html">Início</a></li>
+        <li class="nav-item"><a href="dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a href="sitem.html">Sistema</a></li>
+        <li class="nav-item"><a href="#" class="active">Teste Mobile</a></li>
+    </nav>
+    
+    <div class="test-container">
+        <!-- Breakpoint Indicator -->
+        <div class="breakpoint-indicator bp-mobile">📱 SMARTPHONE (≤ 480px)</div>
+        <div class="breakpoint-indicator bp-tablet">📱 TABLET (481px - 768px)</div>
+        <div class="breakpoint-indicator bp-desktop">💻 DESKTOP (≥ 769px)</div>
+        
+        <!-- Viewport Info -->
+        <div class="test-section">
+            <h2>Informações do Viewport</h2>
+            <div class="viewport-info">
+                <div class="info-card">
+                    <h3>Largura</h3>
+                    <div class="value" id="viewportWidth">-</div>
+                </div>
+                <div class="info-card">
+                    <h3>Altura</h3>
+                    <div class="value" id="viewportHeight">-</div>
+                </div>
+                <div class="info-card">
+                    <h3>Device Pixel Ratio</h3>
+                    <div class="value" id="devicePixelRatio">-</div>
+                </div>
+                <div class="info-card">
+                    <h3>Orientação</h3>
+                    <div class="value" id="orientation">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Grid Test -->
+        <div class="test-section component-test">
+            <h2>Teste de Grid Responsivo</h2>
+            <p>Este grid deve ter 1 coluna em mobile, 2 em tablet e 4 em desktop.</p>
+            <div class="grid-4">
+                <div class="card">
+                    <h3>Card 1</h3>
+                    <p>Conteúdo do card responsivo</p>
+                </div>
+                <div class="card">
+                    <h3>Card 2</h3>
+                    <p>Conteúdo do card responsivo</p>
+                </div>
+                <div class="card">
+                    <h3>Card 3</h3>
+                    <p>Conteúdo do card responsivo</p>
+                </div>
+                <div class="card">
+                    <h3>Card 4</h3>
+                    <p>Conteúdo do card responsivo</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Button Test -->
+        <div class="test-section component-test">
+            <h2>Teste de Botões</h2>
+            <p>Botões devem ter largura total em mobile.</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn-primary">Botão Primário</button>
+                <button class="btn-secondary">Botão Secundário</button>
+                <button class="btn-danger">Botão Perigo</button>
+                <button class="btn-outline">Botão Outline</button>
+            </div>
+        </div>
+        
+        <!-- Form Test -->
+        <div class="test-section component-test">
+            <h2>Teste de Formulário</h2>
+            <div class="form-group">
+                <label for="testInput">Input de Teste</label>
+                <input type="text" id="testInput" placeholder="Digite algo aqui">
+            </div>
+            <div class="form-group">
+                <label for="testSelect">Select de Teste</label>
+                <select id="testSelect">
+                    <option>Opção 1</option>
+                    <option>Opção 2</option>
+                    <option>Opção 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="testTextarea">Textarea de Teste</label>
+                <textarea id="testTextarea" rows="4" placeholder="Digite uma mensagem"></textarea>
+            </div>
+        </div>
+        
+        <!-- Table Test -->
+        <div class="test-section component-test">
+            <h2>Teste de Tabela Responsiva</h2>
+            <p>Em mobile, a tabela vira cards. Use data-label nos td.</p>
+            <table class="test-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Cidade</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Nome">João Silva</td>
+                        <td data-label="Email">joao@email.com</td>
+                        <td data-label="Telefone">(11) 98765-4321</td>
+                        <td data-label="Cidade">São Paulo</td>
+                        <td data-label="Status">Ativo</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Nome">Maria Santos</td>
+                        <td data-label="Email">maria@email.com</td>
+                        <td data-label="Telefone">(21) 91234-5678</td>
+                        <td data-label="Cidade">Rio de Janeiro</td>
+                        <td data-label="Status">Ativo</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Nome">Pedro Oliveira</td>
+                        <td data-label="Email">pedro@email.com</td>
+                        <td data-label="Telefone">(31) 99876-5432</td>
+                        <td data-label="Cidade">Belo Horizonte</td>
+                        <td data-label="Status">Inativo</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Typography Test -->
+        <div class="test-section component-test">
+            <h2>Teste de Tipografia</h2>
+            <h1>Título H1 Responsivo</h1>
+            <h2>Título H2 Responsivo</h2>
+            <h3>Título H3 Responsivo</h3>
+            <p>Parágrafo de teste com texto normal. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+        
+        <!-- Device Info -->
+        <div class="test-section">
+            <h2>Informações do Dispositivo</h2>
+            <table class="test-table">
+                <tbody>
+                    <tr>
+                        <td data-label="Propriedade"><strong>User Agent</strong></td>
+                        <td data-label="Valor" id="userAgent" style="word-break: break-all;"></td>
+                    </tr>
+                    <tr>
+                        <td data-label="Propriedade"><strong>Platform</strong></td>
+                        <td data-label="Valor" id="platform"></td>
+                    </tr>
+                    <tr>
+                        <td data-label="Propriedade"><strong>Touch Support</strong></td>
+                        <td data-label="Valor" id="touchSupport"></td>
+                    </tr>
+                    <tr>
+                        <td data-label="Propriedade"><strong>Screen Size</strong></td>
+                        <td data-label="Valor" id="screenSize"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function updateViewportInfo() {
+            document.getElementById('viewportWidth').textContent = window.innerWidth + 'px';
+            document.getElementById('viewportHeight').textContent = window.innerHeight + 'px';
+            document.getElementById('devicePixelRatio').textContent = window.devicePixelRatio;
+            document.getElementById('orientation').textContent = window.innerWidth > window.innerHeight ? 'Paisagem' : 'Retrato';
+        }
+        
+        function updateDeviceInfo() {
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+            document.getElementById('platform').textContent = navigator.platform;
+            document.getElementById('touchSupport').textContent = 'ontouchstart' in window ? 'Sim' : 'Não';
+            document.getElementById('screenSize').textContent = screen.width + 'x' + screen.height;
+        }
+        
+        updateViewportInfo();
+        updateDeviceInfo();
+        
+        window.addEventListener('resize', updateViewportInfo);
+        window.addEventListener('orientationchange', updateViewportInfo);
+        
+        console.log('✅ Página de teste de responsividade carregada');
+        console.log('📱 Largura:', window.innerWidth + 'px');
+        console.log('📏 Altura:', window.innerHeight + 'px');
+    </script>
+    <script src="nexo/mobile-menu.js"></script>
+</body>
+</html>

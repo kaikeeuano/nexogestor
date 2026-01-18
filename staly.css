@@ -751,22 +751,424 @@ footer {
 .p-3 { padding: 1.5rem; }
 .p-4 { padding: 2rem; }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .nav-list {
-        flex-direction: column;
+/* =====================================
+   RESPONSIVE DESIGN - Mobile First
+   ===================================== */
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 101;
+}
+
+.mobile-menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--white);
+    margin: 5px 0;
+    transition: var(--transition);
+    border-radius: 2px;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Smartphones (320px - 480px) */
+@media (max-width: 480px) {
+    /* Navigation Mobile */
+    .mobile-menu-toggle {
+        display: block;
     }
     
-    .widgets, .grid {
+    .nav-list {
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        padding-top: 4rem;
+        transition: left 0.3s ease;
+        overflow-y: auto;
+    }
+    
+    .nav-list.active {
+        left: 0;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .nav-item {
+        width: 100%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-item a,
+    .nav-item button {
+        padding: 1rem 1.5rem;
+        width: 100%;
+        text-align: left;
+    }
+    
+    /* Container Mobile */
+    .container {
+        padding: 1rem;
+    }
+    
+    /* Typography Mobile */
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    h3 {
+        font-size: 1.125rem;
+    }
+    
+    /* Cards Mobile */
+    .card {
+        padding: 1rem;
+    }
+    
+    /* Grid Mobile */
+    .grid, .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* Widgets Mobile */
+    .widgets {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .widget {
+        min-height: auto;
+    }
+    
+    /* Actions Mobile */
+    .actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .actions input,
+    .actions select,
+    .actions button {
+        width: 100%;
+        margin: 0;
+    }
+    
+    /* Tables Mobile */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table thead {
+        display: none;
+    }
+    
+    table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        padding: 0.5rem;
+    }
+    
+    table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+    
+    table tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-right: 1rem;
+    }
+    
+    /* Buttons Mobile */
+    button, .btn {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Forms Mobile */
+    input, select, textarea {
+        font-size: 16px; /* Previne zoom no iOS */
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    /* Login Mobile */
+    .login {
+        margin: 2rem 1rem;
+        padding: 1.5rem;
+    }
+    
+    /* Dashboard Items Mobile */
+    .dashboard-item {
+        padding: 1rem;
+    }
+    
+    /* Filters Mobile */
+    .filters {
+        padding: 1rem;
+    }
+    
+    .filters label {
+        display: block;
+        margin: 0.5rem 0;
+    }
+    
+    .filters input,
+    .filters select {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+    
+    /* Upload Area Mobile */
+    .upload-area {
+        padding: 2rem 1rem;
+    }
+    
+    /* Folders Mobile */
+    .folders {
         grid-template-columns: 1fr;
     }
     
-    .actions {
-        flex-direction: column;
+    /* Modal Mobile */
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* Tablets (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    /* Navigation Tablet */
+    .mobile-menu-toggle {
+        display: block;
     }
     
-    .actions input, .actions select, .actions button {
+    .nav-list {
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        max-width: 350px;
+        height: 100vh;
+        padding-top: 4rem;
+        transition: left 0.3s ease;
+        overflow-y: auto;
+    }
+    
+    .nav-list.active {
+        left: 0;
+    }
+    
+    .nav-item {
         width: 100%;
+    }
+    
+    /* Container Tablet */
+    .container {
+        padding: 1.5rem;
+    }
+    
+    /* Grid Tablet */
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .widgets {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Tables Tablet */
+    table {
+        font-size: 0.875rem;
+    }
+    
+    table td, table th {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Actions Tablet */
+    .actions {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .actions input,
+    .actions select {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    /* Login Tablet */
+    .login {
+        margin: 3rem auto;
+        max-width: 400px;
+    }
+    
+    /* Modal Tablet */
+    .modal-content {
+        width: 80%;
+        max-width: 600px;
+    }
+}
+
+/* Tablets Large & Small Desktops (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: 960px;
+        padding: 1.75rem;
+    }
+    
+    .grid-3, .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .widgets {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .nav-list {
+        flex-wrap: wrap;
+    }
+    
+    .nav-item a,
+    .nav-item button {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Large Desktops (1025px+) */
+@media (min-width: 1025px) {
+    .container {
+        max-width: 1400px;
+    }
+    
+    .grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Extra Large Screens (1920px+) */
+@media (min-width: 1920px) {
+    .container {
+        max-width: 1600px;
+    }
+    
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    h2 {
+        font-size: 2rem;
+    }
+}
+
+/* Landscape Mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .nav-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        height: auto;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .nav-item {
+        width: auto;
+    }
+    
+    .login {
+        margin: 1rem auto;
+        padding: 1.5rem;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    button, .btn, a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .nav-item a,
+    .nav-item button {
+        padding: 1rem 1.5rem;
+    }
+    
+    /* Remove hover effects on touch */
+    .card:hover {
+        transform: none;
+    }
+    
+    button:hover,
+    .btn:hover {
+        transform: none;
     }
 }
 
