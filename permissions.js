@@ -14,8 +14,12 @@ class PermissionManager {
             return;
         }
 
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
+
         try {
-            const response = await fetch('http://localhost:3000/user-role', {
+            const response = await fetch(`${API_BASE}/user-role`, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`,
                     'dashboard-id': this.dashboardId

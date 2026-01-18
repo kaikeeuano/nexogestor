@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXO GESTOR - Configurações</title>
     <link rel="stylesheet" href="staly.css">
+    <script src="permissions.js"></script>
+    <script src="notify.js"></script>
     <style>
         .config-section {
             background: white;
@@ -280,17 +282,21 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3000'
-                : window.location.origin;
-            const token = localStorage.getItem('token');
-            const dashboardId = localStorage.getItem('dashboardId');
+        // Definir variáveis globais ANTES do DOMContentLoaded
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
+        const token = localStorage.getItem('token');
+        const dashboardId = localStorage.getItem('dashboardId');
 
+        document.addEventListener('DOMContentLoaded', function() {
             if (!token || !dashboardId) {
                 window.location.href = 'login.html';
                 return;
             }
+
+            // Verificar permissões
+            checkUserPermissions();
 
             loadConfiguration();
             loadCongregations();
@@ -298,6 +304,32 @@
             loadMembers();
             loadSubDashboards();
             loadSubDashboardRequests();
+
+        // Verificar se usuário tem permissão para acessar configurações
+        async function checkUserPermissions() {
+            try {
+                const permissionManager = new PermissionManager();
+                await permissionManager.loadUserRole();
+                
+                const isOwner = localStorage.getItem('isOwner') === 'true';
+                const userRole = localStorage.getItem('userRole');
+                
+                // Apenas owner e admin podem acessar configurações
+                if (!isOwner && userRole !== 'admin') {
+                    notify.warning('Você não tem permissão para acessar as configurações. Apenas administradores podem acessar esta página.');
+                    setTimeout(() => {
+                        window.location.href = 'sitem.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                console.log('✅ Permissão verificada - Owner:', isOwner, 'Role:', userRole);
+                return true;
+            } catch (error) {
+                console.error('Erro ao verificar permissões:', error);
+                return false;
+            }
+        }
 
             // Congregation form submit
             document.getElementById('congregationForm').addEventListener('submit', async (e) => {
@@ -383,7 +415,13 @@
                     } else {
                         const errorData = await response.json();
                         console.error('Erro servidor:', errorData);
-                        alert(`Erro ao adicionar congregação: ${errorData.error || response.statusText}`);
+                        
+                        // Verificar se é erro de duplicação
+                        if (errorData.error && errorData.error.includes('UNIQUE constraint')) {
+                            notify.warning(`A congregação "${name}" já existe neste dashboard.`);
+                        } else {
+                            notify.error(`Erro ao adicionar congregação: ${errorData.error || response.statusText}`);
+                        }
                     }
                 } catch (error) {
                     console.error('Error adding congregation:', error);
@@ -424,7 +462,13 @@
                     } else {
                         const errorData = await response.json();
                         console.error('Erro servidor:', errorData);
-                        alert(`Erro ao adicionar cargo: ${errorData.error || response.statusText}`);
+                        
+                        // Verificar se é erro de duplicação
+                        if (errorData.error && errorData.error.includes('UNIQUE constraint')) {
+                            notify.warning(`O cargo "${name}" já existe neste dashboard.`);
+                        } else {
+                            notify.error(`Erro ao adicionar cargo: ${errorData.error || response.statusText}`);
+                        }
                     }
                 } catch (error) {
                     console.error('Error adding role:', error);
