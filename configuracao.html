@@ -309,7 +309,7 @@
                 try {
                     // Update basic config
                     const response = await fetch(`${API_BASE}/config`, {
-                        method: `PUT',
+                        method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`,
@@ -531,7 +531,7 @@
                         document.getElementById('subDashKeyName').value = '';
                         document.getElementById('subDashKeyCongregation').value = '';
                         loadSubDashboards();
-                        notify.success(` Sub-dashboard criado e ativado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
+                        notify.success(`Sub-dashboard criado e ativado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
                     } else {
                         const errorData = await response.json();
                         notify.error(` Erro ao criar sub-dashboard: ${errorData.error || response.statusText}`);
@@ -972,7 +972,7 @@
             try {
                 const response = await fetch(`${API_BASE}/config`, {
                     headers: {
-                        `Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'dashboard-id': localStorage.getItem('dashboardId')
                     }
                 });
@@ -999,7 +999,7 @@
                             localStorage.removeItem('dashboardId');
                             window.location.href = 'dashboard.html';
                         } else {
-                            notify.error(' Rota de configuração não encontrada (404). O servidor pode estar desatualizado. Por favor, reinicie o servidor (node server.js).', { title: 'Erro' });
+                            notify.error('Rota de configuração não encontrada (404). O servidor pode estar desatualizado. Por favor, reinicie o servidor (node server.js).', { title: 'Erro' });
                         }
                         return;
                     }
@@ -1175,7 +1175,7 @@
 
         async function acceptMember(memberId) {
             try {
-                const response = await fetch(`${API_BASE}/dashboards/${localStorage.getItem(`dashboardId')}/accept`, {
+                const response = await fetch(`${API_BASE}/dashboards/${localStorage.getItem('dashboardId')}/accept`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
