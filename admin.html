@@ -449,6 +449,7 @@
             }
         }
     </style>
+    <script src="notify.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -659,7 +660,7 @@
 
                 const data = await response.json();
                 if (!data.isAdmin) {
-                    alert('Acesso negado. Você não tem permissões de administrador do sistema.');
+                    notify.info('Acesso negado. Você não tem permissões de administrador do sistema.');
                     window.location.href = 'dashboard.html';
                 }
             } catch (error) {
@@ -689,7 +690,7 @@
                 updateStats(keys);
             } catch (error) {
                 console.error('Error loading activation keys:', error);
-                showAlert('Erro ao carregar chaves de ativação.', 'error');
+                notify.error('Erro ao carregar chaves de ativação.');
             }
         }
 
@@ -814,7 +815,7 @@
                 document.getElementById('generatedKeyValue').textContent = data.key;
                 document.getElementById('generatedKeyDisplay').classList.remove('hidden');
                 
-                showAlert('Chave gerada com sucesso!', 'success');
+                notify.success('Chave gerada com sucesso!');
                 
                 // Reset form
                 document.getElementById('generateKeyForm').reset();
@@ -823,7 +824,7 @@
                 await loadActivationKeys();
             } catch (error) {
                 console.error('Error generating key:', error);
-                showAlert('Erro ao gerar chave de ativação.', 'error');
+                notify.error('Erro ao gerar chave de ativação.');
             }
         });
 
@@ -847,11 +848,11 @@
                     throw new Error('Failed to delete key');
                 }
 
-                showAlert('Chave excluída com sucesso!', 'success');
+                notify.success('Chave excluída com sucesso!');
                 await loadActivationKeys();
             } catch (error) {
                 console.error('Error deleting key:', error);
-                showAlert('Erro ao excluir chave.', 'error');
+                notify.error('Erro ao excluir chave.');
             }
         }
 
@@ -875,11 +876,11 @@
                     throw new Error('Failed to revoke key');
                 }
 
-                showAlert('✅ Chave bloqueada/revogada com sucesso!', 'success');
+                notify.success('✅ Chave bloqueada/revogada com sucesso!');
                 await loadActivationKeys();
             } catch (error) {
                 console.error('Error revoking key:', error);
-                showAlert('Erro ao bloquear chave.', 'error');
+                notify.error('Erro ao bloquear chave.');
             }
         }
 
@@ -903,11 +904,11 @@
                     throw new Error('Failed to restore key');
                 }
 
-                showAlert('✅ Chave restaurada com sucesso!', 'success');
+                notify.success('✅ Chave restaurada com sucesso!');
                 await loadActivationKeys();
             } catch (error) {
                 console.error('Error restoring key:', error);
-                showAlert('Erro ao restaurar chave.', 'error');
+                notify.error('Erro ao restaurar chave.');
             }
         }
 
@@ -918,10 +919,10 @@
 
         function copyKeyToClipboard(key) {
             navigator.clipboard.writeText(key).then(() => {
-                showAlert('Chave copiada para a área de transferência!', 'success');
+                notify.success('Chave copiada para a área de transferência!');
             }).catch(err => {
                 console.error('Error copying key:', err);
-                showAlert('Erro ao copiar chave.', 'error');
+                notify.error('Erro ao copiar chave.');
             });
         }
 
@@ -950,7 +951,7 @@
                 displayUsers(users);
             } catch (error) {
                 console.error('Error loading users:', error);
-                showAlert(`Erro ao carregar usuários: ${error.message}`, 'error');
+                notify.error(`Erro ao carregar usuários: ${error.message}`);
             }
         }
 
@@ -1020,11 +1021,11 @@
                     throw new Error(error.error || 'Failed to grant admin access');
                 }
 
-                showAlert(`✅ ${username} agora é administrador!`, 'success');
+                notify.success(`✅ ${username} agora é administrador!`);
                 await loadUsers();
             } catch (error) {
                 console.error('Error granting admin access:', error);
-                showAlert(error.message || 'Erro ao conceder acesso.', 'error');
+                notify.error(error.message || 'Erro ao conceder acesso.');
             }
         }
 
@@ -1051,11 +1052,11 @@
                     throw new Error(error.error || 'Failed to revoke admin access');
                 }
 
-                showAlert(`${username} não é mais administrador.`, 'success');
+                notify.success(`${username} não é mais administrador.`);
                 await loadUsers();
             } catch (error) {
                 console.error('Error revoking admin access:', error);
-                showAlert(error.message || 'Erro ao remover acesso.', 'error');
+                notify.error(error.message || 'Erro ao remover acesso.');
             }
         }
 
@@ -1089,23 +1090,23 @@
                 document.getElementById('resetLinkValue').textContent = data.resetLink;
                 document.getElementById('resetLinkDisplay').classList.remove('hidden');
                 
-                showAlert('Link de redefinição gerado com sucesso!', 'success');
+                notify.success('Link de redefinição gerado com sucesso!');
                 
                 // Reset form
                 document.getElementById('resetPasswordForm').reset();
             } catch (error) {
                 console.error('Error generating reset link:', error);
-                showAlert(error.message || 'Erro ao gerar link de redefinição.', 'error');
+                notify.error(error.message || 'Erro ao gerar link de redefinição.');
             }
         });
 
         // Copy reset link to clipboard
         function copyResetLink() {
             navigator.clipboard.writeText(currentResetLink).then(() => {
-                showAlert('Link copiado para a área de transferência!', 'success');
+                notify.success('Link copiado para a área de transferência!');
             }).catch(err => {
                 console.error('Error copying reset link:', err);
-                showAlert('Erro ao copiar link.', 'error');
+                notify.error('Erro ao copiar link.');
             });
         }
 
@@ -1122,10 +1123,10 @@
 
         function copyKeyToClipboard(key) {
             navigator.clipboard.writeText(key).then(() => {
-                showAlert('Chave copiada para a área de transferência!', 'success');
+                notify.success('Chave copiada para a área de transferência!');
             }).catch(err => {
                 console.error('Error copying key:', err);
-                showAlert('Erro ao copiar chave.', 'error');
+                notify.error('Erro ao copiar chave.');
             });
         }
 

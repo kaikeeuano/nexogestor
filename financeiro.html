@@ -50,6 +50,7 @@
             align-items: center;
         }
     </style>
+    <script src="notify.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -369,7 +370,7 @@
             const attachment = document.getElementById('attachment').files[0];
 
             if (!description || !amount || !date) {
-                alert('Preencha os campos obrigatórios.');
+                notify.warning('Preencha os campos obrigatórios.');
                 return;
             }
 

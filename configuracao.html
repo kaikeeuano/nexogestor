@@ -87,6 +87,7 @@
             color: white;
         }
     </style>
+    <script src="notify.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -337,11 +338,11 @@
                         
                         if (!logoResponse.ok) {
                             console.error('Failed to upload logo');
-                            alert('Configurações salvas, mas erro ao enviar logo.');
+                            notify.info('Configurações salvas, mas erro ao enviar logo.');
                         }
                     }
 
-                    alert('Configurações salvas com sucesso!');
+                    notify.success('Configurações salvas com sucesso!');
                     loadConfiguration(); // Reload to show new logo
                 } catch (error) {
                     console.error('Error updating configuration:', error);
@@ -355,7 +356,7 @@
                 const name = nameInput.value.trim();
                 
                 if (!name) {
-                    alert('Por favor, digite o nome da congregação.');
+                    notify.warning('Por favor, digite o nome da congregação.');
                     nameInput.focus();
                     return;
                 }
@@ -378,7 +379,7 @@
                     if (response.ok) {
                         nameInput.value = '';
                         loadCongregations();
-                        alert('Congregação adicionada com sucesso!');
+                        notify.success('Congregação adicionada com sucesso!');
                     } else {
                         const errorData = await response.json();
                         console.error('Erro servidor:', errorData);
@@ -396,7 +397,7 @@
                 const name = nameInput.value.trim();
                 
                 if (!name) {
-                    alert('Por favor, digite o nome do cargo.');
+                    notify.warning('Por favor, digite o nome do cargo.');
                     nameInput.focus();
                     return;
                 }
@@ -419,7 +420,7 @@
                     if (response.ok) {
                         nameInput.value = '';
                         loadRoles();
-                        alert('Cargo adicionado com sucesso!');
+                        notify.success('Cargo adicionado com sucesso!');
                     } else {
                         const errorData = await response.json();
                         console.error('Erro servidor:', errorData);
@@ -452,12 +453,12 @@
                 const congregation = document.getElementById('subDashboardCongregation').value;
                 
                 if (!name) {
-                    alert('Por favor, digite o nome do sub-dashboard.');
+                    notify.warning('Por favor, digite o nome do sub-dashboard.');
                     return;
                 }
                 
                 if (!congregation) {
-                    alert('Por favor, selecione uma congregação.');
+                    notify.warning('Por favor, selecione uma congregação.');
                     return;
                 }
 
@@ -477,7 +478,7 @@
                         document.getElementById('subDashboardName').value = '';
                         document.getElementById('subDashboardCongregation').value = '';
                         loadSubDashboards();
-                        alert(`Sub-dashboard criado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
+                        notify.success(`Sub-dashboard criado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
                     } else {
                         const errorData = await response.json();
                         alert(`Erro ao criar sub-dashboard: ${errorData.error || response.statusText}`);
@@ -495,17 +496,17 @@
                 const congregation = document.getElementById('subDashKeyCongregation').value;
                 
                 if (!activationKey) {
-                    alert('Por favor, insira a chave de ativação.');
+                    notify.warning('Por favor, insira a chave de ativação.');
                     return;
                 }
                 
                 if (!name) {
-                    alert('Por favor, digite o nome do sub-dashboard.');
+                    notify.warning('Por favor, digite o nome do sub-dashboard.');
                     return;
                 }
                 
                 if (!congregation) {
-                    alert('Por favor, selecione uma congregação.');
+                    notify.warning('Por favor, selecione uma congregação.');
                     return;
                 }
 
@@ -530,10 +531,10 @@
                         document.getElementById('subDashKeyName').value = '';
                         document.getElementById('subDashKeyCongregation').value = '';
                         loadSubDashboards();
-                        alert(`✅ Sub-dashboard criado e ativado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
+                        notify.success(` Sub-dashboard criado e ativado com sucesso!\nCódigo de acesso: ${data.code}\n\nCompartilhe este código com membros da congregação ${congregation}.`);
                     } else {
                         const errorData = await response.json();
-                        alert(`❌ Erro ao criar sub-dashboard: ${errorData.error || response.statusText}`);
+                        notify.error(` Erro ao criar sub-dashboard: ${errorData.error || response.statusText}`);
                     }
                 } catch (error) {
                     console.error('Error creating sub-dashboard with key:', error);
@@ -559,11 +560,11 @@
                 const confirmPassword = document.getElementById('confirmPassword').value;
 
                 if (newPassword !== confirmPassword) {
-                    alert('A nova senha e a confirmação não coincidem.');
+                    notify.info('A nova senha e a confirmação não coincidem.');
                     return;
                 }
                 if (newPassword.length < 6) {
-                    alert('A nova senha deve ter ao menos 6 caracteres.');
+                    notify.info('A nova senha deve ter ao menos 6 caracteres.');
                     return;
                 }
 
@@ -575,7 +576,7 @@
                     });
                     const data = await response.json();
                     if (response.ok) {
-                        alert('Senha alterada com sucesso. Você será desconectado e deverá entrar novamente.');
+                        notify.success('Senha alterada com sucesso. Você será desconectado e deverá entrar novamente.');
                         // Logout the user
                         localStorage.removeItem('token');
                         localStorage.removeItem('dashboardId');
@@ -779,7 +780,7 @@
                     codeBadge.title = 'Clique para copiar';
                     codeBadge.addEventListener('click', () => {
                         navigator.clipboard.writeText(sub.code);
-                        alert('Código copiado para a área de transferência!');
+                        notify.info('Código copiado para a área de transferência!');
                     });
                     info.appendChild(codeBadge);
 
@@ -813,7 +814,7 @@
                 });
                 if (response.ok) {
                     loadSubDashboards();
-                    alert('Sub-dashboard excluído com sucesso!');
+                    notify.success('Sub-dashboard excluído com sucesso!');
                 } else {
                     alert('Erro ao excluir sub-dashboard');
                 }
@@ -928,7 +929,7 @@
                 });
 
                 if (response.ok) {
-                    alert('Membro aprovado com sucesso!');
+                    notify.success('Membro aprovado com sucesso!');
                     loadSubDashboardRequests();
                 } else {
                     const error = await response.json();
@@ -955,7 +956,7 @@
                 });
 
                 if (response.ok) {
-                    alert('Solicitação rejeitada!');
+                    notify.info('Solicitação rejeitada!');
                     loadSubDashboardRequests();
                 } else {
                     const error = await response.json();
@@ -978,7 +979,7 @@
 
                 if (!response.ok) {
                     if (response.status === 403) {
-                        alert('Você não tem permissão para acessar as configurações.');
+                        notify.info('Você não tem permissão para acessar as configurações.');
                         window.location.href = 'sitem.html';
                         return;
                     }
@@ -994,11 +995,11 @@
                         }
 
                         if (isDashboardError) {
-                            alert('Dashboard não encontrado ou configuração indisponível. Por favor, selecione um dashboard novamente.');
+                            notify.warning('Dashboard não encontrado ou configuração indisponível. Por favor, selecione um dashboard novamente.');
                             localStorage.removeItem('dashboardId');
                             window.location.href = 'dashboard.html';
                         } else {
-                            alert('Erro: Rota de configuração não encontrada (404). O servidor pode estar desatualizado. Por favor, reinicie o servidor (node server.js).');
+                            notify.error(' Rota de configuração não encontrada (404). O servidor pode estar desatualizado. Por favor, reinicie o servidor (node server.js).', { title: 'Erro' });
                         }
                         return;
                     }
@@ -1015,7 +1016,7 @@
                 document.getElementById('dashboardCodeDisplay').addEventListener('click', () => {
                     if (config.code) {
                         navigator.clipboard.writeText(config.code);
-                        alert('Código copiado para a área de transferência!');
+                        notify.info('Código copiado para a área de transferência!');
                     }
                 });
                 
@@ -1188,7 +1189,7 @@
                     throw new Error('Failed to accept member');
                 }
 
-                alert('Membro aceito com sucesso!');
+                notify.success('Membro aceito com sucesso!');
                 loadMembers();
             } catch (error) {
                 console.error('Error accepting member:', error);
@@ -1210,7 +1211,7 @@
                     throw new Error('Failed to reject member');
                 }
 
-                alert('Solicitação rejeitada!');
+                notify.info('Solicitação rejeitada!');
                 loadMembers();
             } catch (error) {
                 console.error('Error rejecting member:', error);
@@ -1234,7 +1235,7 @@
                     throw new Error('Failed to change role');
                 }
 
-                alert('Função atualizada com sucesso!');
+                notify.success('Função atualizada com sucesso!');
                 loadMembers();
             } catch (error) {
                 console.error('Error changing role:', error);
@@ -1260,7 +1261,7 @@
                     throw new Error('Failed to remove member');
                 }
 
-                alert('Membro removido com sucesso!');
+                notify.success('Membro removido com sucesso!');
                 loadMembers();
             } catch (error) {
                 console.error('Error removing member:', error);

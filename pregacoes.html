@@ -443,6 +443,7 @@
             margin-bottom: 20px;
         }
     </style>
+    <script src="notify.js"></script>
 </head>
 <body>
     <!-- ==================== CABEÇALHO ==================== -->
@@ -641,7 +642,7 @@
          */
         window.addEventListener('DOMContentLoaded', () => {
             if (!token || !dashboardId) {
-                alert('Você precisa estar logado e ter um dashboard selecionado');
+                notify.info('Você precisa estar logado e ter um dashboard selecionado');
                 window.location.href = 'login.html';
                 return;
             }

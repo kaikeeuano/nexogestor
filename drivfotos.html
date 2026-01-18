@@ -6,6 +6,7 @@
     <title>NEXO GESTOR - Drive Fotos</title>
     <link rel="stylesheet" href="staly.css">
     <script src="permissions.js"></script>
+    <script src="notify.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -71,7 +72,7 @@
 
         if (!token || !dashboardId) {
             console.error('Missing token or dashboardId');
-            alert('Erro: Token ou Dashboard não encontrado. Faça login novamente.');
+            notify.error(' Token ou Dashboard não encontrado. Faça login novamente.', { title: 'Erro' });
             window.location.href = 'login.html';
         } else {
             loadFolders();
@@ -207,7 +208,7 @@
                 });
                 
                 if (response.ok) {
-                    alert('✅ Pasta renomeada com sucesso!');
+                    notify.success(' Pasta renomeada com sucesso!');
                     loadFolders();
                 } else {
                     const error = await response.json().catch(() => ({}));
@@ -234,7 +235,7 @@
                 });
                 
                 if (response.ok) {
-                    alert('✅ Pasta deletada com sucesso!');
+                    notify.success(' Pasta deletada com sucesso!');
                     loadFolders();
                 } else {
                     const error = await response.json().catch(() => ({}));
@@ -257,7 +258,7 @@
             if (!name) return;
             
             if (!token || !dashboardId) {
-                alert('Erro: Token ou Dashboard não disponível. Faça login novamente.');
+                notify.error(' Token ou Dashboard não disponível. Faça login novamente.', { title: 'Erro' });
                 window.location.href = 'login.html';
                 return;
             }
@@ -389,7 +390,7 @@
         function handleFiles(files) {
             if (files.length > 0) {
                 if (!currentFolderId) {
-                    alert('Por favor, selecione uma pasta antes de selecionar fotos.');
+                    notify.warning('Por favor, selecione uma pasta antes de selecionar fotos.');
                     return;
                 }
                 selectedFilesArray = Array.from(files);
@@ -430,11 +431,11 @@
 
         document.getElementById('uploadPhotos').addEventListener('click', async () => {
             if (selectedFilesArray.length === 0) {
-                alert('Nenhuma foto selecionada.');
+                notify.info('Nenhuma foto selecionada.');
                 return;
             }
             if (!currentFolderId) {
-                alert('Por favor, selecione uma pasta antes de fazer upload.');
+                notify.warning('Por favor, selecione uma pasta antes de fazer upload.');
                 return;
             }
             uploadInProgress = true;

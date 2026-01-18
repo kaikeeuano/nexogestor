@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXO GESTOR - Login</title>
     <link rel="stylesheet" href="staly.css">
+    <script src="notify.js"></script>
 </head>
 <body>
     <main class="login">
@@ -71,7 +72,7 @@
                     let msg = 'Credenciais inválidas';
                     try { const data = await response.json(); if (data && data.error) msg = data.error; } catch (e) { /* ignore */ }
                     console.warn('Login failed:', response.status, msg);
-                    alert(msg);
+                    notify.info(msg);
                 }
             } catch (err) {
                 console.error('Login error:', err);

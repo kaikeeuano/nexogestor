@@ -6,6 +6,7 @@
     <title>NEXO GESTOR - Agenda</title>
     <link rel="stylesheet" href="staly.css">
     <script src="permissions.js"></script>
+    <script src="notify.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -463,7 +464,7 @@
                     printWindow.onload = () => { try { printWindow.print(); printWindow.close(); } catch (err) { console.error('Print failed:', err); } };
                 } catch (err) {
                     console.error('Error opening print window:', err);
-                    alert('Não foi possível abrir a janela de impressão. Verifique bloqueadores de popups.');
+                    notify.info('Não foi possível abrir a janela de impressão. Verifique bloqueadores de popups.');
                 }
             }
 

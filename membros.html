@@ -6,6 +6,7 @@
     <title>NEXO GESTOR - Membros</title>
     <link rel="stylesheet" href="staly.css">
     <script src="permissions.js"></script>
+    <script src="notify.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -445,7 +446,7 @@
             const photo = document.getElementById('photo').files[0];
 
             if (!congregation) {
-                alert('Por favor, selecione a congregação.');
+                notify.warning('Por favor, selecione a congregação.');
                 return;
             }
 
@@ -521,7 +522,7 @@
                 if (!resp.ok) {
                     const msg = await resp.text();
                     console.error('toggle status failed', resp.status, msg);
-                    alert('Não foi possível atualizar o status.');
+                    notify.info('Não foi possível atualizar o status.');
                     return;
                 }
                 loadMembers();

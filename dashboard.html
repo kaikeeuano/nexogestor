@@ -6,6 +6,7 @@
     <title>NEXO GESTOR - Dashboards</title>
     <link rel="stylesheet" href="staly.css">
     <script src="notifications.js"></script>
+    <script src="notify.js"></script>
 </head>
 <body>
     <div style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
@@ -224,7 +225,7 @@
                     const keyInput = document.getElementById('activationKey');
                     
                     if (!nameInput || !keyInput) {
-                        alert('Erro: Campos não encontrados!');
+                        notify.error(' Campos não encontrados!', { title: 'Erro' });
                         return;
                     }
                     
@@ -234,18 +235,18 @@
                     console.log('📋 Dados:', { name, activationKey, hasToken: !!token });
                     
                     if (!name) {
-                        alert('Por favor, digite o nome do dashboard');
+                        notify.warning('Por favor, digite o nome do dashboard', { title: 'Campo Obrigatório' });
                         return;
                     }
                     
                     if (!activationKey) {
-                        alert('Por favor, digite a chave de ativação');
+                        notify.warning('Por favor, digite a chave de ativação', { title: 'Campo Obrigatório' });
                         return;
                     }
                     
                     if (!token) {
-                        alert('Você não está logado. Redirecionando...');
-                        window.location.href = 'login.html';
+                        notify.warning('Você não está logado. Redirecionando...', { title: 'Autenticação' });
+                        setTimeout(() => window.location.href = 'login.html', 1500);
                         return;
                     }
                     
@@ -282,18 +283,18 @@
                                     console.warn('Erro ao atualizar nome:', e);
                                 }
                                 
-                                alert(`Dashboard "${name}" criado com sucesso!\nCódigo: ${data.dashboard.code}`);
+                                notify.success(`Dashboard "${name}" criado com sucesso!\nCódigo: ${data.dashboard.code}`, { title: 'Sucesso', duration: 3000 });
                                 localStorage.setItem('dashboardId', data.dashboard.id);
-                                window.location.href = 'sitem.html';
+                                setTimeout(() => window.location.href = 'sitem.html', 1500);
                             }
                         } else {
                             const error = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
                             console.error('❌ Erro:', error);
-                            alert('Erro: ' + (error.error || 'Não foi possível criar o dashboard'));
+                            notify.error(error.error || 'Não foi possível criar o dashboard', { title: 'Erro' });
                         }
                     } catch (error) {
                         console.error('❌ Exceção:', error);
-                        alert('Erro de conexão com o servidor. Verifique se está rodando.');
+                        notify.error('Erro de conexão com o servidor. Verifique se está rodando.', { title: 'Erro de Conexão' });
                     }
                 };
             } else {
@@ -496,15 +497,15 @@
                 });
 
                 if (response.ok) {
-                    alert('Dashboard excluído com sucesso!');
+                    notify.success('Dashboard excluído com sucesso!');
                     await loadDashboards();
                 } else {
                     const error = await response.json().catch(() => ({}));
-                    alert(error.error || 'Erro ao excluir dashboard');
+                    notify.error(error.error || 'Erro ao excluir dashboard', { title: 'Erro' });
                 }
             } catch (error) {
                 console.error('Erro ao excluir dashboard:', error);
-                alert('Erro ao conectar com o servidor');
+                notify.error('Erro ao conectar com o servidor', { title: 'Erro de Conexão' });
             }
         }
 
