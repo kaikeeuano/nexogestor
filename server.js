@@ -379,13 +379,29 @@ app.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Email já cadastrado' });
     }
     
-    const hashedPassword = await bcrypt.hash(password, 10);
-    db.run('INSERT INTO users (username, password, email, phone) VALUES (?, ?, ?, ?)', [username, hashedPassword, email, phone], function(err) {
+    // Verificar se é o primeiro usuário (torna admin automaticamente)
+    db.get('SELECT COUNT(*) as count FROM users', [], async (err, result) => {
       if (err) {
-        res.status(500).json({ error: err.message });
-        return;
+        return res.status(500).json({ error: err.message });
       }
-      res.json({ id: this.lastID });
+      
+      const isFirstUser = result.count === 0;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      db.run('INSERT INTO users (username, password, email, phone, is_admin) VALUES (?, ?, ?, ?, ?)', 
+        [username, hashedPassword, email, phone, isFirstUser ? 1 : 0], 
+        function(err) {
+          if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+          }
+          res.json({ 
+            id: this.lastID,
+            isAdmin: isFirstUser,
+            message: isFirstUser ? 'Primeiro usuário criado como administrador' : 'Usuário criado com sucesso'
+          });
+        }
+      );
     });
   });
 });
