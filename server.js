@@ -83,6 +83,7 @@ db.run(`ALTER TABLE dashboards ADD COLUMN parent_dashboard_id INTEGER;`, (err) =
 db.run(`ALTER TABLE dashboards ADD COLUMN restricted_congregation TEXT;`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE dashboards ADD COLUMN type TEXT DEFAULT 'default';`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE dashboard_members ADD COLUMN role TEXT DEFAULT 'member';`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
+db.run(`ALTER TABLE members ADD COLUMN birth_date TEXT;`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE members ADD COLUMN status TEXT DEFAULT 'active';`, (err) => { if (err && !err.message.includes('duplicate column')) console.error(err); });
 db.run(`ALTER TABLE members ADD COLUMN created_at TEXT;`, (err) => { 
   if (err && !err.message.includes('duplicate column')) {
