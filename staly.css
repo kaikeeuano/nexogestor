@@ -682,6 +682,8 @@ tbody tr:hover {
 /* Dashboards Selection */
 .dashboards {
     padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .dashboard-item {
@@ -692,6 +694,20 @@ tbody tr:hover {
     margin-bottom: 1rem;
     transition: var(--transition);
     border-left: 4px solid var(--secondary-color);
+}
+
+.dashboard-item h3 {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dashboard-item p {
+    color: var(--gray-600);
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
 }
 
 .dashboard-item:hover {
@@ -960,9 +976,40 @@ footer {
         padding: 1.5rem;
     }
     
+    /* Dashboards Page Mobile */
+    .dashboards {
+        padding: 1rem;
+    }
+    
+    .dashboards h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .dashboards h2 {
+        font-size: 1.25rem;
+    }
+    
     /* Dashboard Items Mobile */
     .dashboard-item {
         padding: 1rem;
+        transform: none !important;
+    }
+    
+    .dashboard-item:hover {
+        transform: none !important;
+    }
+    
+    .dashboard-item h3 {
+        font-size: 1.125rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .dashboard-item button {
+        width: 100%;
+        flex: none !important;
+        min-width: auto !important;
     }
     
     /* Filters Mobile */

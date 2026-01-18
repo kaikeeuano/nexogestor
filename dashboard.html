@@ -123,6 +123,14 @@
 
                     const h3 = document.createElement('h3');
                     h3.textContent = dashboard.name;
+                    
+                    // Badge do tipo de dashboard
+                    if (dashboard.type === 'pregacoes') {
+                        const badge = document.createElement('span');
+                        badge.textContent = '📖 Pregações';
+                        badge.style.cssText = 'background: linear-gradient(135deg, #764ba2, #667eea); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-left: 10px; font-weight: 500;';
+                        h3.appendChild(badge);
+                    }
 
                     const p = document.createElement('p');
                     p.textContent = `ID: ${dashboard.code || dashboard.id}`;
@@ -131,10 +139,16 @@
                     buttonContainer.style.display = 'flex';
                     buttonContainer.style.gap = '10px';
                     buttonContainer.style.marginTop = '10px';
+                    buttonContainer.style.flexWrap = 'wrap';
 
                     const btn = document.createElement('button');
                     btn.textContent = 'Acessar';
-                    btn.addEventListener('click', () => selectDashboard(dashboard.id, dashboard.type));
+                    btn.style.flex = '1';
+                    btn.style.minWidth = '120px';
+                    btn.addEventListener('click', () => {
+                        console.log('👆 Botão Acessar clicado:', { id: dashboard.id, type: dashboard.type });
+                        selectDashboard(dashboard.id, dashboard.type);
+                    });
 
                     // Botão de excluir (apenas para owner)
                     if (dashboard.status === 'owner') {
@@ -491,15 +505,17 @@
         setupEventListeners();
 
         function selectDashboard(id, type) {
-            console.log('📂 Selecionando dashboard:', { id, type });
+            console.log('📂 selectDashboard chamada com:', { id, type });
+            console.log('Tipo recebido:', type, '| Tipo é pregacoes?', type === 'pregacoes');
+            
             localStorage.setItem('dashboardId', id);
             
             // Redireciona baseado no tipo do dashboard
             if (type === 'pregacoes') {
-                console.log('🎤 Redirecionando para dashboard de pregações...');
+                console.log('🎤 REDIRECIONANDO PARA PREGAÇÕES (pregacoes.html)');
                 window.location.href = 'pregacoes.html';
             } else {
-                console.log('📊 Redirecionando para dashboard padrão...');
+                console.log('📊 REDIRECIONANDO PARA PADRÃO (sitem.html)');
                 window.location.href = 'sitem.html';
             }
         }
