@@ -30,7 +30,7 @@
     </nav>
     
     <main class="drive">
-        <h1>Drive de Fotos</h1>
+        <h1>Drive de Fotos e Vídeos</h1>
         <div style="margin-bottom: 20px;">
             <button id="createFolder" style="padding: 15px 25px; font-size: 16px;">➕ Criar Nova Pasta</button>
         </div>
@@ -39,9 +39,9 @@
             <button id="backToFolders">Voltar</button>
             <h2 id="folderTitle"></h2>
             <div id="uploadArea" class="upload-area">
-                <p>Arraste e solte fotos aqui ou clique para selecionar</p>
-                <input type="file" id="photoUpload" accept="image/*" multiple style="display: none;">
-                <button id="selectFiles">Selecionar Arquivos</button>
+                <p>Arraste e solte fotos e vídeos aqui ou clique para selecionar</p>
+                <input type="file" id="photoUpload" accept="image/*,video/*" multiple style="display: none;">
+                <button id="selectFiles">Selecionar Fotos/Vídeos</button>
             </div>
             <div id="previewArea" style="margin-top:12px; display:none;">
                 <h3>Pré-visualização</h3>
@@ -307,7 +307,7 @@
                 emptyMsg.style.padding = '20px';
                 emptyMsg.style.textAlign = 'center';
                 emptyMsg.style.color = '#999';
-                emptyMsg.textContent = '📷 Nenhuma foto nesta pasta. Selecione e envie fotos acima.';
+                emptyMsg.textContent = '📷 Nenhuma foto/vídeo nesta pasta. Selecione e envie arquivos acima.';
                 filesList.appendChild(emptyMsg);
                 return;
             }
@@ -321,13 +321,29 @@
                 fileDiv.style.borderRadius = '4px';
                 fileDiv.style.textAlign = 'center';
 
-                const img = document.createElement('img');
-                img.src = `/uploads/${file.filename}`;
-                img.alt = file.name;
-                img.style.width = '100px';
-                img.style.height = '100px';
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '4px';
+                // Verificar se é vídeo ou imagem
+                const isVideo = file.filename && (file.filename.endsWith('.mp4') || file.filename.endsWith('.webm') || file.filename.endsWith('.mov') || file.filename.endsWith('.avi'));
+                
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.src = `/uploads/${file.filename}`;
+                    video.controls = true;
+                    video.style.width = '100px';
+                    video.style.height = '100px';
+                    video.style.objectFit = 'cover';
+                    video.style.borderRadius = '4px';
+                    fileDiv.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = `/uploads/${file.filename}`;
+                    img.alt = file.name;
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '4px';
+                    fileDiv.appendChild(img);
+                }
+
 
                 const p = document.createElement('p');
                 p.textContent = file.name.substring(0, 20);
@@ -351,7 +367,6 @@
                     }
                 });
 
-                fileDiv.appendChild(img);
                 fileDiv.appendChild(p);
                 fileDiv.appendChild(btn);
 
@@ -409,18 +424,34 @@
                 reader.onload = (e) => {
                     const div = document.createElement('div');
                     div.style.position = 'relative';
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.width = '100px';
-                    img.style.height = '100px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '4px';
+                    
+                    // Verificar se é vídeo ou imagem
+                    const isVideo = file.type.startsWith('video/');
+                    
+                    if (isVideo) {
+                        const video = document.createElement('video');
+                        video.src = e.target.result;
+                        video.controls = true;
+                        video.style.width = '100px';
+                        video.style.height = '100px';
+                        video.style.objectFit = 'cover';
+                        video.style.borderRadius = '4px';
+                        div.appendChild(video);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '100px';
+                        img.style.height = '100px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '4px';
+                        div.appendChild(img);
+                    }
+                    
                     const label = document.createElement('small');
                     label.textContent = file.name.substring(0, 15);
                     label.style.display = 'block';
                     label.style.fontSize = '10px';
                     label.style.marginTop = '4px';
-                    div.appendChild(img);
                     div.appendChild(label);
                     previewGrid.appendChild(div);
                 };
@@ -431,7 +462,7 @@
 
         document.getElementById('uploadPhotos').addEventListener('click', async () => {
             if (selectedFilesArray.length === 0) {
-                notify.info('Nenhuma foto selecionada.');
+                notify.info('Nenhum arquivo selecionado.');
                 return;
             }
             if (!currentFolderId) {
