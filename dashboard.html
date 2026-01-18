@@ -417,22 +417,45 @@
                         });
                         
                         console.log('Resposta:', response.status);
+                        const data = await response.json();
+                        console.log('Dados:', data);
                         
                         if (response.ok) {
-                            notify.success('Solicitação enviada! Aguarde aprovação do dono do dashboard.', { 
-                                title: 'Solicitação Enviada',
-                                duration: 6000
-                            });
+                            // Verificar se já foi aprovado automaticamente
+                            if (data.autoApproved) {
+                                notify.success('Você entrou no dashboard com sucesso!', { 
+                                    title: 'Acesso Concedido',
+                                    duration: 3000
+                                });
+                                // Recarregar dashboards e selecionar automaticamente
+                                await loadDashboards();
+                                setTimeout(() => {
+                                    if (data.dashboardId) {
+                                        localStorage.setItem('dashboardId', data.dashboardId);
+                                        window.location.href = 'sitem.html';
+                                    }
+                                }, 1500);
+                            } else {
+                                notify.success('Solicitação enviada! Aguarde a aprovação do administrador do dashboard.', { 
+                                    title: 'Solicitação Enviada',
+                                    duration: 6000
+                                });
+                            }
                             document.getElementById('joinForm').style.display = 'none';
                             document.getElementById('joinCode').value = '';
-                            await loadDashboards();
                         } else {
-                            const error = await response.json().catch(() => ({}));
-                            console.error('❌ Erro:', error);
+                            console.error('❌ Erro:', data);
                             if (response.status === 404) {
                                 notify.error('Dashboard não encontrado. Verifique o código digitado.', { title: 'Não Encontrado' });
+                            } else if (response.status === 409) {
+                                notify.warning(data.error || 'Você já possui acesso a este dashboard.', { 
+                                    title: 'Já tem Acesso',
+                                    duration: 5000
+                                });
+                                // Recarregar para mostrar o dashboard
+                                await loadDashboards();
                             } else {
-                                notify.error(error.error || 'Erro desconhecido ao entrar no dashboard', { title: 'Erro' });
+                                notify.error(data.error || 'Erro desconhecido ao entrar no dashboard', { title: 'Erro' });
                             }
                         }
                     } catch (error) {

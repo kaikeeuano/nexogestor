@@ -974,22 +974,70 @@ app.get('/dashboards', authenticateToken, (req, res) => {
 app.post('/dashboards/join', authenticateToken, (req, res) => {
   const { code } = req.body;
   const userId = req.user.id;
+  
+  console.log(`👤 Usuário ${userId} tentando entrar no dashboard com código: ${code}`);
+  
   db.get('SELECT id FROM dashboards WHERE code = ?', [code], (err, dashboard) => {
     if (err) {
+      console.error('Erro ao buscar dashboard:', err);
       res.status(500).json({ error: err.message });
       return;
     }
     if (!dashboard) {
-      res.status(404).json({ error: 'Dashboard not found' });
+      console.log('❌ Dashboard não encontrado com código:', code);
+      res.status(404).json({ error: 'Dashboard não encontrado. Verifique o código.' });
       return;
     }
-    db.run('INSERT INTO dashboard_members (dashboard_id, user_id, status, role) VALUES (?, ?, ?, ?)', [dashboard.id, userId, 'pending', 'member'], function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
+    
+    console.log(`✓ Dashboard encontrado: ${dashboard.id}`);
+    
+    // Verificar se o usuário já é membro
+    db.get(
+      'SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?',
+      [dashboard.id, userId],
+      (err, existingMember) => {
+        if (err) {
+          console.error('Erro ao verificar membro:', err);
+          return res.status(500).json({ error: err.message });
+        }
+        
+        if (existingMember) {
+          console.log(`⚠ Usuário já é membro com status: ${existingMember.status}`);
+          
+          if (existingMember.status === 'pending') {
+            return res.status(409).json({ 
+              error: 'Você já solicitou acesso a este dashboard. Aguarde aprovação do administrador.',
+              status: 'pending'
+            });
+          } else if (existingMember.status === 'owner' || existingMember.status === 'admin' || existingMember.status === 'member') {
+            return res.status(409).json({ 
+              error: 'Você já tem acesso a este dashboard.',
+              status: existingMember.status,
+              dashboardId: dashboard.id
+            });
+          }
+        }
+        
+        // Criar nova solicitação
+        db.run(
+          'INSERT INTO dashboard_members (dashboard_id, user_id, status, role) VALUES (?, ?, ?, ?)',
+          [dashboard.id, userId, 'pending', 'member'],
+          function(err) {
+            if (err) {
+              console.error('Erro ao criar solicitação:', err);
+              res.status(500).json({ error: err.message });
+              return;
+            }
+            console.log(`✓ Solicitação criada para dashboard ${dashboard.id}`);
+            res.json({ 
+              message: 'Solicitação de acesso enviada com sucesso',
+              dashboardId: dashboard.id,
+              status: 'pending'
+            });
+          }
+        );
       }
-      res.json({ message: 'Join request sent' });
-    });
+    );
   });
 });
 
