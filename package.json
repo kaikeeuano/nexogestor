@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "start:prod": "NODE_ENV=production node server.js",
-    "release": "node build_release.js"
+    "release": "node build_release.js",
+    "deploy:prepare": "node -e \"console.log('Execute: deploy_hostinger.bat (Windows) ou ./deploy_hostinger.sh (Linux/Mac)')\"",
+    "generate:key": "node gerar_secret_key.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

@@ -1,52 +1,206 @@
-# NEXO GESTOR Dashboard
+# 🎯 NEXO GESTOR - Sistema de Gestão Completo
 
-Este é um projeto simples de dashboard para o sistema NEXO GESTOR.
+Sistema web completo para gestão de eventos, membros, projetos, finanças e muito mais.
 
-## Estrutura do Projeto
+## 📋 Funcionalidades
 
-- `index.html`: Página inicial com navegação principal.
-- `sitem.html`: Página do dashboard com widgets para diferentes seções.
-- `projetos.html`: Página de gestão de projetos com cadastro, filtros por título e status, e impressão.
-- `drivfotos.html`: Página do drive de fotos com link para Google Drive e lista de fotos recentes.
-- `dashboard.html`: Página de seleção de dashboards, com opções para criar novo, entrar em existente com código, e listar dashboards do usuário.
-- `membros.html`: Página de cadastro de membros com campos para nome, congregação e cargo, conectada ao banco de dados.
-- `staly.css`: Folhas de estilo para o layout.
-- `server.js`: Servidor Node.js para a API da agenda.
-- `package.json`: Dependências do projeto.
+- ✅ **Agenda**: Gestão completa de eventos
+- ✅ **Membros**: Cadastro e controle de membros
+- ✅ **Projetos**: Gerenciamento de projetos
+- ✅ **Financeiro**: Controle financeiro
+- ✅ **Dashboard**: Painéis personalizados multi-usuário
+- ✅ **Relatórios**: Sistema de relatórios
+- ✅ **Admin**: Painel administrativo completo
+- ✅ **Autenticação**: Sistema de login seguro com JWT
 
-## Como Usar
+## 🚀 Deploy para Hostinger (Recomendado)
 
-1. Instale as dependências: `npm install`
-2. Inicie o servidor: `npm start`
-3. Abra `http://localhost:3000/agenda.html` em um navegador para acessar a agenda.
+### Deploy em 3 Comandos:
 
-## Funcionalidades
+```bash
+# 1. Preparar arquivos
+.\deploy_hostinger.bat
 
-- Navegação lateral com links para diferentes seções.
-- Widgets no dashboard representando cada seção com botões para ações.
-- Agenda: Adicionar eventos com data, título e descrição; visualizar lista de eventos; excluir eventos. Dados armazenados em banco de dados SQLite.
-- Projetos: Cadastrar projetos com título, descrição e status; visualizar lista; excluir projetos; filtrar por título e status; botão para imprimir.
-- Drive Fotos: Link para Google Drive e lista de fotos recentes.
-- Dashboard: Sistema multi-usuário com dashboards separados; criação de dashboards, convite por código, aprovação de membros pelo dono.
+# 2. Gerar chave secreta
+npm run generate:key
 
-## Desenvolvimento
+# 3. Editar .env e fazer upload
+# Veja: PRONTO_PARA_DEPLOY.md
+```
 
-Para modificar o dashboard, edite `sitem.html` para adicionar/remover widgets e `staly.css` para estilos.
-Para a agenda, edite `agenda.html` para o frontend e `server.js` para o backend.
+### 📚 Documentação de Deploy:
+
+| Documento | Quando Usar |
+|-----------|-------------|
+| **[PRONTO_PARA_DEPLOY.md](PRONTO_PARA_DEPLOY.md)** | ⭐ **Comece aqui** - Resumo completo |
+| [GUIA_DEPLOY_COMPLETO.md](GUIA_DEPLOY_COMPLETO.md) | Guia detalhado com troubleshooting |
+| [DEPLOY_RAPIDO.md](DEPLOY_RAPIDO.md) | Guia rápido em 5 passos |
+| [ESTRUTURA_PROJETO.md](ESTRUTURA_PROJETO.md) | Entenda a estrutura do projeto |
+
+## 💻 Desenvolvimento Local
+
+### Pré-requisitos:
+- Node.js 18.x ou superior
+- NPM
+
+### Instalação:
+
+```bash
+# 1. Clonar o repositório
+git clone <seu-repo>
+cd NEXO\ GESTOR
+
+# 2. Instalar dependências
+npm install
+
+# 3. Iniciar servidor
+npm start
+```
+
+### Acessar:
+- **URL:** http://localhost:3000
+- **Login:** http://localhost:3000/login.html
+- **Dashboard:** http://localhost:3000/dashboard.html
+
+## 🛠️ Scripts Disponíveis
+
+```bash
+npm start              # Inicia servidor em modo desenvolvimento
+npm run start:prod     # Inicia em modo produção
+npm run generate:key   # Gera SECRET_KEY segura
+npm run release        # Cria release ZIP
+```
+
+## 📦 Estrutura do Projeto
+
+```
+NEXO GESTOR/
+├── *.html              # Páginas do sistema
+├── server.js           # API Backend (Express + SQLite)
+├── staly.css           # Estilos principais
+├── notifications.js    # Sistema de notificações
+├── permissions.js      # Sistema de permissões
+├── config/            # Configurações
+├── data/              # Banco de dados SQLite
+└── uploads/           # Arquivos enviados
+```
+
+Veja [ESTRUTURA_PROJETO.md](ESTRUTURA_PROJETO.md) para detalhes completos.
+
+## 🔒 Segurança
+
+- ✅ Autenticação JWT
+- ✅ Senhas criptografadas com bcrypt
+- ✅ CORS configurável
+- ✅ Validação de dados
+- ✅ Sistema de permissões
+
+## 🗄️ Banco de Dados
+
+- **SQLite3**: Banco de dados local
+- **Localização**: `data/agenda2.db`
+- **Backup**: Recomendado fazer backup regularmente
+
+## 📄 Páginas Disponíveis
+
+| Página | Descrição |
+|--------|-----------|
+| `index.html` | Página inicial |
+| `login.html` | Autenticação |
+| `dashboard.html` | Dashboard principal |
+| `agenda.html` | Gestão de eventos |
+| `membros.html` | Cadastro de membros |
+| `projetos.html` | Gestão de projetos |
+| `financeiro.html` | Controle financeiro |
+| `servicos.html` | Gestão de serviços |
+| `pregacoes.html` | Gestão de pregações |
+| `relatorios.html` | Relatórios |
+| `admin.html` | Painel administrativo |
+| `configuracao.html` | Configurações do sistema |
+
+## 🌐 Deploy em Produção
+
+### Hostinger (Recomendado)
+
+**Veja documentação completa em [PRONTO_PARA_DEPLOY.md](PRONTO_PARA_DEPLOY.md)**
+
+Resumo:
+
+Resumo:
+
+```bash
+# 1. Executar script de deploy
+.\deploy_hostinger.bat
+
+# 2. Editar .env (alterar SECRET_KEY)
+# 3. Upload via FTP para /public_html
+# 4. Configurar Node.js no hPanel
+# 5. npm install && npm start
+```
+
+### Outros Servidores
+
+Para outros servidores VPS/Cloud:
+
+```bash
+# 1. Copiar .env.example para .env e configurar
+cp .env.production .env
+
+# 2. Instalar dependências
+npm install --production
+
+# 3. Iniciar com PM2 (recomendado)
+pm2 start server.js --name nexo-gestor
+
+# 4. Configurar para iniciar no boot
+pm2 startup
+pm2 save
+```
+
+## 🐛 Troubleshooting
+
+### Aplicação não inicia?
+- Verifique se `npm install` foi executado
+- Confirme que as variáveis de ambiente estão configuradas
+- Veja os logs: `npm start` (local) ou hPanel → Logs (Hostinger)
+
+### Erro de banco de dados?
+- Verifique se `data/agenda2.db` existe
+- Confirme permissões: `chmod 755 data/`
+
+### Upload não funciona?
+- Verifique permissões: `chmod 755 uploads/`
+- Confirme que a pasta existe
+
+## 📚 Documentação Adicional
+
+- [ADMIN_GUIDE.md](ADMIN_GUIDE.md) - Guia do administrador
+- [SISTEMA_BLOQUEIO_CHAVES.md](SISTEMA_BLOQUEIO_CHAVES.md) - Sistema de bloqueio
+- [SUB_DASHBOARD_GUIA.md](SUB_DASHBOARD_GUIA.md) - Guia de sub-dashboards
+- [DASHBOARD_ACTIVATION_GUIDE.md](DASHBOARD_ACTIVATION_GUIDE.md) - Ativação de dashboards
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto é proprietário. Todos os direitos reservados.
+
+## 👥 Suporte
+
+Para dúvidas sobre deploy na Hostinger:
+- 📖 [PRONTO_PARA_DEPLOY.md](PRONTO_PARA_DEPLOY.md)
+- 📖 [GUIA_DEPLOY_COMPLETO.md](GUIA_DEPLOY_COMPLETO.md)
+- 💬 Suporte Hostinger: https://www.hostinger.com.br/contato
 
 ---
 
-## Deploy (Produção)
-
-1. Copie `.env.example` para `.env` e preencha os valores (ex.: `SECRET_KEY`, `PORT`, `DATABASE_PATH`).
-2. No servidor: instale dependências com `npm install --production`.
-3. Inicie a aplicação em modo produção:
-   - `npm run start:prod` (define `NODE_ENV=production`).
-4. Recomendado: use um gerenciador de processos como PM2 para manter a aplicação rodando:
-   - `pm2 start server.js --name nexo-gestor --env production`
-
-### Release ZIP
-O artefato de release é gerado em `releases/` (arquivo zip). Transfira o zip para o servidor, extraia, configure `.env` e rode os passos acima.
+**Desenvolvido com ❤️ para gestão eficiente**
 
 ### Systemd (opcional)
 Crie `/etc/systemd/system/nexo-gestor.service` com conteúdo:

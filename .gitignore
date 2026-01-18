@@ -1,8 +1,37 @@
+# Dependências
 node_modules/
+package-lock.json
+
+# Banco de dados (local)
 agenda2.db
+*.db
+nexo/*.db
+
+# Uploads (arquivos de usuários)
 uploads/*
 !uploads/.gitkeep
+
+# Variáveis de ambiente
 .env
+.env.local
+.env.production
+
+# Logs
 *.log
+npm-debug.log*
+
+# Sistema
 .DS_Store
 Thumbs.db
+
+# Deploy
+deploy_hostinger/
+releases/
+
+# IDE
+.vscode/
+.idea/
+
+# Backup
+*.bak
+*.tmp
