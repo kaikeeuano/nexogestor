@@ -32,7 +32,10 @@
     </main>
 
     <script>
-        const API_BASE = 'http://localhost:3000';
+        // Detecta automaticamente se está em produção ou desenvolvimento
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : window.location.origin;
 
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const username = document.getElementById('loginUsername').value.trim();
