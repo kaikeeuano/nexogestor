@@ -299,6 +299,50 @@ db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0;`, (err) => {
   if (err && !err.message.includes('duplicate column')) console.error(err); 
 });
 
+// Criar usuário admin permanente se não existir
+(async () => {
+  const adminUsername = 'kaike.adellan';
+  const adminPassword = '@Adellan126';
+  const adminEmail = 'kaike.adellan@nexogestor.com';
+  const adminPhone = '11999999999';
+  
+  db.get('SELECT id FROM users WHERE username = ?', [adminUsername], async (err, user) => {
+    if (err) {
+      console.error('Erro ao verificar admin:', err);
+      return;
+    }
+    
+    if (!user) {
+      // Usuário não existe, criar
+      try {
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        db.run(
+          'INSERT INTO users (username, password, email, phone, is_admin, is_system_admin) VALUES (?, ?, ?, ?, 1, 1)',
+          [adminUsername, hashedPassword, adminEmail, adminPhone],
+          function(err) {
+            if (err) {
+              console.error('❌ Erro ao criar admin permanente:', err);
+            } else {
+              console.log('✅ Usuário admin permanente criado: ' + adminUsername);
+            }
+          }
+        );
+      } catch (err) {
+        console.error('❌ Erro ao criar hash da senha:', err);
+      }
+    } else {
+      // Usuário existe, garantir que é admin
+      db.run('UPDATE users SET is_admin = 1, is_system_admin = 1 WHERE username = ?', [adminUsername], (err) => {
+        if (err) {
+          console.error('❌ Erro ao atualizar admin:', err);
+        } else {
+          console.log('✅ Usuário admin atualizado: ' + adminUsername);
+        }
+      });
+    }
+  });
+})();
+
 // Create activation_keys table
 db.run(`CREATE TABLE IF NOT EXISTS activation_keys (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
