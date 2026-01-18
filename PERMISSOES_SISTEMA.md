@@ -25,18 +25,19 @@ localStorage.getItem('isOwner') === 'true'
 ---
 
 ### 2. **ADMIN (Administrador)** ⚙️
-**Acesso: QUASE TOTAL**
+**Acesso: TOTAL EM TODOS OS MÓDULOS**
 
 Permissões:
-- ✅ Financeiro
-- ✅ Documentos
-- ✅ Fotos
-- ✅ Membros
-- ✅ Gestão
-- ✅ Agenda
-- ✅ Projetos
+- ✅ Financeiro (criar, editar, deletar)
+- ✅ Documentos (upload, editar, deletar)
+- ✅ Fotos (upload, editar, deletar)
+- ✅ Membros (gerenciar cadastros)
+- ✅ Gestão (controle total)
+- ✅ Agenda (criar, editar, deletar)
+- ✅ Projetos (criar, editar, deletar)
+- ✅ Relatórios (acesso completo)
 - ✅ Configurações (junto com owner)
-- ❌ **Não pode:** Gerenciar membros (apenas owner)
+- ❌ **Não pode:** Gerenciar membros do dashboard (adicionar/remover/alterar funções - apenas owner)
 
 ---
 
@@ -44,19 +45,19 @@ Permissões:
 **Acesso: Financeiro e Documentos**
 
 Permissões:
-- ✅ Financeiro (criar, editar, deletar)
+- ✅ Financeiro (criar, editar, deletar transações)
 - ✅ Documentos (upload, editar, deletar)
 - ❌ Outros módulos: apenas visualização
 
 ---
 
 ### 4. **SECRETÁRIO** 📋
-**Acesso: Membros, Documentos e Fotos**
+**Acesso: Membros, Fotos e Documentos**
 
 Permissões:
-- ✅ Membros (gerenciar cadastros)
-- ✅ Documentos (upload, editar, deletar)
+- ✅ Membros (adicionar, editar cadastros - NÃO gerencia funções do dashboard)
 - ✅ Fotos (upload, editar, deletar)
+- ✅ Documentos (upload, editar, deletar)
 - ❌ Outros módulos: apenas visualização
 
 ---
@@ -88,14 +89,15 @@ class PermissionManager {
     canEdit(module) {
         // OWNER TEM ACESSO TOTAL - PRIORIDADE MÁXIMA
         if (this.isOwner) return true;
+        
+        // ADMIN TEM ACESSO TOTAL A TODOS OS MÓDULOS
+        if (this.userRole === 'admin') return true;
 
         const permissions = {
             'member': [],
             'tesoureiro': ['financeiro', 'drivdoc'],
             'secretario': ['membros', 'drivdoc', 'drivfotos'],
-            'midia': ['drivfotos'],
-            'admin': ['financeiro', 'drivdoc', 'drivfotos', 'membros', 
-                      'gestao', 'agenda', 'projetos']
+            'midia': ['drivfotos']
         };
 
         const userPermissions = permissions[this.userRole] || [];
@@ -212,16 +214,16 @@ OWNER (Criador)
   └─ Todos os módulos
 
 ADMIN
-  ↓ Quase Total - Exceto gerenciar membros
+  ↓ Acesso Total - Exceto gerenciar membros do dashboard
   ├─ Configurações
-  └─ Todos os módulos
+  └─ Todos os módulos (edição completa)
 
 TESOUREIRO
   ↓ Financeiro + Documentos
   └─ Visualização nos demais
 
 SECRETÁRIO
-  ↓ Membros + Documentos + Fotos
+  ↓ Membros + Fotos + Documentos
   └─ Visualização nos demais
 
 MÍDIA

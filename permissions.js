@@ -41,13 +41,13 @@ class PermissionManager {
     // Verifica se o usuário pode editar determinado módulo
     canEdit(module) {
         if (this.isOwner) return true; // Owner tem acesso total
+        if (this.userRole === 'admin') return true; // Admin tem acesso total a TODOS os módulos
 
         const permissions = {
             'member': [], // Membro: apenas visualizar
             'tesoureiro': ['financeiro', 'drivdoc'],
             'secretario': ['membros', 'drivdoc', 'drivfotos'],
-            'midia': ['drivfotos'],
-            'admin': ['financeiro', 'drivdoc', 'drivfotos', 'membros', 'gestao', 'agenda', 'projetos'] // Admin: acesso total
+            'midia': ['drivfotos']
         };
 
         const userPermissions = permissions[this.userRole] || [];
