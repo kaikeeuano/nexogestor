@@ -84,7 +84,7 @@
         async function loadFolders() {
             try {
                 console.log('Starting loadFolders...');
-                const url = '${API_BASE}/folders?type=photos';
+                const url = `${API_BASE}/folders?type=photos`;
                 const headers = { 
                     'Authorization': `Bearer ${token}`, 
                     'dashboard-id': dashboardId 
