@@ -54,13 +54,13 @@
         }
 
         async function initDocsFolder() {
-            let response = await fetch(`${API_BASE}/folders?type=docs', {
+            let response = await fetch(`${API_BASE}/folders?type=docs`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             let folders = await response.json();
             if (folders.length === 0) {
                 // Create default folder
-                response = await fetch(`${API_BASE}/folders', {
+                response = await fetch(`${API_BASE}/folders`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
                     body: JSON.stringify({ name: 'Documentos', type: 'docs' })
@@ -106,7 +106,7 @@
                 formData.append('file', file);
                 formData.append('folder_id', docsFolderId);
                 formData.append('name', file.name);
-                await fetch(`${API_BASE}/files', {
+                await fetch(`${API_BASE}/files`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData

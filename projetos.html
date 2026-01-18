@@ -716,7 +716,7 @@
                 formData.append('file', file);
                 formData.append('project_id', currentProjectId);
 
-                fetch(`${API_BASE}/project-files', {
+                fetch(`${API_BASE}/project-files`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
