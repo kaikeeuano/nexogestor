@@ -544,7 +544,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/project-observations', {
+                const response = await fetch(`${API_BASE}/project-observations`, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -800,7 +800,7 @@
         async function saveProjectNotes() {
             const notes = document.getElementById('projectNotes').value;
             try {
-                const response = await fetch(`${API_BASE}/project-notes', {
+                const response = await fetch(`${API_BASE}/project-notes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ project_id: currentProjectId, notes })
