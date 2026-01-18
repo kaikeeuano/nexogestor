@@ -649,11 +649,10 @@
                                   `</object></div>`;
 
             const printHtml = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Lista de Membros</title><link rel="stylesheet" href="staly.css"><style>body{font-family:Arial,Helvetica,sans-serif}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}img{max-height:80px;margin-bottom:10px}.template{margin-bottom:10px}</style></head><body><div id="printSection">` +
-                `${logoSrc ? `<div class=\"print-header\"><img src=\"${logoSrc}\" alt=\"Logo\"></div>` : ''}` +
+                `${logoSrc ? `<div class="print-header"><img src="${logoSrc}" alt="Logo"></div>` : ''}` +
                 `${templateHtml}` +
-                `<div class=\"print-header\"><h2>${name}</h2><h3>Lista de Membros</h3><p><strong>Filtro:</strong> ${filterText}</p></div>` +
-                `<table><thead><tr><th>Nome</th><th>Congregação</th><th>Cargo</th><th>Data Nasc.</th><th>Email</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>    <script src="nexo/mobile-menu.js"></script>
-</body></html>`;
+                `<div class="print-header"><h2>${name}</h2><h3>Lista de Membros</h3><p><strong>Filtro:</strong> ${filterText}</p></div>` +
+                `<table><thead><tr><th>Nome</th><th>Congregação</th><th>Cargo</th><th>Data Nasc.</th><th>Email</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></body></html>`;
 
             // Try to open print window first. Show preview ONLY if the popup is blocked or opening fails.
             try {
