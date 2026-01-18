@@ -931,21 +931,27 @@
             const token = localStorage.getItem('token');
             
             try {
+                console.log('Carregando usuários de:', `${API_BASE}/admin/users`);
                 const response = await fetch(`${API_BASE}/admin/users`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
 
+                console.log('Resposta do servidor:', response.status, response.statusText);
+
                 if (!response.ok) {
-                    throw new Error('Failed to load users');
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Erro da API:', errorData);
+                    throw new Error(errorData.error || 'Failed to load users');
                 }
 
                 const users = await response.json();
+                console.log('Usuários carregados:', users.length, users);
                 displayUsers(users);
             } catch (error) {
                 console.error('Error loading users:', error);
-                showAlert('Erro ao carregar usuários.', 'error');
+                showAlert(`Erro ao carregar usuários: ${error.message}`, 'error');
             }
         }
 
