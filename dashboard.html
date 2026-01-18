@@ -173,9 +173,10 @@
             const joinBtn = document.getElementById('joinDashboard');
             const pregacoesBtn = document.getElementById('createPregacoes');
             
-            console.log('createBtn encontrado?', createBtn !== null);
-            console.log('joinBtn encontrado?', joinBtn !== null);
-            console.log('pregacoesBtn encontrado?', pregacoesBtn !== null);
+            console.log('✅ Botões encontrados:');
+            console.log('  createDashboard:', createBtn !== null);
+            console.log('  joinDashboard:', joinBtn !== null);
+            console.log('  createPregacoes:', pregacoesBtn !== null);
             
             if (createBtn) {
                 console.log('✅ Adicionando listener ao createDashboard');
@@ -206,9 +207,11 @@
                 console.log('✅ Adicionando listener ao createPregacoes');
                 pregacoesBtn.addEventListener('click', function() {
                     console.log('🎯 BOTÃO CRIAR PREGAÇÕES CLICADO!');
+                    console.log('📋 Mostrando formulário de pregações...');
                     document.getElementById('createPregacoesForm').style.display = 'block';
                     document.getElementById('createForm').style.display = 'none';
                     document.getElementById('joinForm').style.display = 'none';
+                    console.log('✅ Formulário exibido');
                 });
             } else {
                 console.error('❌ Botão createPregacoes não encontrado!');
@@ -320,6 +323,8 @@
                     const name = document.getElementById('pregacoesDashboardName').value.trim();
                     const activationKey = document.getElementById('pregacoesActivationKey').value.trim().toUpperCase();
                     
+                    console.log('🔥 Botão de pregações clicado!', { name, activationKey });
+                    
                     if (!name) {
                         notify.warning('Por favor, digite o nome do dashboard', { title: 'Campo Obrigatório' });
                         return;
@@ -330,9 +335,10 @@
                         return;
                     }
                     
-                    const loadingId = notify.loading('Criando dashboard de pregações...');
+                    notify.info('Criando dashboard de pregações...', { title: 'Processando' });
                     
                     try {
+                        console.log('📡 Enviando requisição para:', `${API_BASE}/activate-dashboard`);
                         const response = await fetch(`${API_BASE}/activate-dashboard`, {
                             method: 'POST',
                             headers: { 
@@ -344,12 +350,16 @@
                             })
                         });
                         
+                        console.log('📥 Resposta recebida:', response.status);
+                        
                         if (response.ok) {
                             const data = await response.json();
+                            console.log('✅ Dados:', data);
                             
                             // Atualiza o nome e tipo do dashboard
                             if (data.dashboard && data.dashboard.id) {
                                 try {
+                                    console.log('🔄 Atualizando nome e tipo...');
                                     await fetch(`${API_BASE}/config`, {
                                         method: 'PUT',
                                         headers: {
@@ -359,29 +369,31 @@
                                         },
                                         body: JSON.stringify({ name: name, type: 'pregacoes' })
                                     });
+                                    console.log('✅ Nome e tipo atualizados');
                                 } catch (err) {
                                     console.error('Erro ao atualizar dashboard:', err);
                                 }
                             }
                             
-                            notify.hide(loadingId);
                             notify.success(`Dashboard de Pregações "${name}" criado com sucesso!`, { 
                                 title: 'Dashboard Criado',
                                 duration: 3000
                             });
                             localStorage.setItem('dashboardId', data.dashboard.id);
+                            console.log('🚀 Redirecionando para pregacoes.html...');
                             setTimeout(() => window.location.href = 'pregacoes.html?dashboardId=' + data.dashboard.id, 1500);
                         } else {
-                            notify.hide(loadingId);
                             const error = await response.json().catch(() => ({}));
+                            console.error('❌ Erro do servidor:', error);
                             notify.error(error.error || 'Erro ao criar dashboard', { title: 'Erro' });
                         }
                     } catch (error) {
-                        notify.hide(loadingId);
                         console.error('❌ Erro de conexão:', error);
                         notify.error('Erro ao conectar com o servidor', { title: 'Erro de Conexão' });
                     }
                 });
+            } else {
+                console.error('❌ Botão submitCreatePregacoes NÃO encontrado!');
             }
             
             // Cancel Create Pregacoes
