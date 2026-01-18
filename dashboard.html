@@ -134,7 +134,7 @@
 
                     const btn = document.createElement('button');
                     btn.textContent = 'Acessar';
-                    btn.addEventListener('click', () => selectDashboard(dashboard.id));
+                    btn.addEventListener('click', () => selectDashboard(dashboard.id, dashboard.type));
 
                     // Botão de excluir (apenas para owner)
                     if (dashboard.status === 'owner') {
@@ -490,9 +490,18 @@
         // Chama a função para configurar os event listeners
         setupEventListeners();
 
-        function selectDashboard(id) {
+        function selectDashboard(id, type) {
+            console.log('📂 Selecionando dashboard:', { id, type });
             localStorage.setItem('dashboardId', id);
-            window.location.href = 'sitem.html';
+            
+            // Redireciona baseado no tipo do dashboard
+            if (type === 'pregacoes') {
+                console.log('🎤 Redirecionando para dashboard de pregações...');
+                window.location.href = 'pregacoes.html';
+            } else {
+                console.log('📊 Redirecionando para dashboard padrão...');
+                window.location.href = 'sitem.html';
+            }
         }
 
         async function deleteDashboard(id, name) {

@@ -950,7 +950,7 @@ app.get('/dashboards', authenticateToken, (req, res) => {
   
   // Buscar todos os dashboards onde o usuário é membro (owner, admin ou member aprovado)
   db.all(`
-    SELECT d.id, d.name, d.code, dm.status, dm.role 
+    SELECT d.id, d.name, d.code, d.type, dm.status, dm.role 
     FROM dashboards d
     INNER JOIN dashboard_members dm ON d.id = dm.dashboard_id
     WHERE dm.user_id = ? AND dm.status IN ('owner', 'admin', 'member')
