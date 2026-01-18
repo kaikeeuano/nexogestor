@@ -748,16 +748,18 @@ function authenticateSystemAdmin(req, res, next) {
   jwt.verify(token, SECRET_KEY, (err, user) => {
     if (err) return res.sendStatus(403);
     
-    // Check if user is system admin
-    db.get('SELECT is_system_admin FROM users WHERE id = ?', [user.id], (err, row) => {
+    // Check if user is system admin or admin
+    db.get('SELECT is_system_admin, is_admin FROM users WHERE id = ?', [user.id], (err, row) => {
       if (err) {
         console.error('Error checking admin status:', err);
         return res.sendStatus(500);
       }
-      if (!row || !row.is_system_admin) {
-        return res.status(403).json({ error: 'Access denied. System admin privileges required.' });
+      if (!row || (!row.is_system_admin && !row.is_admin)) {
+        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
       }
       req.user = user;
+      req.user.is_system_admin = row.is_system_admin;
+      req.user.is_admin = row.is_admin;
       next();
     });
   });
