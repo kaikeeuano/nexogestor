@@ -445,6 +445,11 @@
             const birthDate = document.getElementById('birthDate').value;
             const photo = document.getElementById('photo').files[0];
 
+            if (!name || !name.trim()) {
+                notify.warning('Por favor, insira o nome do membro.');
+                return;
+            }
+
             if (!congregation) {
                 notify.warning('Por favor, selecione a congregação.');
                 return;
@@ -462,17 +467,32 @@
             const method = editingMember ? 'PUT' : 'POST';
             const url = editingMember ? `${API_URL}/${editingMember.id}` : API_URL;
 
+            console.log('💾 Salvando membro:', { name, congregation, cargo, method, url });
+
             try {
-                await fetch(url, {
+                const response = await fetch(url, {
                     method: method,
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
                     body: formData
                 });
+
+                console.log('📡 Resposta do servidor:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('❌ Erro ao salvar:', errorData);
+                    notify.error(`Erro ao salvar membro: ${errorData.error || response.statusText}`, { title: 'Erro' });
+                    return;
+                }
+
+                const result = await response.json();
+                console.log('✅ Membro salvo com sucesso:', result);
+                notify.success(editingMember ? 'Membro atualizado!' : 'Membro adicionado!', { title: 'Sucesso' });
                 closeModal();
                 loadMembers();
             } catch (error) {
-                console.error('Error saving member:', error);
-                alert('Erro ao salvar membro.');
+                console.error('❌ Erro na requisição:', error);
+                notify.error(`Erro ao salvar membro: ${error.message}`, { title: 'Erro de Conexão' });
             }
         }
 

@@ -2109,9 +2109,18 @@ app.post('/members', authenticateToken, upload.single('photo'), (req, res) => {
   const { name, congregation, cargo, birth_date, status, created_at } = req.body;
   const photo = req.file ? req.file.filename : null;
   
+  console.log('📝 POST /members - Recebido:', { dashboardId, name, congregation, cargo, photo: photo ? 'sim' : 'não' });
+  
+  // Validate required fields
+  if (!name || !congregation) {
+    console.error('❌ Campos obrigatórios faltando:', { name, congregation });
+    return res.status(400).json({ error: 'Nome e congregação são obrigatórios' });
+  }
+  
   // Check if this is a sub-dashboard with congregation restriction
   db.get('SELECT parent_dashboard_id, restricted_congregation FROM dashboards WHERE id = ?', [dashboardId], (err, dashboard) => {
     if (err) {
+      console.error('❌ Erro ao buscar dashboard:', err);
       res.status(500).json({ error: err.message });
       return;
     }
@@ -2119,6 +2128,7 @@ app.post('/members', authenticateToken, upload.single('photo'), (req, res) => {
     // If sub-dashboard with restricted congregation, validate the congregation matches
     if (dashboard && dashboard.restricted_congregation) {
       if (congregation !== dashboard.restricted_congregation) {
+        console.error('❌ Congregação não permitida:', { expected: dashboard.restricted_congregation, received: congregation });
         return res.status(403).json({ 
           error: `Este dashboard só permite membros da congregação: ${dashboard.restricted_congregation}` 
         });
@@ -2132,12 +2142,16 @@ app.post('/members', authenticateToken, upload.single('photo'), (req, res) => {
     const memberStatus = status || 'active';
     const memberCreatedAt = created_at || new Date().toISOString().split('T')[0];
 
+    console.log('💾 Inserindo membro no banco:', { targetDashboardId, name, congregation, cargo, memberStatus });
+
     db.run('INSERT INTO members (dashboard_id, name, congregation, cargo, birth_date, photo, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
       [targetDashboardId, name, congregation, cargo, birth_date, photo, memberStatus, memberCreatedAt], function(err) {
       if (err) {
+        console.error('❌ Erro ao inserir membro:', err);
         res.status(500).json({ error: err.message });
         return;
       }
+      console.log('✅ Membro inserido com sucesso! ID:', this.lastID);
       res.json({ id: this.lastID });
     });
   });
@@ -2239,11 +2253,21 @@ app.get('/folders', authenticateToken, (req, res) => {
 app.post('/folders', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const { name, type } = req.body;
+  
+  console.log('📁 POST /folders - Recebido:', { dashboardId, name, type });
+  
+  if (!name || !type) {
+    console.error('❌ Campos obrigatórios faltando:', { name, type });
+    return res.status(400).json({ error: 'Nome e tipo da pasta são obrigatórios' });
+  }
+  
   db.run('INSERT INTO folders (dashboard_id, name, type) VALUES (?, ?, ?)', [dashboardId, name, type], function(err) {
     if (err) {
+      console.error('❌ Erro ao criar pasta:', err);
       res.status(500).json({ error: err.message });
       return;
     }
+    console.log('✅ Pasta criada com sucesso! ID:', this.lastID);
     res.json({ id: this.lastID });
   });
 });
@@ -2306,13 +2330,28 @@ app.get('/files', authenticateToken, (req, res) => {
 
 app.post('/files', authenticateToken, upload.single('file'), (req, res) => {
   const folderId = req.body.folder_id;
-  const name = req.body.name || req.file.originalname;
-  const filename = req.file.filename;
+  const name = req.body.name || (req.file ? req.file.originalname : null);
+  const filename = req.file ? req.file.filename : null;
+  
+  console.log('📎 POST /files - Recebido:', { folderId, name, filename });
+  
+  if (!req.file) {
+    console.error('❌ Nenhum arquivo enviado');
+    return res.status(400).json({ error: 'Nenhum arquivo foi enviado' });
+  }
+  
+  if (!folderId) {
+    console.error('❌ folder_id não fornecido');
+    return res.status(400).json({ error: 'ID da pasta é obrigatório' });
+  }
+  
   db.run('INSERT INTO files (folder_id, name, filename) VALUES (?, ?, ?)', [folderId, name, filename], function(err) {
     if (err) {
+      console.error('❌ Erro ao inserir arquivo:', err);
       res.status(500).json({ error: err.message });
       return;
     }
+    console.log('✅ Arquivo inserido com sucesso! ID:', this.lastID);
     res.json({ id: this.lastID });
   });
 });
