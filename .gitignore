@@ -35,3 +35,4 @@ releases/
 # Backup
 *.bak
 *.tmp
+backups/
