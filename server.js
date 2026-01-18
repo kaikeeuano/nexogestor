@@ -289,9 +289,13 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
   password TEXT NOT NULL,
   email TEXT,
   phone TEXT,
-  is_system_admin INTEGER DEFAULT 0
+  is_system_admin INTEGER DEFAULT 0,
+  is_admin INTEGER DEFAULT 0
 )`);
 db.run(`ALTER TABLE users ADD COLUMN is_system_admin INTEGER DEFAULT 0;`, (err) => { 
+  if (err && !err.message.includes('duplicate column')) console.error(err); 
+});
+db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0;`, (err) => { 
   if (err && !err.message.includes('duplicate column')) console.error(err); 
 });
 
