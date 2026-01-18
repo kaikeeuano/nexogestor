@@ -461,7 +461,7 @@
             const header = document.getElementById('printHeaderContent');
             let logoHtml = '';
             if (dashboardConfig && dashboardConfig.logo) {
-                logoHtml = `<img src="/uploads/${dashboardConfig.logo}" alt="Logo">`;
+                logoHtml = `<img src="${API_BASE}/uploads/${dashboardConfig.logo}" alt="Logo">`;
             }
             
             const monthName = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;

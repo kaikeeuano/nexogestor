@@ -175,7 +175,7 @@
 
         async function loadConfig() {
             try {
-                const res = await fetch('${API_BASE}/config', {
+                const res = await fetch(`${API_BASE}/config', {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 if (res.ok) {
@@ -189,7 +189,7 @@
 
         async function loadMembers() {
             try {
-                const res = await fetch('${API_BASE}/members', {
+                const res = await fetch(`${API_BASE}/members', {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 allMembers = await res.json();

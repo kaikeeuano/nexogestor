@@ -444,7 +444,7 @@
         }
 
         async function loadConfig() {
-            const res = await fetch('${API_BASE}/config', {
+            const res = await fetch(`${API_BASE}/config', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             if (!res.ok) return;
@@ -461,7 +461,7 @@
         }
 
         async function loadBirthdays() {
-            const response = await fetch('${API_BASE}/members', {
+            const response = await fetch(`${API_BASE}/members', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const members = await response.json();
@@ -478,7 +478,7 @@
         }
 
         async function loadMembers() {
-            const res = await fetch('${API_BASE}/members', {
+            const res = await fetch(`${API_BASE}/members', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const members = await res.json();
@@ -486,7 +486,7 @@
         }
 
         async function loadProjects() {
-            const res = await fetch('${API_BASE}/projects', {
+            const res = await fetch(`${API_BASE}/projects', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const projects = await res.json();
@@ -494,7 +494,7 @@
         }
 
         async function loadEvents() {
-            const res = await fetch('${API_BASE}/events', {
+            const res = await fetch(`${API_BASE}/events', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const events = await res.json();
@@ -529,7 +529,7 @@
             document.getElementById('dashMonthExpense').textContent = formatCurrency(monthExpense);
             document.getElementById('dashMonthNet').textContent = formatCurrency(monthIncome - monthExpense);
             renderFinanceChart(labels, incomes, expenses);
-            const allRes = await fetch('${API_BASE}/transactions', {
+            const allRes = await fetch(`${API_BASE}/transactions', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const all = await allRes.json();

@@ -265,7 +265,7 @@
             console.log('Creating folder:', name, 'with token:', token.substring(0, 20) + '...', 'dashboardId:', dashboardId);
             
             try {
-                const response = await fetch('${API_BASE}/folders', {
+                const response = await fetch(`${API_BASE}/folders', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json', 
@@ -451,7 +451,7 @@
                 formData.append('folder_id', currentFolderId);
                 formData.append('name', file.name);
                 try {
-                    const resp = await fetch('${API_BASE}/files', {
+                    const resp = await fetch(`${API_BASE}/files', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
