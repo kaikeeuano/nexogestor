@@ -37,7 +37,7 @@ Permissões:
 - ✅ Projetos (criar, editar, deletar)
 - ✅ Relatórios (acesso completo)
 - ✅ Configurações (junto com owner)
-- ❌ **Não pode:** Gerenciar membros do dashboard (adicionar/remover/alterar funções - apenas owner)
+- ✅ Gerenciar membros do dashboard (adicionar/remover/alterar funções)
 
 ---
 
@@ -214,7 +214,8 @@ OWNER (Criador)
   └─ Todos os módulos
 
 ADMIN
-  ↓ Acesso Total - Exceto gerenciar membros do dashboard
+  ↓ Acesso Total
+  ├─ Gerenciar membros do dashboard
   ├─ Configurações
   └─ Todos os módulos (edição completa)
 

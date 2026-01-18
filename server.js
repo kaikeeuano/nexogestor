@@ -799,7 +799,7 @@ app.get('/user-role', authenticateToken, (req, res) => {
     });
 });
 
-// Get dashboard members for management (owner only)
+// Get dashboard members for management (owner and admin)
 app.get('/config/members', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
@@ -808,15 +808,15 @@ app.get('/config/members', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'dashboard-id header required' });
   }
 
-  // Check if user is owner
-  db.get('SELECT status FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
+  // Check if user is owner or admin
+  db.get('SELECT status, role FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
     [dashboardId, userId], 
     (err, userMember) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      if (!userMember || userMember.status !== 'owner') {
-        return res.status(403).json({ error: 'Only owner can manage members' });
+      if (!userMember || (userMember.status !== 'owner' && userMember.role !== 'admin')) {
+        return res.status(403).json({ error: 'Only owner and admin can manage members' });
       }
 
       // Get all members in dashboard
@@ -843,7 +843,7 @@ app.get('/config/members', authenticateToken, (req, res) => {
     });
 });
 
-// Update member role (owner only)
+// Update member role (owner and admin)
 app.put('/config/members/:memberId/role', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
@@ -854,15 +854,15 @@ app.put('/config/members/:memberId/role', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'dashboard-id header and role are required' });
   }
 
-  // Check if user is owner
-  db.get('SELECT status FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
+  // Check if user is owner or admin
+  db.get('SELECT status, role FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
     [dashboardId, userId], 
     (err, userMember) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      if (!userMember || userMember.status !== 'owner') {
-        return res.status(403).json({ error: 'Only owner can change member roles' });
+      if (!userMember || (userMember.status !== 'owner' && userMember.role !== 'admin')) {
+        return res.status(403).json({ error: 'Only owner and admin can change member roles' });
       }
 
       // Update member role
@@ -880,7 +880,7 @@ app.put('/config/members/:memberId/role', authenticateToken, (req, res) => {
     });
 });
 
-// Accept pending member (owner only)
+// Accept pending member (owner and admin)
 app.post('/config/members/:memberId/accept', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
@@ -890,15 +890,15 @@ app.post('/config/members/:memberId/accept', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'dashboard-id header required' });
   }
 
-  // Check if user is owner
-  db.get('SELECT status FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
+  // Check if user is owner or admin
+  db.get('SELECT status, role FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
     [dashboardId, userId], 
     (err, userMember) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      if (!userMember || userMember.status !== 'owner') {
-        return res.status(403).json({ error: 'Only owner can accept members' });
+      if (!userMember || (userMember.status !== 'owner' && userMember.role !== 'admin')) {
+        return res.status(403).json({ error: 'Only owner and admin can accept members' });
       }
 
       db.run('UPDATE dashboard_members SET status = ? WHERE id = ? AND dashboard_id = ?', 
@@ -912,7 +912,7 @@ app.post('/config/members/:memberId/accept', authenticateToken, (req, res) => {
     });
 });
 
-// Reject/remove member (owner only)
+// Reject/remove member (owner and admin)
 app.delete('/config/members/:memberId', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
@@ -922,15 +922,15 @@ app.delete('/config/members/:memberId', authenticateToken, (req, res) => {
     return res.status(400).json({ error: 'dashboard-id header required' });
   }
 
-  // Check if user is owner
-  db.get('SELECT status FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
+  // Check if user is owner or admin
+  db.get('SELECT status, role FROM dashboard_members WHERE dashboard_id = ? AND user_id = ?', 
     [dashboardId, userId], 
     (err, userMember) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      if (!userMember || userMember.status !== 'owner') {
-        return res.status(403).json({ error: 'Only owner can remove members' });
+      if (!userMember || (userMember.status !== 'owner' && userMember.role !== 'admin')) {
+        return res.status(403).json({ error: 'Only owner and admin can remove members' });
       }
 
       db.run('DELETE FROM dashboard_members WHERE id = ? AND dashboard_id = ?', 
