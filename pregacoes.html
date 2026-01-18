@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editor de Pregações</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         /* ==================== RESET E VARIÁVEIS ==================== */
         * {
@@ -466,7 +468,10 @@
                 💾 Salvar
             </button>
             <button class="btn btn-secondary" onclick="exportarPregacao()">
-                📥 Exportar
+                📥 Exportar TXT
+            </button>
+            <button class="btn btn-secondary" onclick="exportarPDF()" style="background: #e74c3c; color: white;">
+                📄 Exportar PDF
             </button>
             <button class="btn btn-danger" onclick="confirmarExcluir()">
                 🗑️ Excluir
@@ -935,6 +940,116 @@
             mostrarMensagem('Pregação exportada com sucesso!', 'success');
         }
 
+        /**
+         * Exporta a pregação atual como PDF formatado
+         */
+        async function exportarPDF() {
+            if (!pregacaoAtualId) {
+                mostrarMensagem('Nenhuma pregação aberta para exportar', 'error');
+                return;
+            }
+
+            const titulo = document.getElementById('tituloInput').value;
+            const livroBiblia = document.getElementById('livroBibliaInput').value;
+            const conteudoHTML = document.getElementById('conteudoEditor').innerHTML;
+
+            if (!titulo.trim()) {
+                mostrarMensagem('A pregação precisa ter um título', 'error');
+                return;
+            }
+
+            mostrarMensagem('Gerando PDF...', 'info');
+
+            // Cria um container temporário para renderização do PDF
+            const tempContainer = document.createElement('div');
+            tempContainer.style.cssText = `
+                position: absolute;
+                left: -9999px;
+                top: 0;
+                width: 210mm;
+                padding: 20mm;
+                background: white;
+                font-family: 'Georgia', 'Times New Roman', serif;
+                color: #333;
+                line-height: 1.6;
+            `;
+
+            // Monta o conteúdo do PDF
+            let pdfContent = `
+                <div style="margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 15px;">
+                    <h1 style="font-size: 28px; color: #667eea; margin: 0 0 10px 0; font-weight: bold;">${titulo}</h1>
+            `;
+            
+            if (livroBiblia) {
+                pdfContent += `
+                    <p style="font-size: 16px; color: #666; margin: 5px 0; font-style: italic;">
+                        📖 <strong>Texto Base:</strong> ${livroBiblia}
+                    </p>
+                `;
+            }
+            
+            pdfContent += `
+                    <p style="font-size: 12px; color: #999; margin: 10px 0 0 0;">
+                        Gerado em: ${new Date().toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: 'long', 
+                            year: 'numeric' 
+                        })}
+                    </p>
+                </div>
+                <div style="font-size: 14px; text-align: justify;">
+                    ${conteudoHTML}
+                </div>
+            `;
+
+            tempContainer.innerHTML = pdfContent;
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Captura o conteúdo como imagem
+                const canvas = await html2canvas(tempContainer, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                });
+
+                // Cria o PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 210; // A4 width in mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const pageHeight = 297; // A4 height in mm
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                // Adiciona a primeira página
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                // Adiciona páginas adicionais se necessário
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                // Salva o PDF
+                const fileName = `${titulo.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+                pdf.save(fileName);
+
+                mostrarMensagem('PDF gerado com sucesso! 📄', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                mostrarMensagem('Erro ao gerar PDF. Tente novamente.', 'error');
+            } finally {
+                // Remove o container temporário
+                document.body.removeChild(tempContainer);
+            }
+        }
+
         // ==================== INTERFACE ====================
         
         /**
@@ -1089,10 +1204,15 @@
                 e.preventDefault();
                 novaPregacao();
             }
-            // Ctrl+E para exportar
+            // Ctrl+E para exportar TXT
             if (e.ctrlKey && e.key === 'e') {
                 e.preventDefault();
                 exportarPregacao();
+            }
+            // Ctrl+P para exportar PDF
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                exportarPDF();
             }
             // Ctrl++ para aumentar texto
             if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
