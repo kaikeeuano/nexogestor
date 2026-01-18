@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const crypto = require('crypto');
+const compression = require('compression');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,10 +23,17 @@ function isValidEmail(email) {
 }
 
 // Middleware
+app.use(compression()); // Compressão gzip
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('.')); // Serve static files
-app.use('/uploads', express.static('uploads'));
+app.use(bodyParser.json({ limit: '10mb' })); // Aumentar limite para uploads
+app.use(express.static('.', {
+  maxAge: '1d', // Cache de 1 dia para arquivos estáticos
+  etag: true
+}));
+app.use('/uploads', express.static('uploads', {
+  maxAge: '7d', // Cache de 7 dias para uploads
+  etag: true
+}));
 
 // Multer config
 const storage = multer.diskStorage({
