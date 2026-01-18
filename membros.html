@@ -304,36 +304,52 @@
         }
 
         async function loadMembers() {
-            console.log('loadMembers: fetching members for dashboard', dashboardId);
+            console.log('📋 loadMembers: iniciando...');
+            console.log('API_URL:', API_URL);
+            console.log('Token:', token ? 'Presente' : 'Ausente');
+            console.log('Dashboard ID:', dashboardId);
+            
             try {
                 const response = await fetch(API_URL, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`, 
+                        'dashboard-id': dashboardId 
+                    }
                 });
+                
+                console.log('Resposta HTTP:', response.status, response.statusText);
+                
                 if (response.status === 401) {
                     // Not authenticated — redirect to login
-                    console.warn('loadMembers: unauthorized (401). Redirecting to login.');
+                    console.warn('⚠ Não autenticado (401). Redirecionando...');
                     localStorage.removeItem('token');
                     localStorage.removeItem('dashboardId');
                     window.location.href = 'login.html';
                     return;
                 }
+                
                 if (!response.ok) {
                     const text = await response.text();
-                    console.error('loadMembers: server error', response.status, text);
-                    document.getElementById('membersBody').innerHTML = '<tr><td colspan="6">Erro ao carregar membros. Veja o console para detalhes.</td></tr>';
+                    console.error('❌ Erro do servidor:', response.status, text);
+                    document.getElementById('membersBody').innerHTML = `<tr><td colspan="6" style="color: red; padding: 20px;">Erro ao carregar membros: ${response.status} ${response.statusText}<br><small>${text}</small></td></tr>`;
                     return;
                 }
+                
                 const members = await response.json();
+                console.log('Membros recebidos:', members.length, members);
+                
                 if (!Array.isArray(members)) {
-                    console.error('loadMembers: unexpected response', members);
-                    document.getElementById('membersBody').innerHTML = '<tr><td colspan="6">Resposta inesperada do servidor.</td></tr>';
+                    console.error('❌ Resposta não é array:', members);
+                    document.getElementById('membersBody').innerHTML = '<tr><td colspan="6" style="color: red; padding: 20px;">Resposta inesperada do servidor.</td></tr>';
                     return;
                 }
+                
                 allMembers = members;
                 displayMembers(allMembers);
+                console.log('✓ Membros exibidos com sucesso');
             } catch (error) {
-                console.error('Error in loadMembers:', error);
-                document.getElementById('membersBody').innerHTML = '<tr><td colspan="6">Erro de conexão ao carregar membros.</td></tr>';
+                console.error('❌ Erro de conexão:', error);
+                document.getElementById('membersBody').innerHTML = `<tr><td colspan="6" style="color: red; padding: 20px;">Erro de conexão: ${error.message}<br><small>Verifique se o servidor está rodando e se a URL está correta.</small></td></tr>`;
             }
         }
 

@@ -2051,12 +2051,17 @@ app.delete('/events/:id', authenticateToken, (req, res) => {
 app.get('/members', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   
+  console.log(`📋 GET /members - Dashboard ID: ${dashboardId}, User ID: ${req.user.id}`);
+  
   // Check if this is a sub-dashboard with congregation restriction
   db.get('SELECT parent_dashboard_id, restricted_congregation FROM dashboards WHERE id = ?', [dashboardId], (err, dashboard) => {
     if (err) {
+      console.error('❌ Erro ao buscar dashboard:', err);
       res.status(500).json({ error: err.message });
       return;
     }
+    
+    console.log('Dashboard info:', dashboard);
     
     // Determine which dashboard to query members from
     const sourceDashboardId = dashboard && dashboard.parent_dashboard_id ? dashboard.parent_dashboard_id : dashboardId;
@@ -2068,15 +2073,21 @@ app.get('/members', authenticateToken, (req, res) => {
     if (dashboard && dashboard.restricted_congregation) {
       query += ' AND congregation = ?';
       params.push(dashboard.restricted_congregation);
+      console.log(`Filtrando por congregação: ${dashboard.restricted_congregation}`);
     }
     
     query += ' ORDER BY name';
     
+    console.log('Query SQL:', query);
+    console.log('Params:', params);
+    
     db.all(query, params, (err, rows) => {
       if (err) {
+        console.error('❌ Erro na query de membros:', err);
         res.status(500).json({ error: err.message });
         return;
       }
+      console.log(`✓ ${rows.length} membros carregados`);
       res.json(rows);
     });
   });
