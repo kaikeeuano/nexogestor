@@ -212,6 +212,7 @@
         }
 
         async function loadCongregations() {
+            console.log('📍 loadCongregations: iniciando...');
             // Wait for config to load if not loaded yet
             if (!dashboardConfig) {
                 await loadConfig();
@@ -223,6 +224,7 @@
                 const reportSelect = document.getElementById('reportCongregation');
                 
                 if (dashboardConfig && dashboardConfig.isSubDashboard && dashboardConfig.restrictedCongregation) {
+                    console.log('📍 Sub-dashboard detectado:', dashboardConfig.restrictedCongregation);
                     select.innerHTML = '';
                     const option = document.createElement('option');
                     option.value = dashboardConfig.restrictedCongregation;
@@ -242,10 +244,12 @@
                 }
                 
                 // For main dashboard, fetch congregations
+                console.log('📍 Buscando congregações do servidor...');
                 const response = await fetch(CONFIG_CONG_URL, {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 const congregations = await response.json();
+                console.log('📍 Congregações recebidas:', congregations);
                 congregationsList = congregations;
                 
                 select.innerHTML = '<option value="">Selecione</option>';
@@ -272,17 +276,20 @@
                     filterOpt.textContent = cong.name;
                     filterCongregationSelect.appendChild(filterOpt);
                 });
+                console.log('✅ Congregações carregadas com sucesso! Total:', congregations.length);
             } catch (error) {
-                console.error('Error loading congregations:', error);
+                console.error('❌ Error loading congregations:', error);
             }
         }
 
         async function loadRoles() {
+            console.log('👤 loadRoles: iniciando...');
             try {
                 const response = await fetch(CONFIG_ROLES_URL, {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
                 const roles = await response.json();
+                console.log('👤 Cargos recebidos:', roles);
                 rolesList = roles; // Store for print modal
                 
                 // Populate Filter Select
@@ -312,8 +319,9 @@
                     formOption.textContent = role.name;
                     formSelect.appendChild(formOption);
                 });
+                console.log('✅ Cargos carregados com sucesso! Total:', roles.length);
             } catch (error) {
-                console.error('Error loading roles:', error);
+                console.error('❌ Error loading roles:', error);
             }
         }
 
@@ -430,9 +438,26 @@
         }
 
         function openModal(title, member = null) {
+            console.log('🔔 openModal chamado:', { title, member });
             editingMember = member;
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('memberModal').style.display = 'block';
+            
+            // Log estado dos selects
+            const congSelect = document.getElementById('congregation');
+            const cargoSelect = document.getElementById('cargo');
+            console.log('📊 Estado dos selects:', {
+                congregation: {
+                    options: congSelect.options.length,
+                    disabled: congSelect.disabled,
+                    value: congSelect.value
+                },
+                cargo: {
+                    options: cargoSelect.options.length,
+                    disabled: cargoSelect.disabled,
+                    value: cargoSelect.value
+                }
+            });
             
             if (member) {
                 // Editando membro existente
@@ -444,6 +469,7 @@
                 // Adicionando novo membro
                 document.getElementById('memberForm').reset();
             }
+        }
         }
 
         function closeModal() {

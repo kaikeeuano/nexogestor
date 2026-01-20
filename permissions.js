@@ -66,9 +66,14 @@ class PermissionManager {
 
     // Desabilita elementos de edição baseado no módulo
     applyRestrictions(module) {
+        console.log('🔒 applyRestrictions:', { module, canEdit: this.canEdit(module), userRole: this.userRole });
+        
         if (this.canEdit(module)) {
+            console.log('✅ Usuário tem permissão para editar. Nenhuma restrição aplicada.');
             return; // Tem permissão, não desabilita nada
         }
+
+        console.log('⚠️ Aplicando restrições - usuário não tem permissão de edição');
 
         // Desabilita botões de criar/editar/deletar
         const editButtons = document.querySelectorAll(
@@ -88,6 +93,7 @@ class PermissionManager {
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
                 btn.title = 'Você não tem permissão para esta ação';
+                console.log('🔒 Botão desabilitado:', btn.textContent);
             }
         });
 
@@ -97,6 +103,7 @@ class PermissionManager {
             if (!input.id.includes('filter') && !input.id.includes('search')) {
                 input.disabled = true;
                 input.style.opacity = '0.7';
+                console.log('🔒 Input desabilitado:', input.id || input.name);
             }
         });
 
