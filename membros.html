@@ -249,8 +249,26 @@
                 const response = await fetch(CONFIG_CONG_URL, {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
+                
+                if (!response.ok) {
+                    console.error('❌ Erro ao buscar congregações:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Resposta do servidor:', errorText);
+                    // Usar array vazio se houver erro
+                    congregationsList = [];
+                    select.innerHTML = '<option value="">Erro ao carregar congregações</option>';
+                    return;
+                }
+                
                 const congregations = await response.json();
                 console.log('📍 Congregações recebidas:', congregations);
+                
+                if (!Array.isArray(congregations)) {
+                    console.error('❌ Resposta não é um array:', congregations);
+                    congregationsList = [];
+                    return;
+                }
+                
                 congregationsList = congregations;
                 
                 select.innerHTML = '<option value="">Selecione</option>';
@@ -289,8 +307,27 @@
                 const response = await fetch(CONFIG_ROLES_URL, {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
                 });
+                
+                if (!response.ok) {
+                    console.error('❌ Erro ao buscar cargos:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Resposta do servidor:', errorText);
+                    // Usar array vazio se houver erro
+                    rolesList = [];
+                    const formSelect = document.getElementById('cargo');
+                    formSelect.innerHTML = '<option value="membro">membro (padrão)</option>';
+                    return;
+                }
+                
                 const roles = await response.json();
                 console.log('👤 Cargos recebidos:', roles);
+                
+                if (!Array.isArray(roles)) {
+                    console.error('❌ Resposta não é um array:', roles);
+                    rolesList = [];
+                    return;
+                }
+                
                 rolesList = roles; // Store for print modal
                 
                 // Populate Filter Select

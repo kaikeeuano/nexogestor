@@ -1349,9 +1349,9 @@ app.get('/config/congregations', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
   
-  // Check if user is owner or admin
-  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role = ?)', 
-    [dashboardId, userId, 'owner', 'admin'], (err, member) => {
+  // Check if user is owner, admin or secretario
+  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role IN (?, ?))', 
+    [dashboardId, userId, 'owner', 'admin', 'secretario'], (err, member) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -1365,7 +1365,7 @@ app.get('/config/congregations', authenticateToken, (req, res) => {
           return;
         }
         if (!ownerMember) {
-          res.status(403).json({ error: 'Not authorized' });
+          res.status(403).json({ error: 'Not authorized - need owner, admin or secretario role' });
           return;
         }
         getCongregations();
@@ -1475,9 +1475,9 @@ app.get('/config/roles', authenticateToken, (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
   
-  // Check if user is owner or admin
-  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role = ?)', 
-    [dashboardId, userId, 'owner', 'admin'], (err, member) => {
+  // Check if user is owner, admin or secretario
+  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role IN (?, ?))', 
+    [dashboardId, userId, 'owner', 'admin', 'secretario'], (err, member) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -1491,7 +1491,7 @@ app.get('/config/roles', authenticateToken, (req, res) => {
           return;
         }
         if (!ownerMember) {
-          res.status(403).json({ error: 'Not authorized' });
+          res.status(403).json({ error: 'Not authorized - need owner, admin or secretario role' });
           return;
         }
         getRoles();
