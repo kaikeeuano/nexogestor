@@ -46,11 +46,18 @@ class PermissionManager {
         const permissions = {
             'member': [], // Membro: apenas visualizar
             'tesoureiro': ['financeiro', 'drivdoc'],
-            'secretario': ['membros', 'drivdoc', 'drivfotos'],
+            'secretario': ['membros', 'drivdoc', 'drivfotos'], // Secretário tem acesso TOTAL a membros
             'midia': ['drivfotos']
         };
 
         const userPermissions = permissions[this.userRole] || [];
+        
+        // Secretário tem permissão TOTAL em membros (sem restrições)
+        if (this.userRole === 'secretario' && module === 'membros') {
+            console.log('✅ Secretário tem permissão TOTAL em membros');
+            return true;
+        }
+        
         return userPermissions.includes(module);
     }
 
@@ -67,6 +74,12 @@ class PermissionManager {
     // Desabilita elementos de edição baseado no módulo
     applyRestrictions(module) {
         console.log('🔒 applyRestrictions:', { module, canEdit: this.canEdit(module), userRole: this.userRole });
+        
+        // Secretário tem permissão TOTAL em membros - sem restrições
+        if (this.userRole === 'secretario' && module === 'membros') {
+            console.log('✅ Secretário tem PERMISSÃO TOTAL em membros. Nenhuma restrição aplicada.');
+            return;
+        }
         
         if (this.canEdit(module)) {
             console.log('✅ Usuário tem permissão para editar. Nenhuma restrição aplicada.');
