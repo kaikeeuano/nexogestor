@@ -98,7 +98,7 @@ class PermissionManager {
         });
 
         // Desabilita inputs e textareas (mas NÃO os selects de formulário)
-        const inputs = document.querySelectorAll('input:not([type="search"]):not([id*="filter"]), textarea');
+        const inputs = document.querySelectorAll('input:not([type="search"]):not([id*="filter"]):not([type="file"]), textarea');
         inputs.forEach(input => {
             if (!input.id.includes('filter') && !input.id.includes('search')) {
                 input.disabled = true;
@@ -106,6 +106,9 @@ class PermissionManager {
                 console.log('🔒 Input desabilitado:', input.id || input.name);
             }
         });
+        
+        // IMPORTANTE: NÃO desabilitar selects - eles são necessários para formulários
+        console.log('ℹ️ Selects mantidos habilitados para permitir visualização de opções');
 
         // Mostra mensagem de apenas leitura
         const main = document.querySelector('main');

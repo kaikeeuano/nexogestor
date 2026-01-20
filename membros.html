@@ -180,16 +180,17 @@
         if (!token || !dashboardId) {
             window.location.href = 'login.html';
         } else {
-            // Load config first, then congregations
-            loadConfig().then(() => {
-                loadCongregations();
-            });
-            loadRoles();
-            loadMembers();
-            // Apply permission restrictions
-            window.permissionManager.loadUserRole().then(() => {
+            // IMPORTANTE: Carregar dados ANTES de aplicar restrições
+            Promise.all([
+                loadConfig().then(() => loadCongregations()),
+                loadRoles(),
+                window.permissionManager.loadUserRole()
+            ]).then(() => {
+                // Só aplica restrições DEPOIS de tudo carregar
                 window.permissionManager.applyRestrictions('membros');
+                console.log('✅ Sistema inicializado completamente');
             });
+            loadMembers();
         }
 
         async function loadConfig() {
@@ -443,9 +444,17 @@
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('memberModal').style.display = 'block';
             
-            // Log estado dos selects
+            // Garantir que os selects NUNCA estejam desabilitados no modal (exceto sub-dashboard)
             const congSelect = document.getElementById('congregation');
             const cargoSelect = document.getElementById('cargo');
+            
+            // Re-habilitar selects se foram desabilitados por engano
+            if (!dashboardConfig?.isSubDashboard) {
+                congSelect.disabled = false;
+                cargoSelect.disabled = false;
+            }
+            
+            // Log estado dos selects
             console.log('📊 Estado dos selects:', {
                 congregation: {
                     options: congSelect.options.length,
