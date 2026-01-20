@@ -5,6 +5,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXO GESTOR - Login</title>
     <link rel="stylesheet" href="staly.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .login h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group .icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .link-text a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .success-message p {
+            color: #4caf50;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .success-message a {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .success-message a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .login {
+                padding: 30px 20px;
+            }
+
+            .login h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
     <script src="notify.js"></script>
 </head>
 <body>
@@ -12,22 +183,40 @@
         <h1>NEXO GESTOR</h1>
         <div id="loginForm">
             <h2>Entrar</h2>
-            <input type="text" id="loginUsername" placeholder="Usuário">
-            <input type="password" id="loginPassword" placeholder="Senha">
-            <button id="loginBtn">Entrar</button>
-            <p><a href="#" id="showRegister">Criar Conta</a></p>
+            <div class="input-group">
+                <input type="text" id="loginUsername" placeholder="Usuário" autocomplete="username">
+                <span class="icon">👤</span>
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Senha" autocomplete="current-password">
+                <span class="icon">🔒</span>
+            </div>
+            <button class="btn" id="loginBtn">Entrar</button>
+            <p class="link-text"><a href="#" id="showRegister">Criar Conta</a></p>
         </div>
         <div id="registerForm" style="display: none;">
             <h2>Criar Conta</h2>
-            <input type="text" id="regUsername" placeholder="Usuário">
-            <input type="password" id="regPassword" placeholder="Senha">
-            <input type="email" id="regEmail" placeholder="Email">
-            <input type="tel" id="regPhone" placeholder="Telefone">
-            <button id="registerBtn">Criar</button>
-            <p><a href="#" id="showLogin">Voltar ao Login</a></p>
+            <div class="input-group">
+                <input type="text" id="regUsername" placeholder="Usuário" autocomplete="username">
+                <span class="icon">👤</span>
+            </div>
+            <div class="input-group">
+                <input type="password" id="regPassword" placeholder="Senha" autocomplete="new-password">
+                <span class="icon">🔒</span>
+            </div>
+            <div class="input-group">
+                <input type="email" id="regEmail" placeholder="Email" autocomplete="email">
+                <span class="icon">📧</span>
+            </div>
+            <div class="input-group">
+                <input type="tel" id="regPhone" placeholder="Telefone" autocomplete="tel">
+                <span class="icon">📱</span>
+            </div>
+            <button class="btn" id="registerBtn">Criar</button>
+            <p class="link-text"><a href="#" id="showLogin">Voltar ao Login</a></p>
         </div>
-        <div id="dashboardLink" style="display: none;">
-            <p>Login realizado com sucesso!</p>
+        <div id="dashboardLink" style="display: none;" class="success-message">
+            <p>✅ Login realizado com sucesso!</p>
             <a href="dashboard.html">Ir para Dashboard</a>
         </div>
     </main>
@@ -38,9 +227,39 @@
             ? 'http://localhost:3000'
             : window.location.origin;
 
+        // Adicionar animação ao trocar formulários
+        function showForm(hideId, showId) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            
+            hideEl.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                hideEl.style.display = 'none';
+                showEl.style.display = 'block';
+                showEl.classList.add('fade-in');
+            }, 300);
+        }
+
+        // Login com Enter
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('loginBtn').click();
+            }
+        });
+
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value; // do not trim password (spaces may be valid)
+            
+            if (!username || !password) {
+                notify.warning('Por favor, preencha todos os campos');
+                return;
+            }
+
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Entrando...';
+
             try {
                 const response = await fetch(`${API_BASE}/login`, {
                     method: 'POST',
@@ -97,11 +316,14 @@
                         msg = 'Erro: servidor retornou resposta inválida';
                     }
                     console.warn('Login failed:', response.status, msg);
-                    notify.info(msg);
+                    notify.error(msg);
                 }
             } catch (err) {
                 console.error('Erro de login:', err);
                 notify.error('Erro de conexão ao tentar fazer login. Verifique se o servidor está rodando.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
             }
         });
 
@@ -230,14 +452,14 @@
             }
         });
 
-        document.getElementById('showRegister').addEventListener('click', () => {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
+        document.getElementById('showRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            showForm('loginForm', 'registerForm');
         });
 
-        document.getElementById('showLogin').addEventListener('click', () => {
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('showLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            showForm('registerForm', 'loginForm');
         });
     </script>
     <script src="nexo/mobile-menu.js"></script>

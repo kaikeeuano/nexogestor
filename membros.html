@@ -668,37 +668,105 @@
                 filterText = `Cargo: ${value}`;
             }
 
-            // Build rows with full columns (Nome, Congregação, Cargo, Data Nasc., Email)
+            // Build rows with full columns (Nome, Congregação, Cargo, Data Nasc.)
             let rowsHtml = '';
             filteredMembers.forEach(m => {
-                rowsHtml += `<tr><td>${m.name || ''}</td><td>${m.congregation || ''}</td><td>${m.cargo || ''}</td><td>${m.birth_date || ''}</td><td>${m.email || ''}</td></tr>`;
+                const birthDate = m.birth_date ? new Date(m.birth_date).toLocaleDateString('pt-BR') : '';
+                rowsHtml += `<tr>
+                    <td>${m.name || ''}</td>
+                    <td>${m.congregation || ''}</td>
+                    <td>${m.cargo || ''}</td>
+                    <td>${birthDate}</td>
+                </tr>`;
             });
 
             const name = dashboardConfig ? dashboardConfig.name : 'Dashboard';
-            const logoSrc = (dashboardConfig && dashboardConfig.logo) ? `/uploads/${dashboardConfig.logo}` : '';
+            const logoSrc = (dashboardConfig && dashboardConfig.logo) ? `${API_BASE}/uploads/${dashboardConfig.logo}` : '';
 
-            // Optional template PDF: if available at /assets/print_templates/umadcor.pdf, embed it
-            const templateUrl = '/assets/print_templates/umadcor.pdf';
-            const templateHtml = `<div class="template">` +
-                                  `<object data="${templateUrl}" type="application/pdf" width="100%" style="max-height:160px;">` +
-                                  `</object></div>`;
+            const printHtml = `<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Lista de Membros</title>
+    <style>
+        body { 
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 20px;
+        }
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        .print-header img {
+            max-height: 80px;
+            margin-bottom: 10px;
+        }
+        .print-header h2 {
+            margin: 10px 0;
+            color: #333;
+        }
+        .print-header h3 {
+            margin: 5px 0;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background-color: #f0f0f0;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        @media print {
+            body { padding: 0; }
+            @page { margin: 1cm; }
+        }
+    </style>
+</head>
+<body>
+    <div id="printSection">
+        ${logoSrc ? `<div class="print-header"><img src="${logoSrc}" alt="Logo"></div>` : ''}
+        <div class="print-header">
+            <h2>${name}</h2>
+            <h3>Lista de Membros</h3>
+            <p><strong>Filtro:</strong> ${filterText}</p>
+            <p><strong>Total:</strong> ${filteredMembers.length} membros</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Congregação</th>
+                    <th>Cargo</th>
+                    <th>Data Nasc.</th>
+                </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+        </table>
+    </div>
+</body>
+</html>`;
 
-            const printHtml = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Lista de Membros</title><link rel="stylesheet" href="staly.css"><style>body{font-family:Arial,Helvetica,sans-serif}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}img{max-height:80px;margin-bottom:10px}.template{margin-bottom:10px}</style></head><body><div id="printSection">` +
-                `${logoSrc ? `<div class="print-header"><img src="${logoSrc}" alt="Logo"></div>` : ''}` +
-                `${templateHtml}` +
-                `<div class="print-header"><h2>${name}</h2><h3>Lista de Membros</h3><p><strong>Filtro:</strong> ${filterText}</p></div>` +
-                `<table><thead><tr><th>Nome</th><th>Congregação</th><th>Cargo</th><th>Data Nasc.</th><th>Email</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></body></html>`;
-
-            // Try to open print window first. Show preview ONLY if the popup is blocked or opening fails.
+            // Try to open print window
             try {
                 closePrintModal();
-                const printWindow = window.open('', '_blank');
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
                 if (!printWindow) {
-                    console.warn('Popup blocked; showing preview for manual copy.');
-                    const preview = document.getElementById('printPreview');
-                    const previewContent = document.getElementById('printPreviewContent');
-                    previewContent.textContent = printHtml;
-                    preview.style.display = 'block';
+                    notify.error('Popup bloqueado! Por favor, permita popups para este site.');
                     return;
                 }
 
@@ -706,25 +774,20 @@
                 printWindow.document.write(printHtml);
                 printWindow.document.close();
                 printWindow.focus();
-                printWindow.onload = function() {
+                
+                // Wait for images to load before printing
+                setTimeout(() => {
                     try {
                         printWindow.print();
-                        printWindow.close();
+                        // Don't close automatically - let user close after printing
                     } catch (err) {
                         console.error('Print failed:', err);
-                        // If printing failed, show preview as fallback
-                        const preview = document.getElementById('printPreview');
-                        const previewContent = document.getElementById('printPreviewContent');
-                        previewContent.textContent = printHtml;
-                        preview.style.display = 'block';
+                        notify.error('Erro ao imprimir. Tente novamente.');
                     }
-                };
+                }, 500);
             } catch (err) {
                 console.error('Error opening print window:', err);
-                const preview = document.getElementById('printPreview');
-                const previewContent = document.getElementById('printPreviewContent');
-                previewContent.textContent = printHtml;
-                preview.style.display = 'block';
+                notify.error('Erro ao abrir janela de impressão.');
             }
         });
 

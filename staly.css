@@ -851,12 +851,13 @@ footer {
         position: fixed;
         top: 0;
         left: -100%;
-        width: 80%;
-        max-width: 300px;
+        width: 70%;
+        max-width: 280px;
         height: 100vh;
         padding-top: 4rem;
         transition: left 0.3s ease;
         overflow-y: auto;
+        z-index: 1000;
     }
     
     .nav-list.active {
@@ -877,6 +878,7 @@ footer {
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        font-size: 0.9rem;
     }
     
     /* Esconder texto em telas muito pequenas */
@@ -885,7 +887,7 @@ footer {
     }
     
     .nav-icon {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         margin-right: 0;
     }
     
@@ -1151,12 +1153,13 @@ footer {
         position: fixed;
         top: 0;
         left: -100%;
-        width: 60%;
-        max-width: 350px;
+        width: 50%;
+        max-width: 320px;
         height: 100vh;
         padding-top: 4rem;
         transition: left 0.3s ease;
         overflow-y: auto;
+        z-index: 1000;
     }
     
     .nav-list.active {
