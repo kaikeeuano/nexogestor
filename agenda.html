@@ -493,6 +493,12 @@
                     
                     const combined = [...(allEvents || []), ...normalizedObs, ...projectEvents];
                     
+                    // Filter events in the date range
+                    const eventsInRange = combined.filter(event => {
+                        const eventDate = new Date(event.date);
+                        return eventDate >= startDate && eventDate <= endDate;
+                    });
+                    
                     // Generate calendar HTML
                     const calendarHTML = generateCalendarHTML(eventsInRange, startDate, endDate);
                     
