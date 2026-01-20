@@ -25,7 +25,8 @@ function isValidEmail(email) {
 // Middleware
 app.use(compression()); // Compressão gzip
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' })); // Aumentar limite para uploads
+app.use(bodyParser.json({ limit: '100mb' })); // Aumentar limite para uploads grandes
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true })); // Para form data
 app.use(express.static('.', {
   maxAge: '1d', // Cache de 1 dia para arquivos estáticos
   etag: true
@@ -44,9 +45,17 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + file.originalname);
   }
 });
+
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit for videos
+  limits: { 
+    fileSize: 500 * 1024 * 1024, // 500MB limit
+    fieldSize: 500 * 1024 * 1024  // 500MB para campos também
+  },
+  fileFilter: (req, file, cb) => {
+    console.log('📎 Receiving file:', file.originalname, 'Size:', file.size, 'Type:', file.mimetype);
+    cb(null, true); // Aceitar todos os tipos
+  }
 });
 
 // Database setup
@@ -2695,23 +2704,56 @@ app.get('/project-files', authenticateToken, (req, res) => {
   });
 });
 
-app.post('/project-files', authenticateToken, upload.single('file'), (req, res) => {
-  const projectId = req.body.project_id;
-  const file = req.file;
-  
-  if (!file) {
-    return res.status(400).json({ error: 'No file provided' });
-  }
-  
-  db.run('INSERT INTO project_files (project_id, name, filename) VALUES (?, ?, ?)', 
-    [projectId, file.originalname, file.filename], 
-    function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
+app.post('/project-files', authenticateToken, (req, res) => {
+  // Usar middleware de upload com tratamento de erro
+  upload.single('file')(req, res, function(err) {
+    if (err instanceof multer.MulterError) {
+      console.error('❌ Multer error:', err.message);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'Arquivo muito grande. Máximo 500MB.' });
       }
-      res.json({ id: this.lastID });
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      console.error('❌ Unknown upload error:', err);
+      return res.status(500).json({ error: 'Erro no upload: ' + err.message });
+    }
+    
+    const projectId = req.body.project_id;
+    const file = req.file;
+    
+    console.log('📤 Upload request received:', {
+      projectId,
+      fileName: file?.originalname,
+      fileSize: file?.size,
+      mimeType: file?.mimetype
     });
+    
+    if (!file) {
+      console.error('❌ No file in request');
+      return res.status(400).json({ error: 'No file provided' });
+    }
+    
+    if (!projectId) {
+      console.error('❌ No project_id in request');
+      return res.status(400).json({ error: 'No project_id provided' });
+    }
+    
+    db.run('INSERT INTO project_files (project_id, name, filename) VALUES (?, ?, ?)', 
+      [projectId, file.originalname, file.filename], 
+      function(err) {
+        if (err) {
+          console.error('❌ Database error:', err.message);
+          res.status(500).json({ error: err.message });
+          return;
+        }
+        console.log('✅ File uploaded successfully:', file.originalname, 'ID:', this.lastID);
+        res.json({ 
+          id: this.lastID,
+          name: file.originalname,
+          size: file.size
+        });
+      });
+  });
 });
 
 app.delete('/project-files/:id', authenticateToken, (req, res) => {
@@ -3412,10 +3454,15 @@ app.delete('/dashboards/:dashboardId/pregacoes/:id', authenticateToken, (req, re
   );
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   if (process.env.NODE_ENV !== 'production') {
     console.log(`Server running on http://localhost:${PORT}`);
   } else {
     console.log('Server running');
   }
 });
+
+// Aumentar timeout para uploads grandes (10 minutos)
+server.timeout = 600000; // 10 minutos
+server.keepAliveTimeout = 65000; // 65 segundos
+server.headersTimeout = 66000; // 66 segundos
