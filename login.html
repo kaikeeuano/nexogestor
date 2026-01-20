@@ -48,21 +48,35 @@
                     body: JSON.stringify({ username, password })
                 });
                 if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.error('Resposta não é JSON:', await response.text());
+                        notify.error('Erro: servidor retornou resposta inválida');
+                        return;
+                    }
                     const data = await response.json();
                     localStorage.setItem('token', data.token);
                     
                     // Verificar se é admin do sistema
-                    const adminCheck = await fetch(`${API_BASE}/admin/check`, {
-                        headers: { 'Authorization': `Bearer ${data.token}` }
-                    });
-                    
-                    if (adminCheck.ok) {
-                        const adminData = await adminCheck.json();
-                        if (adminData.isAdmin) {
-                            // Redireciona direto para o painel admin
-                            window.location.href = 'admin.html';
-                            return;
+                    try {
+                        const adminCheck = await fetch(`${API_BASE}/admin/check`, {
+                            headers: { 'Authorization': `Bearer ${data.token}` }
+                        });
+                        
+                        if (adminCheck.ok) {
+                            const contentType = adminCheck.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                const adminData = await adminCheck.json();
+                                if (adminData.isAdmin) {
+                                    // Redireciona direto para o painel admin
+                                    window.location.href = 'admin.html';
+                                    return;
+                                }
+                            }
                         }
+                    } catch (adminErr) {
+                        console.warn('Admin check failed:', adminErr);
+                        // Continue with normal flow
                     }
                     
                     // Se não for admin, mostra link normal para dashboard
@@ -70,13 +84,24 @@
                     document.getElementById('dashboardLink').style.display = 'block';
                 } else {
                     let msg = 'Credenciais inválidas';
-                    try { const data = await response.json(); if (data && data.error) msg = data.error; } catch (e) { /* ignore */ }
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        try { 
+                            const data = await response.json(); 
+                            if (data && data.error) msg = data.error; 
+                        } catch (e) { 
+                            console.error('Erro ao processar JSON:', e);
+                        }
+                    } else {
+                        console.error('Resposta não é JSON:', await response.text());
+                        msg = 'Erro: servidor retornou resposta inválida';
+                    }
                     console.warn('Login failed:', response.status, msg);
                     notify.info(msg);
                 }
             } catch (err) {
-                console.error('Login error:', err);
-                alert('Erro de conexão ao tentar fazer login. Verifique se o servidor está rodando.');
+                console.error('Erro de login:', err);
+                notify.error('Erro de conexão ao tentar fazer login. Verifique se o servidor está rodando.');
             }
         });
 
@@ -157,6 +182,12 @@
                 });
                 
                 if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.error('Resposta não é JSON:', await response.text());
+                        showNotification('Erro: servidor retornou resposta inválida', 'error');
+                        return;
+                    }
                     showNotification(`✨ Conta criada com sucesso! Bem-vindo, ${username}!`, 'success', 5000);
                     
                     // Limpar campos
@@ -173,10 +204,19 @@
                     }, 1500);
                 } else {
                     let msg = 'Erro ao criar conta';
-                    try { 
-                        const data = await response.json(); 
-                        if (data && data.error) msg = data.error; 
-                    } catch (e) { /* ignore */ }
+                    try {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const data = await response.json(); 
+                            if (data && data.error) msg = data.error;
+                        } else {
+                            const text = await response.text();
+                            console.error('Resposta não é JSON:', text);
+                            msg = 'Erro: servidor retornou resposta inválida';
+                        }
+                    } catch (e) { 
+                        console.error('Erro ao processar resposta:', e);
+                    }
                     
                     console.warn('Register failed:', response.status, msg);
                     showNotification(msg, 'error');
