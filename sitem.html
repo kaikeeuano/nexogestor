@@ -445,7 +445,7 @@
         }
 
         async function loadConfig() {
-            const res = await fetch(`${API_BASE}/config', {
+            const res = await fetch(`${API_BASE}/config`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             if (!res.ok) return;
