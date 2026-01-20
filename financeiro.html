@@ -49,6 +49,67 @@
             margin-bottom: 20px;
             align-items: center;
         }
+
+        /* Print Styles */
+        @media print {
+            /* Hide screen elements */
+            nav, .nav-list, .actions, .filters, #transactionModal, 
+            button, .no-print, body > div:first-child {
+                display: none !important;
+            }
+
+            /* Show print section */
+            #printSection {
+                display: block !important;
+            }
+
+            /* Print-specific styles */
+            body {
+                background: white;
+            }
+
+            .print-header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #333;
+            }
+
+            .print-header img {
+                max-height: 80px;
+                margin-bottom: 10px;
+            }
+
+            .print-header h2 {
+                margin: 10px 0;
+                color: #333;
+            }
+
+            .print-header h3 {
+                margin: 5px 0;
+                color: #666;
+            }
+
+            #printTable {
+                margin-top: 20px;
+            }
+
+            #printTable th {
+                background-color: #f0f0f0;
+                padding: 10px;
+                text-align: left;
+                border: 1px solid #ddd;
+            }
+
+            #printTable td {
+                padding: 8px;
+                border: 1px solid #ddd;
+            }
+
+            .card {
+                page-break-inside: avoid;
+            }
+        }
     </style>
     <script src="notify.js"></script>
 </head>
@@ -61,16 +122,16 @@
     </div>
     <nav class="nav-list">
         <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
-        <li class="nav-item"><a href="gestao.html">gestão</a></li>
-        <li class="nav-item"><a href="agenda.html">agenda</a></li>
-        <li class="nav-item"><a href="projetos.html">projetos</a></li>
-        <li class="nav-item"><a href="membros.html">membros</a></li>
-        <li class="nav-item"><a href="relatorios.html">relatórios</a></li>
-        <li class="nav-item"><a href="financeiro.html">financeiro</a></li>
-        <li class="nav-item"><a href="drivfotos.html">driv fotos</a></li>
-        <li class="nav-item"><a href="drivdoc.html">driv doc</a></li>
-        <li class="nav-item"><a href="configuracao.html">configurações</a></li>
-        <li class="nav-item"><button id="logout">Logout</button></li>
+        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
+        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
+        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
+        <li class="nav-item"><a href="membros.html">Membros</a></li>
+        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+        <li class="nav-item"><a href="financeiro.html" class="active">Financeiro</a></li>
+        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+        <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
+        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+        <li class="nav-item"><button id="logout">Sair</button></li>
     </nav>
     
     <main class="financeiro">

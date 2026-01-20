@@ -110,16 +110,19 @@
 
             async function loadEvents() {
                 try {
-                    const [eventsResp, obsResp] = await Promise.all([
+                    const [eventsResp, obsResp, projectsResp] = await Promise.all([
                         fetch(API_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } }),
-                        fetch(OBS_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } })
+                        fetch(OBS_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } }),
+                        fetch(`${API_BASE}/projects`, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } })
                     ]);
 
                     if (!eventsResp.ok) throw new Error('Failed to load events');
                     if (!obsResp.ok) throw new Error('Failed to load project observations');
+                    if (!projectsResp.ok) throw new Error('Failed to load projects');
 
                     const events = await eventsResp.json();
                     const observations = await obsResp.json();
+                    const projects = await projectsResp.json();
 
                     // Marcar o tipo para exibição
                     const normalizedObs = (observations || []).map(o => ({
@@ -127,7 +130,35 @@
                         type: 'project_observation'
                     }));
 
-                    const combined = [...(events || []), ...normalizedObs];
+                    // Converter projetos em eventos (data de início e fim)
+                    const projectEvents = (projects || []).flatMap(p => {
+                        const events = [];
+                        if (p.start_date) {
+                            events.push({
+                                id: `project_start_${p.id}`,
+                                title: `🎯 Início: ${p.title}`,
+                                description: p.description || '',
+                                date: p.start_date,
+                                type: 'project_start',
+                                project_id: p.id,
+                                status: p.status
+                            });
+                        }
+                        if (p.end_date) {
+                            events.push({
+                                id: `project_end_${p.id}`,
+                                title: `🏁 Fim: ${p.title}`,
+                                description: p.description || '',
+                                date: p.end_date,
+                                type: 'project_end',
+                                project_id: p.id,
+                                status: p.status
+                            });
+                        }
+                        return events;
+                    });
+
+                    const combined = [...(events || []), ...normalizedObs, ...projectEvents];
 
                     // Ordena por data ascendente
                     combined.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -144,10 +175,22 @@
                 eventsList.innerHTML = '';
                 events.forEach(event => {
                     const isProjectObs = event.type === 'project_observation';
+                    const isProjectStart = event.type === 'project_start';
+                    const isProjectEnd = event.type === 'project_end';
+                    const isProjectEvent = isProjectStart || isProjectEnd;
 
                     const eventDiv = document.createElement('div');
                     eventDiv.className = 'event';
-                    eventDiv.addEventListener('click', () => openEventModal(event));
+                    
+                    // Eventos de projeto não abrem modal, redirecionam para projetos.html
+                    if (isProjectEvent) {
+                        eventDiv.style.cursor = 'pointer';
+                        eventDiv.addEventListener('click', () => {
+                            window.location.href = 'projetos.html';
+                        });
+                    } else {
+                        eventDiv.addEventListener('click', () => openEventModal(event));
+                    }
 
                     const header = document.createElement('div');
                     header.style.display = 'flex';
@@ -167,6 +210,50 @@
                         badge.style.borderRadius = '12px';
                         badge.style.fontSize = '12px';
                         header.appendChild(badge);
+                    } else if (isProjectStart) {
+                        const badge = document.createElement('span');
+                        badge.textContent = 'Início de Projeto';
+                        badge.style.background = '#4caf50';
+                        badge.style.color = '#fff';
+                        badge.style.padding = '2px 8px';
+                        badge.style.borderRadius = '12px';
+                        badge.style.fontSize = '12px';
+                        header.appendChild(badge);
+                        
+                        if (event.status) {
+                            const statusBadge = document.createElement('span');
+                            statusBadge.textContent = event.status === 'pending' ? 'Pendente' : 
+                                                     event.status === 'in_progress' ? 'Em Andamento' : 'Concluído';
+                            statusBadge.style.background = event.status === 'pending' ? '#9e9e9e' : 
+                                                          event.status === 'in_progress' ? '#2196f3' : '#4caf50';
+                            statusBadge.style.color = '#fff';
+                            statusBadge.style.padding = '2px 8px';
+                            statusBadge.style.borderRadius = '12px';
+                            statusBadge.style.fontSize = '12px';
+                            header.appendChild(statusBadge);
+                        }
+                    } else if (isProjectEnd) {
+                        const badge = document.createElement('span');
+                        badge.textContent = 'Fim de Projeto';
+                        badge.style.background = '#f44336';
+                        badge.style.color = '#fff';
+                        badge.style.padding = '2px 8px';
+                        badge.style.borderRadius = '12px';
+                        badge.style.fontSize = '12px';
+                        header.appendChild(badge);
+                        
+                        if (event.status) {
+                            const statusBadge = document.createElement('span');
+                            statusBadge.textContent = event.status === 'pending' ? 'Pendente' : 
+                                                     event.status === 'in_progress' ? 'Em Andamento' : 'Concluído';
+                            statusBadge.style.background = event.status === 'pending' ? '#9e9e9e' : 
+                                                          event.status === 'in_progress' ? '#2196f3' : '#4caf50';
+                            statusBadge.style.color = '#fff';
+                            statusBadge.style.padding = '2px 8px';
+                            statusBadge.style.borderRadius = '12px';
+                            statusBadge.style.fontSize = '12px';
+                            header.appendChild(statusBadge);
+                        }
                     }
 
                     const dateEl = document.createElement('p');
@@ -179,7 +266,7 @@
                     eventDiv.appendChild(dateEl);
                     eventDiv.appendChild(descEl);
 
-                    if (!isProjectObs) {
+                    if (!isProjectObs && !isProjectEvent) {
                         const deleteBtn = document.createElement('button');
                         deleteBtn.textContent = 'Excluir';
                         deleteBtn.addEventListener('click', (e) => {
@@ -365,21 +452,46 @@
                 const endDate = new Date(document.getElementById('endDate').value);
                 
                 try {
-                    const [eventsResp, obsResp] = await Promise.all([
+                    const [eventsResp, obsResp, projectsResp] = await Promise.all([
                         fetch(API_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } }),
-                        fetch(OBS_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } })
+                        fetch(OBS_URL, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } }),
+                        fetch(`${API_BASE}/projects`, { headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId } })
                     ]);
                     const allEvents = await eventsResp.json();
                     const observations = await obsResp.json();
+                    const projects = await projectsResp.json();
 
                     const normalizedObs = (observations || []).map(o => ({ ...o, type: 'project_observation' }));
-                    const combined = [...(allEvents || []), ...normalizedObs];
                     
-                    // Filter events in the date range
-                    const eventsInRange = combined.filter(event => {
-                        const eventDate = new Date(event.date);
-                        return eventDate >= startDate && eventDate <= endDate;
+                    // Converter projetos em eventos (data de início e fim)
+                    const projectEvents = (projects || []).flatMap(p => {
+                        const events = [];
+                        if (p.start_date) {
+                            events.push({
+                                id: `project_start_${p.id}`,
+                                title: `🎯 Início: ${p.title}`,
+                                description: p.description || '',
+                                date: p.start_date,
+                                type: 'project_start',
+                                project_id: p.id,
+                                status: p.status
+                            });
+                        }
+                        if (p.end_date) {
+                            events.push({
+                                id: `project_end_${p.id}`,
+                                title: `🏁 Fim: ${p.title}`,
+                                description: p.description || '',
+                                date: p.end_date,
+                                type: 'project_end',
+                                project_id: p.id,
+                                status: p.status
+                            });
+                        }
+                        return events;
                     });
+                    
+                    const combined = [...(allEvents || []), ...normalizedObs, ...projectEvents];
                     
                     // Generate calendar HTML
                     const calendarHTML = generateCalendarHTML(eventsInRange, startDate, endDate);
@@ -453,8 +565,21 @@
                         html += `<div class="day">
                             <strong>${day}</strong>
                             ${dayEvents.map(event => {
-                                const prefix = event.type === 'project_observation' ? 'Obs: ' : '';
-                                return `<div class="event">${prefix}${event.title}</div>`;
+                                let prefix = '';
+                                let style = 'background-color: #e3f2fd;';
+                                
+                                if (event.type === 'project_observation') {
+                                    prefix = '📋 ';
+                                    style = 'background-color: #fff3e0;';
+                                } else if (event.type === 'project_start') {
+                                    prefix = '🎯 ';
+                                    style = 'background-color: #e8f5e9;';
+                                } else if (event.type === 'project_end') {
+                                    prefix = '🏁 ';
+                                    style = 'background-color: #ffebee;';
+                                }
+                                
+                                return `<div class="event" style="${style}">${prefix}${event.title}</div>`;
                             }).join('')}
                         </div>`;
                     }
