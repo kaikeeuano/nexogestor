@@ -952,6 +952,8 @@ app.delete('/config/members/:memberId', authenticateToken, (req, res) => {
 app.get('/dashboards', authenticateToken, (req, res) => {
   const userId = req.user.id;
   
+  console.log(`📋 GET /dashboards - User ID: ${userId}`);
+  
   // Buscar todos os dashboards onde o usuário é membro (owner, admin ou member aprovado)
   db.all(`
     SELECT d.id, d.name, d.code, d.type, dm.status, dm.role 
@@ -961,15 +963,11 @@ app.get('/dashboards', authenticateToken, (req, res) => {
     ORDER BY d.id DESC
   `, [userId], (err, dashboards) => {
     if (err) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('Error loading dashboards:', err);
-      }
+      console.error('❌ Error loading dashboards for user', userId, ':', err.message);
       return res.status(500).json({ error: err.message });
     }
     
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`User ${userId} has ${dashboards.length} dashboards`);
-    }
+    console.log(`✅ User ${userId} has ${dashboards.length} dashboards`);
     
     res.json(dashboards);
   });
