@@ -27,6 +27,19 @@ app.use(compression()); // Compressão gzip
 app.use(cors());
 app.use(bodyParser.json({ limit: '100mb' })); // Aumentar limite para uploads grandes
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true })); // Para form data
+
+// Bloquear acesso à pasta config/
+app.use('/config', (req, res, next) => {
+  // Se for uma requisição de API (/config/congregations, etc), deixa passar
+  if (req.path.includes('/congregations') || req.path.includes('/roles') || 
+      req.path.includes('/subdashboards') || req.path.includes('/members') || 
+      req.path === '' || req.path === '/') {
+    return next();
+  }
+  // Bloqueia acesso a arquivos físicos da pasta config
+  res.status(403).send('Forbidden');
+});
+
 app.use(express.static('.', {
   maxAge: '1d', // Cache de 1 dia para arquivos estáticos
   etag: true

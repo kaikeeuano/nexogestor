@@ -11,6 +11,7 @@ class PermissionManager {
 
     async loadUserRole() {
         if (!this.dashboardId || !this.token) {
+            console.warn('⚠️ loadUserRole: dashboardId ou token ausente');
             return;
         }
 
@@ -32,16 +33,23 @@ class PermissionManager {
                 this.isOwner = data.isOwner;
                 localStorage.setItem('userRole', this.userRole);
                 localStorage.setItem('isOwner', this.isOwner);
+                console.log('✅ Role carregado:', { role: this.userRole, isOwner: this.isOwner });
+            } else {
+                console.error('❌ Erro ao carregar role:', response.status);
             }
         } catch (error) {
-            console.error('Error loading user role:', error);
+            console.error('❌ Error loading user role:', error);
         }
     }
 
     // Verifica se o usuário pode editar determinado módulo
     canEdit(module) {
-        if (this.isOwner) return true; // Owner tem acesso total
-        if (this.userRole === 'admin') return true; // Admin tem acesso total a TODOS os módulos
+        if (this.checkIsOwner()) return true; // Owner tem acesso total
+        
+        const currentRole = this.getRole();
+        console.log('🔍 canEdit check:', { module, currentRole });
+        
+        if (currentRole === 'admin') return true; // Admin tem acesso total a TODOS os módulos
 
         const permissions = {
             'member': [], // Membro: apenas visualizar
@@ -50,10 +58,10 @@ class PermissionManager {
             'midia': ['drivfotos']
         };
 
-        const userPermissions = permissions[this.userRole] || [];
+        const userPermissions = permissions[currentRole] || [];
         
         // Secretário tem permissão TOTAL em membros (sem restrições)
-        if (this.userRole === 'secretario' && module === 'membros') {
+        if (currentRole === 'secretario' && module === 'membros') {
             console.log('✅ Secretário tem permissão TOTAL em membros');
             return true;
         }
@@ -73,15 +81,23 @@ class PermissionManager {
 
     // Desabilita elementos de edição baseado no módulo
     applyRestrictions(module) {
-        console.log('🔒 applyRestrictions:', { module, canEdit: this.canEdit(module), userRole: this.userRole });
+        const currentRole = this.getRole();
+        const hasEditPermission = this.canEdit(module);
+        
+        console.log('🔒 applyRestrictions:', { 
+            module, 
+            currentRole, 
+            hasEditPermission,
+            isOwner: this.checkIsOwner() 
+        });
         
         // Secretário tem permissão TOTAL em membros - sem restrições
-        if (this.userRole === 'secretario' && module === 'membros') {
+        if (currentRole === 'secretario' && module === 'membros') {
             console.log('✅ Secretário tem PERMISSÃO TOTAL em membros. Nenhuma restrição aplicada.');
             return;
         }
         
-        if (this.canEdit(module)) {
+        if (hasEditPermission) {
             console.log('✅ Usuário tem permissão para editar. Nenhuma restrição aplicada.');
             return; // Tem permissão, não desabilita nada
         }
