@@ -271,7 +271,14 @@
             document.getElementById('cancelRegistration').addEventListener('click', cancelRegistration);
             document.getElementById('backToProjects').addEventListener('click', backToProjects);
             document.getElementById('addObservationBtn').addEventListener('click', addObservation);
-            document.getElementById('selectFilesBtn').addEventListener('click', () => document.getElementById('projectFiles').click());
+            document.getElementById('selectFilesBtn').addEventListener('click', () => {
+                console.log('📂 Select files button clicked');
+                if (!currentProjectId) {
+                    showNotification('⚠️ Selecione um projeto primeiro!', 'warning');
+                    return;
+                }
+                document.getElementById('projectFiles').click();
+            });
             document.getElementById('projectFiles').addEventListener('change', handleFileSelect);
             document.getElementById('saveNotesBtn').addEventListener('click', saveProjectNotes);
             document.getElementById('deleteProjectBtn').addEventListener('click', deleteCurrentProject);
@@ -346,6 +353,7 @@
 
         function switchTab(e) {
             const tabName = e.target.dataset.tab;
+            console.log('📑 Switching to tab:', tabName);
             
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -356,12 +364,25 @@
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.style.borderBottom = 'none';
                 btn.style.color = '#666';
+                btn.style.fontWeight = 'normal';
             });
             
             // Show selected tab
-            document.getElementById(tabName + '-tab').style.display = 'block';
-            e.target.style.borderBottom = '3px solid #4CAF50';
-            e.target.style.color = '#4CAF50';
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+                e.target.style.borderBottom = '3px solid #4CAF50';
+                e.target.style.color = '#4CAF50';
+                e.target.style.fontWeight = '600';
+                
+                // Se for a aba de arquivos, recarregar a lista
+                if (tabName === 'files') {
+                    console.log('📁 Loading files for current project...');
+                    loadProjectFiles();
+                }
+            } else {
+                console.error('❌ Tab not found:', tabName + '-tab');
+            }
         }
 
         async function loadProjects() {
@@ -499,6 +520,7 @@
 
         function openProject(id, title, description, status) {
             currentProjectId = id;
+            console.log('🔓 Opening project:', id, title);
             
             // Buscar dados completos do projeto
             const project = allProjects.find(p => p.id === id);
@@ -517,6 +539,16 @@
                 document.getElementById('editEndDate').value = project.end_date || '';
                 document.getElementById('editStatus').value = project.status || 'planejamento';
             }
+            
+            // Garantir que a aba de observações está ativa por padrão
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.style.borderBottom = 'none';
+                btn.style.color = '#666';
+            });
+            document.getElementById('observations-tab').style.display = 'block';
+            document.querySelector('[data-tab="observations"]').style.borderBottom = '3px solid #4CAF50';
+            document.querySelector('[data-tab="observations"]').style.color = '#4CAF50';
             
             loadObservations();
             loadProjectFiles();
@@ -827,15 +859,31 @@
         }
 
         async function loadProjectFiles() {
+            if (!currentProjectId) {
+                console.warn('⚠️ No project selected for loading files');
+                return;
+            }
+            
             try {
+                console.log('📥 Loading files for project:', currentProjectId);
                 const response = await fetch(`${API_BASE}/project-files?project_id=${currentProjectId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'dashboard-id': dashboardId
+                    }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const files = await response.json();
+                console.log('📁 Files loaded:', files);
+                
                 const filesList = document.getElementById('filesList');
                 filesList.innerHTML = '';
 
-                if (files.length === 0) {
+                if (!files || files.length === 0) {
                     filesList.innerHTML = '<p style="color: #999; margin-top: 20px;">Nenhum arquivo enviado ainda.</p>';
                     return;
                 }
@@ -878,7 +926,9 @@
                     filesList.appendChild(fileDiv);
                 });
             } catch (err) {
-                console.error('Error loading files:', err);
+                console.error('❌ Error loading files:', err);
+                const filesList = document.getElementById('filesList');
+                filesList.innerHTML = '<p style="color: #f44336;">Erro ao carregar arquivos. Verifique o console.</p>';
             }
         }
 
