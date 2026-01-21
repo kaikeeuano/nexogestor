@@ -498,6 +498,7 @@
         }
 
         function openModal(title, member = null) {
+            alert('Botão Adicionar Membro clicado! Abrindo modal...');
             console.log('🔔 openModal chamado:', { title, member });
             editingMember = member;
             document.getElementById('modalTitle').textContent = title;
@@ -578,6 +579,7 @@
             const method = editingMember ? 'PUT' : 'POST';
             const url = editingMember ? `${API_URL}/${editingMember.id}` : API_URL;
 
+            alert('Tentando salvar membro...');
             console.log('💾 Salvando membro:', { name, congregation, cargo, method, url });
 
             try {
@@ -587,6 +589,7 @@
                     body: formData
                 });
 
+                alert('Resposta do servidor: ' + response.status + ' ' + response.statusText);
                 console.log('📡 Resposta do servidor:', response.status, response.statusText);
 
                 if (!response.ok) {
