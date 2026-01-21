@@ -33,8 +33,10 @@
         <h1>Membros</h1>
         <div class="actions">
             <button id="addMemberBtn">Adicionar Membro</button>
+            <button id="printButton">Imprimir Lista</button>
             <input type="text" id="searchName" placeholder="Buscar por nome">
             <select id="filterCongregation"><option value="">Todas as Congregações</option></select>
+            <select id="filterCargo"><option value="">Todos os Cargos</option></select>
         </div>
         <table id="membersTable">
             <thead>
@@ -42,6 +44,7 @@
                     <th>Foto</th>
                     <th>Nome</th>
                     <th>Congregação</th>
+                    <th>Cargo</th>
                     <th>Data de Nascimento</th>
                     <th>Ações</th>
                 </tr>
@@ -57,6 +60,8 @@
                     <input type="text" id="name" required>
                     <label for="congregation">Congregação:</label>
                     <select id="congregation" required><option value="">Selecione</option></select>
+                    <label for="cargo">Cargo:</label>
+                    <select id="cargo" required><option value="">Selecione</option></select>
                     <label for="birthDate">Data de Nascimento:</label>
                     <input type="date" id="birthDate">
                     <label for="photo">Foto:</label>
@@ -66,6 +71,24 @@
                 </form>
             </div>
         </div>
+        <div id="printModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close-print">&times;</span>
+                <h2>Imprimir Lista de Membros</h2>
+                <label for="printFilterType">Filtrar por:</label>
+                <select id="printFilterType">
+                    <option value="all">Todos</option>
+                    <option value="congregation">Congregação</option>
+                    <option value="cargo">Cargo</option>
+                </select>
+                <div id="printFilterValueGroup" style="display:none;">
+                    <label for="printFilterValue">Selecione:</label>
+                    <select id="printFilterValue"></select>
+                </div>
+                <button type="button" id="confirmPrintBtn">Imprimir</button>
+                <button type="button" id="cancelPrintBtn">Cancelar</button>
+            </div>
+        </div>
     </main>
     <script>
     const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -73,10 +96,12 @@
         : window.location.origin;
     const API_URL = `${API_BASE}/members`;
     const CONFIG_CONG_URL = `${API_BASE}/config/congregations`;
+    const CONFIG_ROLES_URL = `${API_BASE}/config/roles`;
     const token = localStorage.getItem('token');
     const dashboardId = localStorage.getItem('dashboardId');
     let allMembers = [];
     let congregationsList = [];
+    let rolesList = [];
     let editingMember = null;
     async function loadCongregations() {
         try {
@@ -101,6 +126,31 @@
             });
         } catch (err) {
             notify.error('Erro ao carregar congregações');
+        }
+    }
+    async function loadRoles() {
+        try {
+            const response = await fetch(CONFIG_ROLES_URL, {
+                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+            });
+            const roles = await response.json();
+            rolesList = Array.isArray(roles) ? roles : [];
+            const select = document.getElementById('cargo');
+            select.innerHTML = '<option value="">Selecione</option>';
+            const filterSelect = document.getElementById('filterCargo');
+            filterSelect.innerHTML = '<option value="">Todos os Cargos</option>';
+            rolesList.forEach(role => {
+                const opt = document.createElement('option');
+                opt.value = role.name;
+                opt.textContent = role.name;
+                select.appendChild(opt);
+                const filterOpt = document.createElement('option');
+                filterOpt.value = role.name;
+                filterOpt.textContent = role.name;
+                filterSelect.appendChild(filterOpt);
+            });
+        } catch (err) {
+            notify.error('Erro ao carregar cargos');
         }
     }
     async function loadMembers() {
@@ -135,6 +185,8 @@
             nameTd.textContent = member.name;
             const congTd = document.createElement('td');
             congTd.textContent = member.congregation;
+            const cargoTd = document.createElement('td');
+            cargoTd.textContent = member.cargo || '';
             const birthTd = document.createElement('td');
             birthTd.textContent = member.birth_date || '';
             const actionsTd = document.createElement('td');
@@ -145,6 +197,7 @@
             row.appendChild(photoTd);
             row.appendChild(nameTd);
             row.appendChild(congTd);
+            row.appendChild(cargoTd);
             row.appendChild(birthTd);
             row.appendChild(actionsTd);
             tbody.appendChild(row);
@@ -157,6 +210,7 @@
         if (member) {
             document.getElementById('name').value = member.name;
             document.getElementById('congregation').value = member.congregation;
+            document.getElementById('cargo').value = member.cargo || '';
             document.getElementById('birthDate').value = member.birth_date || '';
         } else {
             document.getElementById('memberForm').reset();
@@ -169,15 +223,17 @@
     async function saveMember() {
         const name = document.getElementById('name').value;
         const congregation = document.getElementById('congregation').value;
+        const cargo = document.getElementById('cargo').value;
         const birthDate = document.getElementById('birthDate').value;
         const photo = document.getElementById('photo').files[0];
-        if (!name || !congregation) {
+        if (!name || !congregation || !cargo) {
             notify.warning('Preencha todos os campos obrigatórios');
             return;
         }
         const formData = new FormData();
         formData.append('name', name);
         formData.append('congregation', congregation);
+        formData.append('cargo', cargo);
         formData.append('birth_date', birthDate);
         if (photo) formData.append('photo', photo);
         let url = API_URL;
@@ -203,24 +259,142 @@
             notify.error('Erro ao salvar membro');
         }
     }
+    function applyFilters() {
+        const nameVal = document.getElementById('searchName').value.toLowerCase();
+        const congVal = document.getElementById('filterCongregation').value;
+        const cargoVal = document.getElementById('filterCargo').value;
+        let filtered = allMembers.filter(m => {
+            const matchName = !nameVal || m.name.toLowerCase().includes(nameVal);
+            const matchCong = !congVal || m.congregation === congVal;
+            const matchCargo = !cargoVal || m.cargo === cargoVal;
+            return matchName && matchCong && matchCargo;
+        });
+        displayMembers(filtered);
+    }
+    document.getElementById('searchName').oninput = applyFilters;
+    document.getElementById('filterCongregation').onchange = applyFilters;
+    document.getElementById('filterCargo').onchange = applyFilters;
     document.getElementById('addMemberBtn').onclick = () => openModal('Adicionar Membro');
     document.getElementById('submitMember').onclick = saveMember;
     document.getElementById('cancelMember').onclick = closeModal;
     document.querySelector('.close').onclick = closeModal;
-    document.getElementById('searchName').oninput = function() {
-        const val = this.value.toLowerCase();
-        displayMembers(allMembers.filter(m => m.name.toLowerCase().includes(val)));
-    };
-    document.getElementById('filterCongregation').onchange = function() {
-        const val = this.value;
-        displayMembers(val ? allMembers.filter(m => m.congregation === val) : allMembers);
-    };
     document.getElementById('logout').onclick = function() {
         localStorage.removeItem('token');
         localStorage.removeItem('dashboardId');
         window.location.href = 'login.html';
     };
+    async function openPrintModal() {
+        document.getElementById('printModal').style.display = 'block';
+        document.getElementById('printFilterType').value = 'all';
+        document.getElementById('printFilterValueGroup').style.display = 'none';
+    }
+    function closePrintModal() {
+        document.getElementById('printModal').style.display = 'none';
+    }
+    document.getElementById('printButton').onclick = openPrintModal;
+    document.getElementById('cancelPrintBtn').onclick = closePrintModal;
+    document.querySelector('.close-print').onclick = closePrintModal;
+    document.getElementById('printFilterType').onchange = function() {
+        const type = this.value;
+        const filterGroup = document.getElementById('printFilterValueGroup');
+        const select = document.getElementById('printFilterValue');
+        select.innerHTML = '';
+        if (type === 'all') {
+            filterGroup.style.display = 'none';
+        } else if (type === 'congregation') {
+            filterGroup.style.display = 'block';
+            congregationsList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.name;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+        } else if (type === 'cargo') {
+            filterGroup.style.display = 'block';
+            rolesList.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.name;
+                opt.textContent = r.name;
+                select.appendChild(opt);
+            });
+        }
+    };
+    document.getElementById('confirmPrintBtn').onclick = async function() {
+        const type = document.getElementById('printFilterType').value;
+        const value = document.getElementById('printFilterValue').value;
+        let filteredMembers = allMembers;
+        let filterText = 'Todos os Membros';
+        if (type === 'congregation') {
+            filteredMembers = allMembers.filter(m => m.congregation === value);
+            filterText = `Congregação: ${value}`;
+        } else if (type === 'cargo') {
+            filteredMembers = allMembers.filter(m => m.cargo === value);
+            filterText = `Cargo: ${value}`;
+        }
+        let rowsHtml = '';
+        filteredMembers.forEach(m => {
+            const birthDate = m.birth_date ? new Date(m.birth_date).toLocaleDateString('pt-BR') : '';
+            rowsHtml += `<tr>
+                <td>${m.name || ''}</td>
+                <td>${m.congregation || ''}</td>
+                <td>${m.cargo || ''}</td>
+                <td>${birthDate}</td>
+            </tr>`;
+        });
+        const logoSrc = 'uploads/logo.png';
+        const printHtml = `<!doctype html>
+<html lang=\"pt-BR\">
+<head>
+    <meta charset=\"utf-8\">
+    <title>Lista de Membros</title>
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; padding: 20px; }
+        .print-header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #333; }
+        .print-header img { max-height: 80px; margin-bottom: 10px; }
+        .print-header h2 { margin: 10px 0; color: #333; }
+        .print-header h3 { margin: 5px 0; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f0f0f0; padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; }
+        td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        @media print { body { padding: 0; } @page { margin: 1cm; } }
+    </style>
+</head>
+<body>
+    <div class=\"print-header\">
+        <img src=\"${logoSrc}\" alt=\"Logo\">
+        <h2>NEXO GESTOR</h2>
+        <h3>Lista de Membros</h3>
+        <p><strong>Filtro:</strong> ${filterText}</p>
+        <p><strong>Total:</strong> ${filteredMembers.length} membros</p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Congregação</th>
+                <th>Cargo</th>
+                <th>Data Nasc.</th>
+            </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+    </table>
+</body>
+</html>`;
+        closePrintModal();
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (!printWindow) {
+            notify.error('Popup bloqueado! Por favor, permita popups para este site.');
+            return;
+        }
+        printWindow.document.open();
+        printWindow.document.write(printHtml);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => { printWindow.print(); }, 500);
+    };
     loadCongregations();
+    loadRoles();
     loadMembers();
     </script>
     <script src="mobile-menu.js"></script>
