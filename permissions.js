@@ -94,9 +94,29 @@ class PermissionManager {
             isOwner: this.checkIsOwner() 
         });
         
-        // Secretário tem permissão TOTAL em membros - sem restrições
+        // Secretário tem permissão TOTAL em membros - sem restrições (reforçado)
         if (currentRole === 'secretario' && module === 'membros') {
             console.log('✅ Secretário tem PERMISSÃO TOTAL em membros. Nenhuma restrição aplicada.');
+            // Garante que todos os botões e inputs estejam habilitados
+            const editButtons = document.querySelectorAll(
+                'button[type="submit"], ' +
+                'button:not([id="logout"]):not([id="printButton"]):not([id="applyFilter"]), ' +
+                'input[type="submit"]'
+            );
+            editButtons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+                btn.title = '';
+            });
+            const inputs = document.querySelectorAll('input:not([type="search"]):not([id*="filter"]):not([type="file"]), textarea');
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.style.opacity = '';
+            });
+            // Remove mensagem de somente leitura se existir
+            const readOnlyMsg = document.getElementById('readOnlyMessage');
+            if (readOnlyMsg) readOnlyMsg.remove();
             return;
         }
         
