@@ -3,6 +3,11 @@
 -- Para gerar: bcrypt.hashSync('@Adellan126', 10)
 INSERT OR IGNORE INTO users (username, password, email, phone, is_admin)
 VALUES ('kaike.souza', '$2b$10$QwQwQwQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw', 'kruan126@gmail.com', '(69)993358875', 1);
+-- Adicionar usuário admin kaike.souza (senha: @Adellan126)
+-- Hash gerado com bcrypt rounds=10
+-- Para gerar: bcrypt.hashSync('@Adellan126', 10)
+INSERT OR IGNORE INTO users (username, password, email, phone, is_admin)
+VALUES ('kaike.souza', '$2b$10$QwQwQwQwQwQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw', 'kruan126@gmail.com', '(69)993358875', 1);
 -- Script SQL para criar usuário admin
 -- Execute: sqlite3 data/agenda2.db < criar_admin.sql
 
