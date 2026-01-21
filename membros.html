@@ -483,7 +483,12 @@
             console.log('🔔 openModal chamado:', { title, member });
             editingMember = member;
             document.getElementById('modalTitle').textContent = title;
-            document.getElementById('memberModal').style.display = 'block';
+            const modal = document.getElementById('memberModal');
+            modal.style.display = 'block';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
+            modal.style.zIndex = '9999';
+            console.log('🟢 Modal de cadastro exibido:', modal);
             
             // Garantir que os selects NUNCA estejam desabilitados no modal (exceto sub-dashboard)
             const congSelect = document.getElementById('congregation');
