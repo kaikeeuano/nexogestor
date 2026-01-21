@@ -82,7 +82,10 @@ class PermissionManager {
     // Desabilita elementos de edição baseado no módulo
     applyRestrictions(module) {
         const currentRole = this.getRole();
-        const hasEditPermission = this.canEdit(module);
+        // Garante acesso total para admin e owner
+        const isAdmin = currentRole === 'admin';
+        const isOwner = this.checkIsOwner();
+        const hasEditPermission = isAdmin || isOwner || this.canEdit(module);
         
         console.log('🔒 applyRestrictions:', { 
             module, 
