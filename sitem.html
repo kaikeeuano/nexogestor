@@ -462,7 +462,7 @@
         }
 
         async function loadBirthdays() {
-            const response = await fetch(`${API_BASE}/members', {
+            const response = await fetch(`${API_BASE}/members`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const members = await response.json();
