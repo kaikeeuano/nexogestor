@@ -191,7 +191,7 @@
                 console.log('✅ Sistema inicializado completamente');
             });
             loadMembers();
-        }
+        
 
         async function loadConfig() {
             try {
@@ -210,7 +210,7 @@
             } catch (error) {
                 console.error('Error loading config:', error);
             }
-        }
+        
 
         async function loadCongregations() {
             console.log('📍 loadCongregations: iniciando...');
@@ -886,6 +886,13 @@
             localStorage.removeItem('dashboardId');
             window.location.href = 'login.html';
         });
+    </script>
+    <script>
+    // Garante que as funções estejam no escopo global
+    window.loadMembers = loadMembers;
+    window.saveMember = saveMember;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
     </script>
     <script src="mobile-menu.js"></script>
 </body>
