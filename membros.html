@@ -177,6 +177,26 @@
         let congregationsList = [];
         let rolesList = [];
 
+        async function loadConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/info`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+                });
+                dashboardConfig = await response.json();
+                // ...restante da função...
+            } catch (error) {
+                console.error('Error loading config:', error);
+            }
+        }
+
+        async function loadCongregations() {
+            // ...função já está declarada...
+        }
+
+        async function loadRoles() {
+            // ...função já está declarada...
+        }
+
         if (!token || !dashboardId) {
             window.location.href = 'login.html';
         } else {
@@ -192,8 +212,6 @@
             });
             loadMembers();
         }
-
-        async function loadConfig() {
             try {
                 const response = await fetch(`${API_BASE}/dashboard/info`, {
                     headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
