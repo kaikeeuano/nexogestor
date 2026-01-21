@@ -187,15 +187,16 @@
             } catch (error) {
                 console.error('Error loading config:', error);
             }
-        }
+        // ...fim da função openModal...
 
         async function loadCongregations() {
             // ...função já está declarada...
-        }
+        // ...fim da função openModal...
 
         async function loadRoles() {
             // ...função já está declarada...
         }
+
 
         if (!token || !dashboardId) {
             window.location.href = 'login.html';
@@ -212,22 +213,6 @@
             });
             loadMembers();
         }
-            try {
-                const response = await fetch(`${API_BASE}/dashboard/info`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
-                });
-                dashboardConfig = await response.json();
-                
-                // Show alert if this is a sub-dashboard
-                if (dashboardConfig.isSubDashboard && dashboardConfig.restrictedCongregation) {
-                    const alert = document.getElementById('subDashboardAlert');
-                    const message = document.getElementById('subDashboardMessage');
-                    message.textContent = `Este dashboard é limitado apenas à congregação "${dashboardConfig.restrictedCongregation}". Só é possível adicionar/editar membros desta congregação.`;
-                    alert.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Error loading config:', error);
-            }
         
 
         async function loadCongregations() {
