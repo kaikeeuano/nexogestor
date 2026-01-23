@@ -1,3 +1,16 @@
+// Endpoint temporário para debug: listar membros do dashboard
+app.get('/debug/dashboard-members', authenticateToken, (req, res) => {
+  const dashboardId = req.headers['dashboard-id'];
+  if (!dashboardId) {
+    return res.status(400).json({ error: 'dashboard-id header required' });
+  }
+  db.all('SELECT * FROM dashboard_members WHERE dashboard_id = ?', [dashboardId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
@@ -1278,29 +1291,37 @@ app.get('/dashboard/info', authenticateToken, (req, res) => {
 app.post('/config/logo', authenticateToken, upload.single('logo'), (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
-  
+  console.log('--- LOGO UPLOAD INICIADO ---');
+  console.log('dashboardId:', dashboardId);
+  console.log('userId:', userId);
+  console.log('req.file:', req.file);
   if (!req.file) {
+    console.log('Nenhum arquivo recebido no upload.');
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  // Check if user is owner
-  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND status = ?', 
-    [dashboardId, userId, 'owner'], (err, member) => {
+  // Permitir owner ou admin
+  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role = ?)', 
+    [dashboardId, userId, 'owner', 'admin'], (err, member) => {
     if (err) {
+      console.log('Erro ao buscar membro:', err);
       res.status(500).json({ error: err.message });
       return;
     }
     if (!member) {
+      console.log('Usuário não autorizado para upload de logo.');
       res.status(403).json({ error: 'Not authorized' });
       return;
     }
-    
     const logo = req.file.filename;
+    console.log('Arquivo recebido:', logo);
     db.run('UPDATE dashboards SET logo = ? WHERE id = ?', [logo, dashboardId], function(err) {
       if (err) {
+        console.log('Erro ao atualizar logo no dashboard:', err);
         res.status(500).json({ error: err.message });
         return;
       }
+      console.log('Logo atualizada com sucesso no dashboard:', dashboardId);
       res.json({ message: 'Logo updated', logo });
     });
   });
