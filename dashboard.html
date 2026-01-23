@@ -19,9 +19,11 @@
     
     <main class="dashboards">
         <h1>Meus Dashboards</h1>
-        <button id="createDashboard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">✨ Criar Novo Dashboard</button>
-        <button id="joinDashboard">Entrar em Dashboard Existente</button>
-        <button id="createPregacoes" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); margin-top: 10px;">📖 Criar Dashboard de Pregações</button>
+        <div id="dashboardActions" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <button id="createDashboard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">✨ Criar Novo Dashboard</button>
+            <button id="joinDashboard">Entrar em Dashboard Existente</button>
+            <button id="createPregacoes" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">📖 Criar Dashboard de Pregações</button>
+        </div>
 
         <section style="margin-top:14px; padding:12px; border:1px solid #ddd; border-radius:8px; background:#f7f9ff;">
             <h2>💡 Dica</h2>
@@ -54,6 +56,17 @@
 
         
         <div id="dashboardList"></div>
+            <div style="margin-top:32px;">
+                <h2>Outros Painéis</h2>
+                <div style="display:flex;gap:24px;flex-wrap:wrap;">
+                    <div class="dashboard-item" style="background:#f7f9ff;padding:24px 32px;border-radius:16px;box-shadow:0 2px 8px #0001;min-width:220px;max-width:320px;text-align:center;">
+                        <div style="font-size:2.5rem;margin-bottom:1rem;">🎵</div>
+                        <h3 style="margin-bottom:8px;">Painel de Música</h3>
+                        <p style="color:#555;margin-bottom:18px;">Gestão de aulas, turmas e instrumentos</p>
+                        <a href="dashboard_musica.html" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:8px;text-decoration:none;font-weight:600;">Acessar Painel</a>
+                    </div>
+                </div>
+            </div>
     </main>
 
     <script>

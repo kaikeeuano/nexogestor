@@ -487,6 +487,40 @@
                             navigator.clipboard.writeText(publicUrl);
                             alert('Link copiado para área de transferência!\n\n' + publicUrl + '\n\nQualquer pessoa pode baixar os arquivos desta pasta pelo link.');
                         });
+                        // Botão de compartilhamento de link público
+                        const shareBtn = document.createElement('button');
+                        shareBtn.textContent = '🔗 Compartilhar Link';
+                        buttonsDiv.appendChild(shareBtn);
+                        shareBtn.style.fontSize = '12px';
+                        shareBtn.style.padding = '8px 12px';
+                        shareBtn.style.backgroundColor = '#4CAF50';
+                        shareBtn.style.color = 'white';
+                        shareBtn.style.border = 'none';
+                        shareBtn.style.borderRadius = '4px';
+                        shareBtn.style.cursor = 'pointer';
+                        shareBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const publicUrl = `${window.location.origin}/public/fotos/${folder.id}`;
+                            navigator.clipboard.writeText(publicUrl);
+                            alert('Link copiado para área de transferência!\n\n' + publicUrl + '\n\nQualquer pessoa pode baixar os arquivos desta pasta pelo link.');
+                        });
+                        // Botão de compartilhamento de link público
+                        const shareBtn = document.createElement('button');
+                        shareBtn.textContent = '🔗 Compartilhar Link';
+                        buttonsDiv.appendChild(shareBtn);
+                        shareBtn.style.fontSize = '12px';
+                        shareBtn.style.padding = '8px 12px';
+                        shareBtn.style.backgroundColor = '#4CAF50';
+                        shareBtn.style.color = 'white';
+                        shareBtn.style.border = 'none';
+                        shareBtn.style.borderRadius = '4px';
+                        shareBtn.style.cursor = 'pointer';
+                        shareBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const publicUrl = `${window.location.origin}/public/fotos/${folder.id}`;
+                            navigator.clipboard.writeText(publicUrl);
+                            alert('Link copiado para área de transferência!\n\n' + publicUrl + '\n\nQualquer pessoa pode baixar os arquivos desta pasta pelo link.');
+                        });
             document.getElementById('cancelUpload').style.display = 'inline-block';
             const progressArea = document.getElementById('progressArea');
             progressArea.style.display = 'block';
