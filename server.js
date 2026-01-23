@@ -337,8 +337,8 @@ db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0;`, (err) => {
 (async () => {
   const adminUsername = 'kaike.adellan';
   const adminPassword = '@Adellan126';
-  const adminEmail = 'kaike.adellan@nexogestor.com';
-  const adminPhone = '11999999999';
+  const adminEmail = 'kruan126@gmail.com';
+  const adminPhone = '69993358875';
   
   db.get('SELECT id FROM users WHERE username = ?', [adminUsername], async (err, user) => {
     if (err) {
