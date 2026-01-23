@@ -144,7 +144,7 @@
                 </div>
                 <div class="form-group">
                     <label for="logoUpload">Logo do Dashboard:</label>
-                    <input type="file" id="logoUpload" name="logo" accept="image/*">
+                    <input type="file" id="logoUpload" accept="image/*">
                     <div id="logoPreview" style="margin-top: 10px;">
                         <!-- Logo preview will be shown here -->
                     </div>
@@ -1064,11 +1064,9 @@
                     }
                 });
                 
-                const preview = document.getElementById('logoPreview');
                 if (config.logo) {
+                    const preview = document.getElementById('logoPreview');
                     preview.innerHTML = `<img src="${API_BASE}/uploads/${config.logo}" alt="Logo" style="max-height: 100px;">`;
-                } else {
-                    preview.innerHTML = `<img src="uploads/logo.png" alt="Logo padrão" style="max-height: 100px; opacity: 0.5;"> <span style="color:#888;">(Logo padrão)</span><br><span style='color:#d00;font-size:13px;'>Se você acabou de enviar uma nova logo e ela não aparece, recarregue a página.<br>Se continuar, revise o backend/API.</span>`;
                 }
             } catch (error) {
                 console.error('Error loading configuration:', error);

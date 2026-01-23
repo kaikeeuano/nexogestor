@@ -169,7 +169,6 @@
         <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
         <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
         <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
-        <li class="nav-item"><a href="dashboard_musica.html">Aulas de Música</a></li>
         <li class="nav-item"><a href="drivdoc.html">Documentos</a></li>
         <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
         <li class="nav-item"><button id="logout">Sair</button></li>
@@ -273,11 +272,6 @@
                     <div style="font-size:3rem;margin-bottom:1rem">📸</div>
                     <h3 style="color:var(--gray-900)">Drive Fotos</h3>
                     <p>Acesse suas fotos</p>
-                </a>
-                <a href="dashboard_musica.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
-                    <div style="font-size:3rem;margin-bottom:1rem">🎵</div>
-                    <h3 style="color:var(--gray-900)">Painel de Música</h3>
-                    <p>Gestão de aulas, turmas e instrumentos</p>
                 </a>
                 <a href="drivdoc.html" class="card" style="text-decoration:none;text-align:center;padding:2rem">
                     <div style="font-size:3rem;margin-bottom:1rem">📄</div>
@@ -493,7 +487,7 @@
         }
 
         async function loadProjects() {
-            const res = await fetch(`${API_BASE}/projects`, {
+            const res = await fetch(`${API_BASE}/projects', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const projects = await res.json();
@@ -501,7 +495,7 @@
         }
 
         async function loadEvents() {
-            const res = await fetch(`${API_BASE}/events`, {
+            const res = await fetch(`${API_BASE}/events', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const events = await res.json();
@@ -536,7 +530,7 @@
             document.getElementById('dashMonthExpense').textContent = formatCurrency(monthExpense);
             document.getElementById('dashMonthNet').textContent = formatCurrency(monthIncome - monthExpense);
             renderFinanceChart(labels, incomes, expenses);
-            const allRes = await fetch(`${API_BASE}/transactions`, {
+            const allRes = await fetch(`${API_BASE}/transactions', {
                 headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
             });
             const all = await allRes.json();

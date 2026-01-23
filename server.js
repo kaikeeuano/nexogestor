@@ -1,6 +1,3 @@
-const path = require('path');
-// ...existing code...
-// ...existing code...
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
@@ -18,35 +15,6 @@ const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
 if (!process.env.SECRET_KEY && process.env.NODE_ENV === 'production') {
   console.error('WARNING: SECRET_KEY is not set in environment variables. Set SECRET_KEY in production.');
 }
-// Rota pública para download de fotos de uma pasta sem autenticação
-app.get('/public/fotos/:folderId', async (req, res) => {
-  const folderId = req.params.folderId;
-  if (!folderId) return res.status(400).json({ error: 'ID da pasta é obrigatório.' });
-  db.all('SELECT * FROM files WHERE folder_id = ?', [folderId], (err, files) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!files || files.length === 0) return res.status(404).json({ error: 'Nenhum arquivo encontrado nesta pasta.' });
-    // Gera uma página simples com links para download
-    let html = `<h2>Arquivos da Pasta (Download Público)</h2><ul>`;
-    files.forEach(file => {
-      html += `<li><a href="/uploads/${encodeURIComponent(file.filename)}" download>${file.name || file.filename}</a></li>`;
-    });
-    html += '</ul>';
-    res.send(html);
-  });
-});
-// Endpoint temporário para debug: listar membros do dashboard
-app.get('/debug/dashboard-members', authenticateToken, (req, res) => {
-  const dashboardId = req.headers['dashboard-id'];
-  if (!dashboardId) {
-    return res.status(400).json({ error: 'dashboard-id header required' });
-  }
-  db.all('SELECT * FROM dashboard_members WHERE dashboard_id = ?', [dashboardId], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows);
-  });
-});
 
 // Email validation helper
 function isValidEmail(email) {
@@ -1310,37 +1278,29 @@ app.get('/dashboard/info', authenticateToken, (req, res) => {
 app.post('/config/logo', authenticateToken, upload.single('logo'), (req, res) => {
   const dashboardId = req.headers['dashboard-id'];
   const userId = req.user.id;
-  console.log('--- LOGO UPLOAD INICIADO ---');
-  console.log('dashboardId:', dashboardId);
-  console.log('userId:', userId);
-  console.log('req.file:', req.file);
+  
   if (!req.file) {
-    console.log('Nenhum arquivo recebido no upload.');
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  // Permitir owner ou admin
-  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND (status = ? OR role = ?)', 
-    [dashboardId, userId, 'owner', 'admin'], (err, member) => {
+  // Check if user is owner
+  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND status = ?', 
+    [dashboardId, userId, 'owner'], (err, member) => {
     if (err) {
-      console.log('Erro ao buscar membro:', err);
       res.status(500).json({ error: err.message });
       return;
     }
     if (!member) {
-      console.log('Usuário não autorizado para upload de logo.');
       res.status(403).json({ error: 'Not authorized' });
       return;
     }
+    
     const logo = req.file.filename;
-    console.log('Arquivo recebido:', logo);
     db.run('UPDATE dashboards SET logo = ? WHERE id = ?', [logo, dashboardId], function(err) {
       if (err) {
-        console.log('Erro ao atualizar logo no dashboard:', err);
         res.status(500).json({ error: err.message });
         return;
       }
-      console.log('Logo atualizada com sucesso no dashboard:', dashboardId);
       res.json({ message: 'Logo updated', logo });
     });
   });
