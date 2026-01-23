@@ -71,8 +71,18 @@ const upload = multer({
   }
 });
 
+// Corrigir permissões do banco de dados automaticamente (Linux/Hostinger)
+const fs = require('fs');
+const dbPath = './agenda2.db';
+try {
+  // Tenta dar permissão de leitura e escrita para owner e grupo
+  fs.chmodSync(dbPath, 0o664);
+  console.log('Permissões do banco agenda2.db corrigidas para 664.');
+} catch (e) {
+  console.error('Não foi possível corrigir permissões do banco:', e.message);
+}
 // Database setup
-const db = new sqlite3.Database('./agenda2.db', (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error(err.message);
   }
