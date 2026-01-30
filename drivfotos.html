@@ -14,7 +14,9 @@
             <span style="font-size: 28px;">🖼️</span>
             <h2 style="margin: 0; font-size: 20px;">NEXO GESTOR</h2>
         </a>
-    </div>
+                <meta charset="UTF-8">
+    <!-- nav removido para visualização pública -->
+    
     <nav class="nav-list">
         <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
         <li class="nav-item"><a href="gestao.html">Gestão</a></li>
@@ -28,40 +30,41 @@
         <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
         <li class="nav-item"><button id="logout">Sair</button></li>
     </nav>
-    
     <main class="drive">
         <h1>Drive de Fotos e Vídeos</h1>
         <div style="margin-bottom: 20px;">
             <button id="createFolder" style="padding: 15px 25px; font-size: 16px;">➕ Criar Nova Pasta</button>
         </div>
-        <div id="foldersList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;"></div>
+        <div id="foldersList" class="folders"></div>
         <div id="folderView" style="display: none;">
-            <button id="backToFolders">Voltar</button>
-            <h2 id="folderTitle"></h2>
-            <div id="uploadArea" class="upload-area">
-                <p>Arraste e solte fotos e vídeos aqui ou clique para selecionar</p>
-                <input type="file" id="photoUpload" accept="image/*,video/*" multiple style="display: none;">
-                <button id="selectFiles">Selecionar Fotos/Vídeos</button>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <button id="backToFolders">Voltar</button>
+                <h2 id="folderTitle" style="flex:1;"></h2>
+                            <!-- Área de upload dentro da pasta -->
+                            <div id="uploadArea" style="border:2px dashed #2563eb; border-radius:8px; padding:18px; margin:12px 0; text-align:center; background:#f8faff; cursor:pointer;">
+                                <input type="file" id="photoUpload" multiple accept="image/*,video/*" style="display:none;">
+                                <button id="selectFiles" style="background:#2563eb;color:white;padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-size:14px;">Selecionar Fotos/Vídeos</button>
+                                <button id="uploadPhotos" style="background:#43a047;color:white;padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-size:14px;display:none;">Enviar</button>
+                                <button id="cancelUpload" style="background:#f44336;color:white;padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-size:14px;display:none;">Cancelar</button>
+                                <div id="previewArea" style="margin-top:16px;">
+                                    <div id="previewGrid" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+                                </div>
+                            </div>
+                <button id="copyGalleryLink" style="background:#2563eb;color:white;padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-size:14px;">🔗 Link Público</button>
+                <span id="galleryLinkMsg" style="margin-left:10px;color:#2563eb;font-size:13px;"></span>
             </div>
-            <div id="previewArea" style="margin-top:12px; display:none;">
-                <h3>Pré-visualização</h3>
-                <div id="previewGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px;"></div>
+            <div style="padding: 24px; text-align: center; color: #666; font-size: 1.1rem;">
+                A visualização das fotos e vídeos está disponível apenas na <b>Galeria Pública</b>.<br>
+                Use o botão <b>Link Público</b> acima para acessar ou compartilhar a galeria desta pasta.
             </div>
-            <div id="progressArea" style="display: none; margin-top:12px;">
-                <p id="progressText">Enviando: 0/0</p>
-                <div style="width:100%; background:#ddd; border-radius:4px; overflow:hidden;">
-                    <div id="progressBar" style="height:20px; background:#4CAF50; width:0%; transition:width 0.3s;"></div>
-                </div>
-            </div>
-            <button id="uploadPhotos" style="display: none;">Enviar Fotos</button>
-            <button id="cancelUpload" style="display: none; background-color:#f44336;">Cancelar</button>
-            <div id="filesList"></div>
+            <div id="filesList" style="margin-top: 24px;"></div>
         </div>
     </main>
     <script>
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3000'
             : window.location.origin;
+        // ...código normal do sistema (loadFolders, permissões, etc)...
         const token = localStorage.getItem('token');
         const dashboardId = localStorage.getItem('dashboardId');
         let currentFolderId = null;
@@ -83,32 +86,15 @@
 
         async function loadFolders() {
             try {
-                console.log('Starting loadFolders...');
-                const url = `${API_BASE}/folders?type=photos`;
-                const headers = { 
-                    'Authorization': `Bearer ${token}`, 
-                    'dashboard-id': dashboardId 
-                };
-                
-                console.log('Fetching from:', url);
-                console.log('Headers:', { 'dashboard-id': dashboardId });
-                
-                const response = await fetch(url, { headers });
-                
-                console.log('Response received - Status:', response.status, response.statusText);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Folders load error:', response.status, errorText);
-                    alert('❌ Erro ao carregar pastas (HTTP ' + response.status + '):\n' + errorText);
-                    return;
-                }
-                
+                const response = await fetch(`${API_BASE}/folders?type=photos`, {
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : '',
+                        'dashboard-id': dashboardId
+                    }
+                });
                 const folders = await response.json();
-                console.log('Folders loaded:', folders, 'count:', folders.length);
                 const foldersList = document.getElementById('foldersList');
                 foldersList.innerHTML = '';
-                
                 if (!folders || folders.length === 0) {
                     const emptyMsg = document.createElement('p');
                     emptyMsg.style.padding = '20px';
@@ -116,32 +102,45 @@
                     emptyMsg.style.color = '#666';
                     emptyMsg.textContent = '📁 Nenhuma pasta criada. Clique em "➕ Criar Nova Pasta" para começar.';
                     foldersList.appendChild(emptyMsg);
-                    console.log('No folders found');
                     return;
                 }
-                
                 folders.forEach(folder => {
                     const div = document.createElement('div');
                     div.className = 'folder';
-                    
-                    const folderContent = document.createElement('div');
-                    folderContent.style.width = '100%';
-                    folderContent.style.cursor = 'pointer';
-                    folderContent.addEventListener('click', () => {
-                        console.log('Opening folder:', folder.id, folder.name);
-                        openFolder(folder.id, folder.name);
-                    });
-
+                    // Nome da pasta (sempre no topo, clicável)
                     const h3 = document.createElement('h3');
                     h3.textContent = folder.name;
-                    folderContent.appendChild(h3);
-
+                    h3.style.cursor = 'pointer';
+                    h3.addEventListener('click', () => {
+                        openFolder(folder.id, folder.name);
+                    });
+                    div.appendChild(h3);
+                    // Botões sempre abaixo do nome
                     const buttonsDiv = document.createElement('div');
                     buttonsDiv.style.marginTop = '12px';
                     buttonsDiv.style.display = 'flex';
                     buttonsDiv.style.gap = '8px';
                     buttonsDiv.style.justifyContent = 'center';
+                    // Botão Compartilhar
                     
+                    // Botão Compartilhar
+                    const shareBtn = document.createElement('button');
+                    shareBtn.textContent = '🔗 Compartilhar';
+                    shareBtn.style.fontSize = '12px';
+                    shareBtn.style.padding = '8px 12px';
+                    shareBtn.style.backgroundColor = '#2563eb';
+                    shareBtn.style.color = 'white';
+                    shareBtn.style.border = 'none';
+                    shareBtn.style.borderRadius = '4px';
+                    shareBtn.style.cursor = 'pointer';
+                    shareBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const url = window.location.origin + '/galeria.html?id=' + encodeURIComponent(folder.id);
+                        navigator.clipboard.writeText(url).then(() => {
+                            notify.success('Link copiado para a área de transferência!');
+                        });
+                    });
+                    // Botão Renomear
                     const renameBtn = document.createElement('button');
                     renameBtn.textContent = '✏️ Renomear';
                     renameBtn.style.fontSize = '12px';
@@ -155,7 +154,7 @@
                         e.stopPropagation();
                         renameFolder(folder.id, folder.name);
                     });
-
+                    // Botão Deletar
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = '🗑️ Deletar';
                     deleteBtn.style.fontSize = '12px';
@@ -169,13 +168,10 @@
                         e.stopPropagation();
                         deleteFolder(folder.id, folder.name);
                     });
-
+                    buttonsDiv.appendChild(shareBtn);
                     buttonsDiv.appendChild(renameBtn);
                     buttonsDiv.appendChild(deleteBtn);
-                    
-                    div.appendChild(folderContent);
                     div.appendChild(buttonsDiv);
-
                     foldersList.appendChild(div);
                 });
             } catch (err) {
@@ -190,6 +186,19 @@
             document.getElementById('foldersList').style.display = 'none';
             document.getElementById('folderView').style.display = 'block';
             loadFiles();
+            // Atualiza botão de link público
+            setTimeout(() => {
+                const btn = document.getElementById('copyGalleryLink');
+                if (btn) {
+                    btn.onclick = function() {
+                        const url = window.location.origin + '/galeria.html?id=' + encodeURIComponent(currentFolderId);
+                        navigator.clipboard.writeText(url).then(() => {
+                            document.getElementById('galleryLinkMsg').textContent = 'Link copiado!';
+                            setTimeout(() => { document.getElementById('galleryLinkMsg').textContent = ''; }, 2000);
+                        });
+                    };
+                }
+            }, 100);
         }
 
         async function renameFolder(id, oldName) {
@@ -201,7 +210,7 @@
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': token ? `Bearer ${token}` : '',
                         'dashboard-id': dashboardId 
                     },
                     body: JSON.stringify({ name: newName })
@@ -229,7 +238,7 @@
                 const response = await fetch(`${API_BASE}/folders/${id}`, {
                     method: 'DELETE',
                     headers: { 
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': token ? `Bearer ${token}` : '',
                         'dashboard-id': dashboardId 
                     }
                 });
@@ -296,7 +305,10 @@
 
         async function loadFiles() {
             const response = await fetch(`${API_BASE}/files?folder_id=${currentFolderId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'dashboard-id': dashboardId
+                }
             });
             const files = await response.json();
             const filesList = document.getElementById('filesList');
@@ -344,13 +356,35 @@
                     fileDiv.appendChild(img);
                 }
 
-
                 const p = document.createElement('p');
                 p.textContent = file.name.substring(0, 20);
                 p.style.marginTop = '8px';
                 p.style.fontSize = '12px';
                 p.style.wordBreak = 'break-all';
 
+                // Botão de baixar
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = '⬇️ Baixar';
+                downloadBtn.style.marginTop = '8px';
+                downloadBtn.style.marginRight = '6px';
+                downloadBtn.style.padding = '6px 10px';
+                downloadBtn.style.fontSize = '11px';
+                downloadBtn.style.backgroundColor = '#4CAF50';
+                downloadBtn.style.color = 'white';
+                downloadBtn.style.border = 'none';
+                downloadBtn.style.borderRadius = '3px';
+                downloadBtn.style.cursor = 'pointer';
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const link = document.createElement('a');
+                    link.href = `/uploads/${file.filename}`;
+                    link.download = file.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+
+                // Botão de deletar
                 const btn = document.createElement('button');
                 btn.textContent = '🗑️ Deletar';
                 btn.style.marginTop = '8px';
@@ -368,10 +402,19 @@
                 });
 
                 fileDiv.appendChild(p);
+                fileDiv.appendChild(downloadBtn);
                 fileDiv.appendChild(btn);
 
                 filesList.appendChild(fileDiv);
             });
+            // Botão de baixar todas as fotos da pasta (só se existir o elemento)
+            const downloadAllBtn = document.getElementById('downloadAllPhotos');
+            if (downloadAllBtn) {
+                downloadAllBtn.onclick = function() {
+                    if (!currentFolderId) return;
+                    window.open(`${API_BASE}/folders/${currentFolderId}/download?token=${token}&dashboard-id=${dashboardId}`, '_blank');
+                };
+            }
         }
 
         document.getElementById('selectFiles').addEventListener('click', () => {
@@ -545,7 +588,10 @@
             try {
                 const response = await fetch(`${API_BASE}/files/${id}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : '',
+                        'dashboard-id': dashboardId
+                    }
                 });
                 
                 if (response.ok) {
