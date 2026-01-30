@@ -1,136 +1,900 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXO GESTOR - Drive Documentos</title>
-    <link rel="stylesheet" href="staly.css">
-    <script src="permissions.js"></script>
-    <script src="notify.js"></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title style="color: white;">NEXO GESTOR - Drive Documentos</title>
+	<link rel="stylesheet" href="staly.css">
+	<script src="permissions.js"></script>
+	<script src="notify.js"></script>
 </head>
 <body>
-    <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
-        <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; width: fit-content; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            <span style="font-size: 28px;">📄</span>
-            <h2 style="margin: 0; font-size: 20px;">NEXO GESTOR</h2>
-        </a>
-    </div>
-    <nav class="nav-list">
-        <li class="nav-item"><a href="sitem.html">Dashboard</a></li>
-        <li class="nav-item"><a href="gestao.html">Gestão</a></li>
-        <li class="nav-item"><a href="agenda.html">Agenda</a></li>
-        <li class="nav-item"><a href="projetos.html">Projetos</a></li>
-        <li class="nav-item"><a href="membros.html">Membros</a></li>
-        <li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
-        <li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
-        <li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
-        <li class="nav-item"><a href="drivdoc.html" class="active">Documentos</a></li>
-        <li class="nav-item"><a href="configuracao.html">Configurações</a></li>
-        <li class="nav-item"><button id="logout">Sair</button></li>
-    </nav>
-    
-    <main class="drive">
-        <h1>Drive de Documentos</h1>
-        <input type="file" id="docUpload" accept=".pdf,.doc,.docx,.txt" multiple>
-        <button id="uploadDocs">Enviar Documentos</button>
-        <div id="docsList"></div>
-    </main>
-    </main>
+	<div style="padding: 15px 20px; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%); margin-bottom: 0;">
+		<a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; width: fit-content; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+			<span style="font-size: 28px;">📄</span>
+			<h2 style="margin: 0; font-size: 20px;">NEXO GESTOR</h2>
+		</a>
+	</div>
+	<nav class="nav-list">
+		<li class="nav-item"><a href="sitem.html">Dashboard</a></li>
+		<li class="nav-item"><a href="gestao.html">Gestão</a></li>
+		<li class="nav-item"><a href="agenda.html">Agenda</a></li>
+		<li class="nav-item"><a href="projetos.html">Projetos</a></li>
+		<li class="nav-item"><a href="membros.html">Membros</a></li>
+		<li class="nav-item"><a href="relatorios.html">Relatórios</a></li>
+		<li class="nav-item"><a href="financeiro.html">Financeiro</a></li>
+		<li class="nav-item"><a href="drivfotos.html">Fotos</a></li>
+		<li class="nav-item"><a href="drivdoc.html" class="active">Documentos</a></li>
+		<li class="nav-item"><a href="configuracao.html">Configurações</a></li>
+		<li class="nav-item"><button id="logout">Sair</button></li>
+	</nav>
+	<main class="drive">
+		<h1>Drive de Documentos</h1>
+		<div style="margin-bottom: 20px; display: flex; gap: 10px;">
+			<button id="btnAtas" style="padding: 12px 22px; font-size: 15px;">Atas</button>
+			<button id="btnPastas" style="padding: 12px 22px; font-size: 15px;">Pastas</button>
+		</div>
+		<div id="atasBlock" style="display: block;">
+			<div class="header" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;">
+				<div style="display: flex; align-items: center; gap: 15px;">
+					<span style="font-size: 20px;">📝</span>
+					<h2 style="margin: 0; font-size: 22px; font-weight: 600; color: white;">Atas</h2>
+				</div>
+				<div class="header-buttons" style="display: flex; gap: 10px;">
+					<button class="btn btn-primary" id="novaAta">✨ Nova Ata</button>
+					<button class="btn btn-success" id="salvarAta">💾 Salvar</button>
+					<button class="btn btn-secondary" id="exportarAta">📥 Exportar TXT</button>
+					<button class="btn btn-danger" id="excluirAta">🗑️ Excluir</button>
+					<button class="btn btn-secondary" id="imprimirAta">🖨️ Imprimir</button>
+				</div>
+			</div>
+			<div class="container" style="display: flex; height: calc(100vh - 60px);">
+				<div class="sidebar" style="width: 280px; background: var(--gray-100); color: var(--gray-900); border-right: 1px solid var(--gray-300); overflow-y: auto;">
+					<div class="sidebar-header" style="padding: 20px; border-bottom: 1px solid var(--gray-200); background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white;">
+						<h2 style="font-size: 18px; margin-bottom: 10px;">Minhas Atas</h2>
+						<input type="text" class="search-box" id="searchAta" placeholder="🔍 Buscar ata..." style="width: 100%; padding: 8px 12px; border: none; border-radius: 6px; font-size: 14px; background: var(--gray-200); color: var(--gray-900);">
+					</div>
+					<div class="pregacao-list" id="atasList" style="padding: 10px;"></div>
+				</div>
+				<div class="editor-area" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+					<div class="toolbar" style="background: var(--gray-100); color: var(--gray-900); padding: 12px 20px; border-bottom: 1px solid var(--gray-300); display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+						<div class="toolbar-group" style="display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid var(--gray-200);">
+							<button class="toolbar-btn" onclick="formatAta('bold')" title="Negrito"><strong>B</strong></button>
+							<button class="toolbar-btn" onclick="formatAta('italic')" title="Itálico"><em>I</em></button>
+							<button class="toolbar-btn" onclick="formatAta('underline')" title="Sublinhado"><u>U</u></button>
+							<button class="toolbar-btn" onclick="formatAta('strikeThrough')" title="Tachado"><s>S</s></button>
+						</div>
+						<div class="toolbar-group" style="display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid var(--gray-200);">
+							<button class="toolbar-btn" onclick="formatAta('insertUnorderedList')" title="Lista com marcadores">☰</button>
+							<button class="toolbar-btn" onclick="formatAta('insertOrderedList')" title="Lista numerada">≡</button>
+						</div>
+						<div class="toolbar-group" style="display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid var(--gray-200);">
+							<button class="toolbar-btn" onclick="formatAta('justifyLeft')" title="Alinhar à esquerda">⬅</button>
+							<button class="toolbar-btn" onclick="formatAta('justifyCenter')" title="Centralizar">↔</button>
+							<button class="toolbar-btn" onclick="formatAta('justifyRight')" title="Alinhar à direita">➡</button>
+							<button class="toolbar-btn" onclick="formatAta('justifyFull')" title="Justificar">⬌</button>
+						</div>
+						<div class="toolbar-group" style="display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid var(--gray-200);">
+							<input type="color" class="color-picker" id="ataTextColor" onchange="formatAta('foreColor', this.value)" title="Cor do texto">
+							<input type="color" class="color-picker" id="ataBgColor" onchange="formatAta('hiliteColor', this.value)" title="Cor de fundo">
+						</div>
+						<div class="toolbar-group" style="display: flex; gap: 4px; padding-right: 12px; border-right: 1px solid var(--gray-200);">
+							<button class="toolbar-btn" onclick="aumentarTextoAta()" title="Aumentar texto">A+</button>
+							<button class="toolbar-btn" onclick="diminuirTextoAta()" title="Diminuir texto">A-</button>
+						</div>
+						<div class="toolbar-group" style="display: flex; gap: 4px;">
+							<button class="toolbar-btn" onclick="formatAta('undo')" title="Desfazer">↶</button>
+							<button class="toolbar-btn" onclick="formatAta('redo')" title="Refazer">↷</button>
+						</div>
+					</div>
+					<div class="editor-container" style="flex: 1; overflow-y: auto; background: white; padding: 40px;">
+						<input type="text" class="title-input" id="ataTitulo" placeholder="Título da Ata" style="width: 100%; border: none; font-size: 32px; font-weight: 700; margin-bottom: 10px; padding: 10px; outline: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gray-100); color: var(--gray-900);">
+						<div class="content-editor" id="ataConteudo" contenteditable="true" data-placeholder="Comece a escrever sua ata aqui..." style="min-height: 400px; padding: 20px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 16px; line-height: 1.8; outline: none; background: var(--white); color: var(--gray-900);"></div>
+					</div>
+					<div class="stats" style="padding: 10px 20px; background: #f9f9f9; border-top: 1px solid var(--gray-200); font-size: 13px; color: #666; display: flex; gap: 20px;">
+						<span id="ataWordCount" style="color: var(--gray-500);">Palavras: 0</span>
+						<span id="ataCharCount" style="color: var(--gray-500);">Caracteres: 0</span>
+						<span id="ataLastSaved" style="color: var(--gray-500);">Última edição: --</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<style>
+			#pastasBlock {
+				display: none;
+				padding: 32px 0 0 0;
+				max-width: 900px;
+				margin: 0 auto;
+			}
+			.folders-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 24px;
+			}
+			.folders-title {
+				font-size: 2rem;
+				font-weight: 700;
+				color: #222;
+				letter-spacing: 1px;
+			}
+			#createFolder {
+				background: linear-gradient(90deg, #2563eb 0%, #10b981 100%);
+				color: #fff;
+				border: none;
+				border-radius: 8px;
+				font-size: 1.1rem;
+				padding: 14px 28px;
+				font-weight: 600;
+				box-shadow: 0 2px 8px rgba(16,185,129,0.08);
+				cursor: pointer;
+				transition: background 0.2s, transform 0.2s;
+			}
+			#createFolder:hover {
+				background: linear-gradient(90deg, #10b981 0%, #2563eb 100%);
+				transform: scale(1.04);
+			}
+			#foldersList {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+				gap: 24px;
+				margin-top: 18px;
+			}
+			.folder-card {
+				background: #fff;
+				border-radius: 12px;
+				box-shadow: 0 2px 12px rgba(37,99,235,0.07);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				padding: 38px 0 18px 0;
+				cursor: pointer;
+				transition: box-shadow 0.2s, transform 0.2s;
+				border: 2px solid transparent;
+				position: relative;
+				.folder-actions {
+					display: flex;
+					gap: 8px;
+					margin-top: 10px;
+					justify-content: center;
+				}
+				.folder-action-btn {
+					background: #f3f6fa;
+					border: none;
+					border-radius: 6px;
+					padding: 6px 12px;
+					font-size: 1rem;
+					color: #2563eb;
+					cursor: pointer;
+					transition: background 0.2s, color 0.2s;
+				}
+				.folder-action-btn:hover {
+					background: #2563eb;
+					color: #fff;
+				}
+			}
+			.folder-card:hover {
+				box-shadow: 0 4px 24px rgba(16,185,129,0.13);
+				border: 2px solid #10b981;
+				transform: translateY(-2px) scale(1.03);
+			}
+			.folder-card .icon {
+				font-size: 3.2rem;
+				color: #2563eb;
+				margin-bottom: 10px;
+			}
+			.folder-card h3 {
+				font-size: 1.2rem;
+				font-weight: 600;
+				color: #222;
+				margin: 0;
+				text-align: center;
+				word-break: break-word;
+			}
+			#folderView {
+				display: none;
+				max-width: 900px;
+				margin: 0 auto;
+				padding: 32px 0 0 0;
+				position: relative;
+				min-height: 300px;
+			}
+			#backToFolders {
+				position: absolute;
+				left: 0;
+				top: 0;
+				background: #2563eb;
+				color: #fff;
+				border: none;
+				border-radius: 8px;
+				padding: 10px 22px;
+				font-size: 1rem;
+				font-weight: 600;
+				cursor: pointer;
+				margin-bottom: 18px;
+				z-index: 2;
+				transition: background 0.2s;
+			}
+			#backToFolders:hover {
+				background: #10b981;
+			}
+			#folderTitle {
+				text-align: center;
+				font-size: 1.7rem;
+				font-weight: 700;
+				color: #2563eb;
+				margin-bottom: 24px;
+			}
+			#filesList {
+				margin-top: 40px;
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+				gap: 18px;
+			}
+			.file-card {
+				background: #f3f6fa;
+				border-radius: 8px;
+				padding: 18px 10px;
+				text-align: center;
+				font-size: 1.05rem;
+				color: #222;
+				box-shadow: 0 1px 4px rgba(37,99,235,0.04);
+				word-break: break-word;
+			}
+			@media (max-width: 600px) {
+				#pastasBlock, #folderView {
+					padding: 12px 0 0 0;
+				}
+				#foldersList, #filesList {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+		<div id="pastasBlock">
+			<div class="folders-header">
+				<span class="folders-title">Pastas de Documentos</span>
+				<button id="createFolder">➕ Criar Nova Pasta</button>
+			</div>
+			<div id="foldersList"></div>
+		</div>
+		<div id="folderView">
+			<button id="backToFolders">← Voltar</button>
+			<h2 id="folderTitle"></h2>
+			<div id="uploadArea" style="margin-bottom:24px; text-align:center;">
+				<input type="file" id="fileInput" multiple style="display:none;">
+				<button id="selectFilesBtn" style="padding:10px 22px; font-size:1rem; border-radius:6px; background:#2563eb; color:#fff; border:none; cursor:pointer;">Selecionar Arquivos</button>
+				<button id="uploadFilesBtn" style="padding:10px 22px; font-size:1rem; border-radius:6px; background:#10b981; color:#fff; border:none; cursor:pointer; display:none;">Enviar Arquivos</button>
+				<div id="selectedFilesList" style="margin-top:10px;"></div>
+			</div>
+			<div id="filesList"></div>
+		</div>
+	</main>
+	   <script>
+	   // Funções de formatação do editor de atas
+	   function formatAta(command, value = null) {
+		   document.execCommand(command, false, value);
+		   document.getElementById('ataConteudo').focus();
+	   }
 
-    <script>
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3000'
-            : window.location.origin;
-        const token = localStorage.getItem('token');
-        const dashboardId = localStorage.getItem('dashboardId');
-        let docsFolderId = null;
+	   let currentAtaFontSize = 16;
+	   function aumentarTextoAta() {
+		   const editor = document.getElementById('ataConteudo');
+		   currentAtaFontSize = Math.min(currentAtaFontSize + 2, 32);
+		   editor.style.fontSize = currentAtaFontSize + 'px';
+	   }
 
-        if (!token || !dashboardId) {
-            window.location.href = 'login.html';
-        } else {
-            initDocsFolder();
-            window.permissionManager.loadUserRole().then(() => {
-                window.permissionManager.applyRestrictions('drivdoc');
-            });
-        }
+	   function diminuirTextoAta() {
+		   const editor = document.getElementById('ataConteudo');
+		   currentAtaFontSize = Math.max(currentAtaFontSize - 2, 12);
+		   editor.style.fontSize = currentAtaFontSize + 'px';
+	   }
+		const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+			? 'http://localhost:3000'
+			: window.location.origin;
+		const token = localStorage.getItem('token');
+		const dashboardId = localStorage.getItem('dashboardId');
+		let currentFolderId = null;
+		let selectedFilesArray = [];
+		let uploadInProgress = false;
+		let ataAtualId = null;
 
-        async function initDocsFolder() {
-            let response = await fetch(`${API_BASE}/folders?type=docs`, {
-                headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
-            });
-            let folders = await response.json();
-            if (folders.length === 0) {
-                // Create default folder
-                response = await fetch(`${API_BASE}/folders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
-                    body: JSON.stringify({ name: 'Documentos', type: 'docs' })
-                });
-                const newFolder = await response.json();
-                docsFolderId = newFolder.id;
-            } else {
-                docsFolderId = folders[0].id;
-            }
-            loadDocs();
-        }
 
-        async function loadDocs() {
-            const response = await fetch(`${API_BASE}/files?folder_id=${docsFolderId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const files = await response.json();
-            const docsList = document.getElementById('docsList');
-            docsList.innerHTML = '';
-            files.forEach(file => {
-                const fileDiv = document.createElement('div');
-                fileDiv.className = 'file';
+		// Navegação entre Atas e Pastas
+		document.getElementById('btnAtas').onclick = function() {
+			document.getElementById('atasBlock').style.display = 'block';
+			document.getElementById('pastasBlock').style.display = 'none';
+		};
+		document.getElementById('btnPastas').onclick = function() {
+			document.getElementById('atasBlock').style.display = 'none';
+			document.getElementById('pastasBlock').style.display = 'block';
+			document.getElementById('folderView').style.display = 'none';
+			loadPastas();
+		};
 
-                const a = document.createElement('a');
-                a.href = `/uploads/${file.filename}`;
-                a.target = '_blank';
-                a.textContent = file.name;
 
-                const btn = document.createElement('button');
-                btn.textContent = 'Excluir';
-                btn.addEventListener('click', async () => { await deleteFile(file.id); });
+		// --- UPLOAD DE ARQUIVOS EM PASTA ---
+		function initUploadHandlers() {
+			const fileInput = document.getElementById('fileInput');
+			const selectFilesBtn = document.getElementById('selectFilesBtn');
+			const uploadFilesBtn = document.getElementById('uploadFilesBtn');
+			const selectedFilesList = document.getElementById('selectedFilesList');
+			if (!fileInput || !selectFilesBtn || !uploadFilesBtn || !selectedFilesList) return;
 
-                fileDiv.appendChild(a);
-                fileDiv.appendChild(btn);
-                docsList.appendChild(fileDiv);
-            });
-        }
+			// Remove event listeners antigos
+			const newSelectBtn = selectFilesBtn.cloneNode(true);
+			selectFilesBtn.parentNode.replaceChild(newSelectBtn, selectFilesBtn);
 
-        document.getElementById('uploadDocs').addEventListener('click', async () => {
-            const files = document.getElementById('docUpload').files;
-            for (let file of files) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('folder_id', docsFolderId);
-                formData.append('name', file.name);
-                await fetch(`${API_BASE}/files`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
-            }
-            loadDocs();
-        });
+			newSelectBtn.addEventListener('click', function() {
+				fileInput.value = '';
+				fileInput.click();
+			});
+			// Fallback para onclick (caso addEventListener não funcione)
+			newSelectBtn.onclick = function() {
+				fileInput.value = '';
+				fileInput.click();
+			};
 
-        async function deleteFile(id) {
-            await fetch(`${API_BASE}/files/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            loadDocs();
-        }
+			fileInput.onchange = function(e) {
+				selectedFilesArray = Array.from(e.target.files);
+				if (selectedFilesArray.length > 0) {
+					uploadFilesBtn.style.display = 'inline-block';
+					renderSelectedFiles();
+				} else {
+					uploadFilesBtn.style.display = 'none';
+					selectedFilesList.innerHTML = '';
+				}
+			};
 
-        document.getElementById('logout').addEventListener('click', function() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('dashboardId');
-            window.location.href = 'login.html';
-        });
-    </script>
-    <script src="nexo/mobile-menu.js"></script>
+			function renderSelectedFiles() {
+				if (!selectedFilesArray.length) {
+					selectedFilesList.innerHTML = '';
+					return;
+				}
+				selectedFilesList.innerHTML = selectedFilesArray.map(f => `<div style=\"margin-bottom:4px;font-size:14px;color:#2563eb;\">📄 ${f.name}</div>`).join('');
+			}
+
+			uploadFilesBtn.onclick = async function() {
+				if (!currentFolderId || !selectedFilesArray.length) return;
+				uploadFilesBtn.disabled = true;
+				uploadFilesBtn.textContent = 'Enviando...';
+				let success = 0, fail = 0;
+				for (const file of selectedFilesArray) {
+					const formData = new FormData();
+					formData.append('file', file);
+					formData.append('folder_id', currentFolderId);
+					formData.append('name', file.name);
+					try {
+						const resp = await fetch(`${API_BASE}/files`, {
+							method: 'POST',
+							headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+							body: formData
+						});
+						if (resp.ok) success++;
+						else fail++;
+					} catch {
+						fail++;
+					}
+				}
+				uploadFilesBtn.disabled = false;
+				uploadFilesBtn.textContent = 'Enviar Arquivos';
+				selectedFilesArray = [];
+				renderSelectedFiles();
+				uploadFilesBtn.style.display = 'none';
+				if (success) alert(`${success} arquivo(s) enviado(s) com sucesso!`);
+				if (fail) alert(`${fail} arquivo(s) falharam no upload.`);
+				loadArquivosPasta(currentFolderId);
+			};
+		}
+
+		// Inicializa handlers ao abrir uma pasta
+		function abrirPasta(pasta) {
+			currentFolderId = pasta.id;
+			document.getElementById('pastasBlock').style.display = 'none';
+			document.getElementById('folderView').style.display = 'block';
+			document.getElementById('folderTitle').textContent = pasta.name;
+			loadArquivosPasta(pasta.id);
+
+			// Renderiza todo o bloco de uploadArea do zero
+			const uploadArea = document.getElementById('uploadArea');
+			if (uploadArea) {
+				uploadArea.innerHTML = `
+					<input type="file" id="fileInput" multiple style="display:none;">
+					<button id="selectFilesBtn" style="padding:10px 22px; font-size:1rem; border-radius:6px; background:#2563eb; color:#fff; border:none; cursor:pointer;">Selecionar Arquivos</button>
+					<button id="uploadFilesBtn" style="padding:10px 22px; font-size:1rem; border-radius:6px; background:#10b981; color:#fff; border:none; cursor:pointer; display:none;">Enviar Arquivos</button>
+					<div id="selectedFilesList" style="margin-top:10px;"></div>
+				`;
+				// Eventos diretos
+				const fileInput = document.getElementById('fileInput');
+				const selectFilesBtn = document.getElementById('selectFilesBtn');
+				const uploadFilesBtn = document.getElementById('uploadFilesBtn');
+				const selectedFilesList = document.getElementById('selectedFilesList');
+				selectFilesBtn.onclick = function() {
+					fileInput.value = '';
+					fileInput.click();
+				};
+				fileInput.onchange = function(e) {
+					selectedFilesArray = Array.from(e.target.files);
+					if (selectedFilesArray.length > 0) {
+						uploadFilesBtn.style.display = 'inline-block';
+						selectedFilesList.innerHTML = selectedFilesArray.map(f => `<div style=\"margin-bottom:4px;font-size:14px;color:#2563eb;\">📄 ${f.name}</div>`).join('');
+					} else {
+						uploadFilesBtn.style.display = 'none';
+						selectedFilesList.innerHTML = '';
+					}
+				};
+				uploadFilesBtn.onclick = async function() {
+					if (!currentFolderId || !selectedFilesArray.length) return;
+					uploadFilesBtn.disabled = true;
+					uploadFilesBtn.textContent = 'Enviando...';
+					let success = 0, fail = 0;
+					for (const file of selectedFilesArray) {
+						const formData = new FormData();
+						formData.append('file', file);
+						formData.append('folder_id', currentFolderId);
+						formData.append('name', file.name);
+						try {
+							const resp = await fetch(`${API_BASE}/files`, {
+								method: 'POST',
+								headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+								body: formData
+							});
+							if (resp.ok) success++;
+							else fail++;
+						} catch {
+							fail++;
+						}
+					}
+					uploadFilesBtn.disabled = false;
+					uploadFilesBtn.textContent = 'Enviar Arquivos';
+					selectedFilesArray = [];
+					selectedFilesList.innerHTML = '';
+					uploadFilesBtn.style.display = 'none';
+					if (success) alert(`${success} arquivo(s) enviado(s) com sucesso!`);
+					if (fail) alert(`${fail} arquivo(s) falharam no upload.`);
+					loadArquivosPasta(currentFolderId);
+				};
+			}
+		}
+
+		// Corrige endpoint de atas para /dashboards/{dashboardId}/pregacoes
+		async function loadAtas() {
+			const resp = await fetch(`${API_BASE}/dashboards/${dashboardId}/pregacoes`, {
+				headers: { 'Authorization': `Bearer ${token}` }
+			});
+			if (!resp.ok) {
+				console.error('Erro ao carregar atas:', resp.status, resp.statusText);
+				return;
+			}
+			const atas = await resp.json();
+			const list = document.getElementById('atasList');
+			list.innerHTML = '';
+			if (!atas.length) {
+				list.innerHTML = '<div style="padding:20px;text-align:center;color:#999">Nenhuma ata cadastrada</div>';
+				return;
+			}
+			atas.forEach(ata => {
+				const div = document.createElement('div');
+				div.className = 'pregacao-item';
+				div.innerHTML = `<div class='pregacao-item-title'>${ata.titulo}</div><div style='font-size:12px;color:#667eea;'>${ata.criado_em ? ata.criado_em.split('T')[0] : ''}</div>`;
+				div.onclick = () => carregarAta(ata);
+				list.appendChild(div);
+			});
+		}
+
+		function novaAta() {
+			document.getElementById('ataTitulo').value = '';
+			document.getElementById('ataConteudo').innerHTML = '';
+			ataAtualId = null;
+		}
+
+		function carregarAta(ata) {
+			document.getElementById('ataTitulo').value = ata.titulo;
+			document.getElementById('ataConteudo').innerHTML = ata.conteudo;
+			ataAtualId = ata.id;
+		}
+
+		async function salvarAta() {
+			const titulo = document.getElementById('ataTitulo').value.trim();
+			const conteudo = document.getElementById('ataConteudo').innerHTML;
+			if (!titulo || !conteudo) {
+				alert('Preencha o título e o conteúdo da ata.');
+				return;
+			}
+			const body = JSON.stringify({ titulo, conteudo });
+			let url = `${API_BASE}/dashboards/${dashboardId}/pregacoes`;
+			let method = 'POST';
+			if (ataAtualId) {
+				url += `/${ataAtualId}`;
+				method = 'PUT';
+			}
+			try {
+				const resp = await fetch(url, {
+					method,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`,
+						'dashboard-id': dashboardId
+					},
+					body
+				});
+				const result = await resp.json().catch(() => ({}));
+				if (resp.ok) {
+					alert('Ata salva com sucesso!');
+					loadAtas();
+				} else {
+					console.error('Erro ao salvar ata:', result.error || resp.statusText);
+					alert('Erro ao salvar ata: ' + (result.error || resp.statusText));
+				}
+			} catch (err) {
+				console.error('Falha na requisição salvarAta:', err);
+				alert('Falha na requisição: ' + err.message);
+			}
+		}
+
+
+		   document.getElementById('novaAta').onclick = novaAta;
+		   document.getElementById('salvarAta').onclick = salvarAta;
+
+		   // Exportar Ata como TXT
+		   document.getElementById('exportarAta').onclick = function() {
+			   if (!ataAtualId) {
+				   alert('Nenhuma ata aberta para exportar.');
+				   return;
+			   }
+			   const titulo = document.getElementById('ataTitulo').value || 'Ata';
+			   const conteudoHTML = document.getElementById('ataConteudo').innerHTML;
+			   // Converte HTML para texto simples
+			   const temp = document.createElement('div');
+			   temp.innerHTML = conteudoHTML;
+			   const textoSimples = temp.innerText || temp.textContent;
+			   const conteudo = `${titulo}\n${'='.repeat(titulo.length)}\n\n${textoSimples}`;
+			   const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+			   const url = URL.createObjectURL(blob);
+			   const link = document.createElement('a');
+			   link.href = url;
+			   link.download = `${titulo.replace(/[^a-z0-9]/gi, '_')}.txt`;
+			   link.click();
+			   URL.revokeObjectURL(url);
+		   };
+
+		   // Imprimir Ata
+		   document.getElementById('imprimirAta').onclick = function() {
+			   const titulo = document.getElementById('ataTitulo').value || 'Ata';
+			   const conteudoHTML = document.getElementById('ataConteudo').innerHTML;
+			   let dashboardName = localStorage.getItem('dashboardName') || '';
+			   // Busca a logo do dashboard via API e exibe na impressão
+			   const dashboardId = localStorage.getItem('dashboardId');
+			   const logoFallback = '<span style="font-size:38px;vertical-align:middle;">📄</span>';
+			   const printAta = (nomeDash) => {
+				   fetch(`${API_BASE}/dashboards`, { headers: { 'Authorization': `Bearer ${token}` } })
+					   .then(resp => resp.json())
+					   .then(dashboards => {
+						   let logoPath = '';
+						   if (Array.isArray(dashboards)) {
+							   const dash = dashboards.find(d => d.id == dashboardId);
+							   if (dash && dash.logo) {
+								   logoPath = `uploads/${dash.logo}`;
+							   }
+						   }
+						   renderPrint(logoPath ? `<img src='${logoPath}' alt='Logo' style='height:54px;max-width:120px;vertical-align:middle;display:block;'>` : logoFallback);
+					   })
+					   .catch(() => renderPrint(logoFallback));
+
+				   function renderPrint(logoHtml) {
+					   const style = `
+						   <style>
+							   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f9fafb; color: #222; margin: 0; padding: 0; }
+							   .print-header { display: flex; align-items: center; gap: 18px; background: linear-gradient(135deg, #2563eb 0%, #10b981 100%); color: white; padding: 24px 32px 18px 32px; border-bottom: 4px solid #2563eb; }
+							   .print-header .logo { font-size: 38px; min-width: 60px; }
+							   .print-header .info { display: flex; flex-direction: column; }
+							   .print-header .info .dash { font-size: 18px; font-weight: 600; letter-spacing: 1px; }
+							   .print-header .info .ata { font-size: 28px; font-weight: 700; margin-top: 2px; }
+							   .print-content { background: white; margin: 32px auto; padding: 32px 40px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); max-width: 900px; }
+						   </style>
+					   `;
+					   const html = `<!DOCTYPE html><html><head><title>${titulo}</title>${style}</head><body>
+						   <div class="print-header">
+							   <div class="logo">${logoHtml}</div>
+							   <div class="info">
+								   <span class="dash">${nomeDash}</span>
+								   <span class="ata">${titulo}</span>
+							   </div>
+						   </div>
+						   <div class="print-content">${conteudoHTML}</div>
+					   </body></html>`;
+					   const printWindow = window.open('', '', 'width=900,height=700');
+					   printWindow.document.write(html);
+					   printWindow.document.close();
+					   printWindow.focus();
+					   setTimeout(() => {
+						   printWindow.print();
+						   printWindow.close();
+					   }, 300);
+				   }
+			   };
+			   if (!dashboardName) {
+				   // Buscar do backend se não estiver salvo
+				   const dashboardId = localStorage.getItem('dashboardId');
+				   if (dashboardId) {
+					   fetch(`${API_BASE}/dashboards/${dashboardId}`, {
+						   headers: { 'Authorization': `Bearer ${token}` }
+					   })
+					   .then(resp => resp.json())
+					   .then(data => {
+						   dashboardName = data.name || 'Dashboard';
+						   printAta(dashboardName);
+					   })
+					   .catch(() => printAta('Dashboard'));
+					   return;
+				   }
+				   printAta('Dashboard');
+			   } else {
+				   printAta(dashboardName);
+			   }
+		   };
+
+		   // Excluir Ata
+		   document.getElementById('excluirAta').onclick = async function() {
+			   if (!ataAtualId) {
+				   alert('Nenhuma ata aberta para excluir.');
+				   return;
+			   }
+			   if (!confirm('Tem certeza que deseja excluir esta ata?')) return;
+			   try {
+				   const resp = await fetch(`${API_BASE}/dashboards/${dashboardId}/pregacoes/${ataAtualId}`, {
+					   method: 'DELETE',
+					   headers: { 'Authorization': `Bearer ${token}` }
+				   });
+				   if (resp.ok) {
+					   alert('Ata excluída com sucesso!');
+					   novaAta();
+					   loadAtas();
+				   } else {
+					   alert('Erro ao excluir ata.');
+				   }
+			   } catch (err) {
+				   alert('Falha na requisição: ' + err.message);
+			   }
+		   };
+
+		window.addEventListener('DOMContentLoaded', () => {
+			// Por padrão, mostra Atas
+			document.getElementById('atasBlock').style.display = 'block';
+			document.getElementById('pastasBlock').style.display = 'none';
+			document.getElementById('folderView').style.display = 'none';
+
+			document.getElementById('btnAtas').onclick = function() {
+				document.getElementById('atasBlock').style.display = 'block';
+				document.getElementById('pastasBlock').style.display = 'none';
+			};
+			document.getElementById('btnPastas').onclick = function() {
+				document.getElementById('atasBlock').style.display = 'none';
+				document.getElementById('pastasBlock').style.display = 'block';
+				document.getElementById('folderView').style.display = 'none';
+				loadPastas();
+			};
+
+			loadAtas();
+		});
+
+		// Integração real para criar pasta de documentos
+		document.getElementById('createFolder').onclick = async function() {
+			const name = prompt('Nome da pasta:');
+			if (!name) return;
+			const resp = await fetch(`${API_BASE}/folders`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`,
+					'dashboard-id': dashboardId
+				},
+				body: JSON.stringify({ name, type: 'docs' })
+			});
+			if (resp.ok) {
+				alert('Pasta criada com sucesso!');
+				loadPastas();
+			} else {
+				alert('Erro ao criar pasta.');
+			}
+		};
+
+		async function loadPastas() {
+			const resp = await fetch(`${API_BASE}/folders?type=docs`, {
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					'dashboard-id': dashboardId
+				}
+			});
+			const pastas = await resp.json();
+			const list = document.getElementById('foldersList');
+			list.innerHTML = '';
+			if (!pastas.length) {
+				list.innerHTML = '<div style="padding:20px;text-align:center;color:#999">Nenhuma pasta criada</div>';
+				return;
+			}
+						pastas.forEach(pasta => {
+								const div = document.createElement('div');
+								div.className = 'folder-card';
+								// Usa encodeURIComponent para evitar problemas de aspas
+								const nomeEncoded = encodeURIComponent(pasta.name);
+								div.innerHTML = `
+									<span class="icon">📁</span>
+									<h3>${pasta.name}</h3>
+									<div class="folder-actions">
+										<button class="folder-action-btn" title="Renomear" onclick="event.stopPropagation(); editarPasta(${pasta.id}, decodeURIComponent('${nomeEncoded}'))">✏️ Editar</button>
+										<button class="folder-action-btn" title="Excluir" onclick="event.stopPropagation(); excluirPasta(${pasta.id}, decodeURIComponent('${nomeEncoded}'))">🗑️ Excluir</button>
+									</div>
+								`;
+								div.onclick = () => abrirPasta(pasta);
+								list.appendChild(div);
+						});
+				// Editar pasta
+				window.editarPasta = async function(id, nomeAtual) {
+					const novoNome = prompt('Novo nome da pasta:', nomeAtual);
+					if (!novoNome || novoNome === nomeAtual) return;
+					const resp = await fetch(`${API_BASE}/folders/${id}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${token}`,
+							'dashboard-id': dashboardId
+						},
+						body: JSON.stringify({ name: novoNome })
+					});
+					if (resp.ok) {
+						alert('Pasta renomeada!');
+						loadPastas();
+					} else {
+						alert('Erro ao renomear pasta.');
+					}
+				}
+
+				// Excluir pasta
+				window.excluirPasta = async function(id, nome) {
+					if (!confirm(`Deseja realmente excluir a pasta "${nome}"? Todos os arquivos dentro dela serão removidos!`)) return;
+					const resp = await fetch(`${API_BASE}/folders/${id}`, {
+						method: 'DELETE',
+						headers: {
+							'Authorization': `Bearer ${token}`,
+							'dashboard-id': dashboardId
+						}
+					});
+					if (resp.ok) {
+						alert('Pasta excluída!');
+						loadPastas();
+					} else {
+						alert('Erro ao excluir pasta.');
+					}
+				}
+		}
+
+		// Função para abrir pasta e mostrar arquivos
+		function abrirPasta(pasta) {
+			currentFolderId = pasta.id;
+			document.getElementById('pastasBlock').style.display = 'none';
+			document.getElementById('folderView').style.display = 'block';
+			document.getElementById('folderTitle').textContent = pasta.name;
+			loadArquivosPasta(pasta.id);
+
+			// Renderiza todo o bloco de uploadArea do zero
+			const uploadArea = document.getElementById('uploadArea');
+			if (uploadArea) {
+				uploadArea.innerHTML = `
+					<input type="file" id="fileInput" multiple style="display:none;">
+					<button id="selectFilesBtn" style="padding:10px 22px; font-size:1rem; border-radius:6px; background:#2563eb; color:#fff; border:none; cursor:pointer;">Selecionar Arquivos</button>
+					<button id="uploadFilesBtn" style="padding:10px 22px; font-size:1rem; border-radius:6px; background:#10b981; color:#fff; border:none; cursor:pointer; display:none;">Enviar Arquivos</button>
+					<div id="selectedFilesList" style="margin-top:10px;"></div>
+				`;
+				// Eventos diretos
+				const fileInput = document.getElementById('fileInput');
+				const selectFilesBtn = document.getElementById('selectFilesBtn');
+				const uploadFilesBtn = document.getElementById('uploadFilesBtn');
+				const selectedFilesList = document.getElementById('selectedFilesList');
+				selectFilesBtn.onclick = function() {
+					fileInput.value = '';
+					fileInput.click();
+				};
+				fileInput.onchange = function(e) {
+					selectedFilesArray = Array.from(e.target.files);
+					if (selectedFilesArray.length > 0) {
+						uploadFilesBtn.style.display = 'inline-block';
+						selectedFilesList.innerHTML = selectedFilesArray.map(f => `<div style=\"margin-bottom:4px;font-size:14px;color:#2563eb;\">📄 ${f.name}</div>`).join('');
+					} else {
+						uploadFilesBtn.style.display = 'none';
+						selectedFilesList.innerHTML = '';
+					}
+				};
+				uploadFilesBtn.onclick = async function() {
+					if (!currentFolderId || !selectedFilesArray.length) return;
+					uploadFilesBtn.disabled = true;
+					uploadFilesBtn.textContent = 'Enviando...';
+					let success = 0, fail = 0;
+					for (const file of selectedFilesArray) {
+						const formData = new FormData();
+						formData.append('file', file);
+						formData.append('folder_id', currentFolderId);
+						formData.append('name', file.name);
+						try {
+							const resp = await fetch(`${API_BASE}/files`, {
+								method: 'POST',
+								headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId },
+								body: formData
+							});
+							if (resp.ok) success++;
+							else fail++;
+						} catch {
+							fail++;
+						}
+					}
+					uploadFilesBtn.disabled = false;
+					uploadFilesBtn.textContent = 'Enviar Arquivos';
+					selectedFilesArray = [];
+					selectedFilesList.innerHTML = '';
+					uploadFilesBtn.style.display = 'none';
+					if (success) alert(`${success} arquivo(s) enviado(s) com sucesso!`);
+					if (fail) alert(`${fail} arquivo(s) falharam no upload.`);
+					loadArquivosPasta(currentFolderId);
+				};
+			}
+		}
+
+		// Função para voltar para lista de pastas
+		document.getElementById('backToFolders').onclick = function() {
+			document.getElementById('folderView').style.display = 'none';
+			document.getElementById('pastasBlock').style.display = 'block';
+			loadPastas();
+		};
+
+		// Função para carregar arquivos da pasta
+		async function loadArquivosPasta(folderId) {
+			const resp = await fetch(`${API_BASE}/public/files?folder_id=${folderId}`);
+			const arquivos = await resp.json();
+			const filesList = document.getElementById('filesList');
+			filesList.innerHTML = '';
+			if (!arquivos.length) {
+				filesList.innerHTML = '<div style="padding:20px;text-align:center;color:#999">Nenhum documento nesta pasta</div>';
+				return;
+			}
+						arquivos.forEach(arq => {
+							const div = document.createElement('div');
+							div.className = 'file-card';
+							// Monta URL pública do arquivo
+							const fileUrl = `uploads/${arq.filename || arq.name}`;
+							div.innerHTML = `
+								<div style="font-weight:600; margin-bottom:6px;">${arq.name}</div>
+								<div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
+									<a href="${fileUrl}" target="_blank" class="file-action-btn" style="background:#2563eb;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:0.98rem;">👁️ Visualizar</a>
+									<a href="${fileUrl}" download class="file-action-btn" style="background:#10b981;color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-size:0.98rem;">⬇️ Baixar</a>
+									<button class="file-action-btn" style="background:#f44336;color:#fff;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:0.98rem;" data-file-id="${arq.id}">🗑️ Excluir</button>
+								</div>
+							`;
+							// Adiciona evento de exclusão
+							const delBtn = div.querySelector('button[data-file-id]');
+							if (delBtn) {
+								delBtn.onclick = async function() {
+									if (!confirm(`Deseja realmente excluir o arquivo "${arq.name}"?`)) return;
+									try {
+										const resp = await fetch(`${API_BASE}/files/${arq.id}`, {
+											method: 'DELETE',
+											headers: { 'Authorization': `Bearer ${token}`, 'dashboard-id': dashboardId }
+										});
+										if (resp.ok) {
+											alert('Arquivo excluído!');
+											loadArquivosPasta(currentFolderId);
+										} else {
+											alert('Erro ao excluir arquivo.');
+										}
+									} catch (err) {
+										alert('Falha ao excluir arquivo: ' + err.message);
+									}
+								};
+							}
+							filesList.appendChild(div);
+						});
+		}
+
+		window.addEventListener('DOMContentLoaded', loadAtas);
+	</script>
 </body>
 </html>
-

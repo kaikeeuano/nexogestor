@@ -31,9 +31,14 @@ app.use(bodyParser.urlencoded({ limit: '100mb', extended: true })); // Para form
 // Bloquear acesso à pasta config/
 app.use('/config', (req, res, next) => {
   // Se for uma requisição de API (/config/congregations, etc), deixa passar
-  if (req.path.includes('/congregations') || req.path.includes('/roles') || 
-      req.path.includes('/subdashboards') || req.path.includes('/members') || 
-      req.path === '' || req.path === '/') {
+  if (
+    req.path.includes('/congregations') ||
+    req.path.includes('/roles') ||
+    req.path.includes('/subdashboards') ||
+    req.path.includes('/members') ||
+    req.path.includes('/logo') ||
+    req.path === '' || req.path === '/'
+  ) {
     return next();
   }
   // Bloqueia acesso a arquivos físicos da pasta config
@@ -1283,26 +1288,14 @@ app.post('/config/logo', authenticateToken, upload.single('logo'), (req, res) =>
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  // Check if user is owner
-  db.get('SELECT * FROM dashboard_members WHERE dashboard_id = ? AND user_id = ? AND status = ?', 
-    [dashboardId, userId, 'owner'], (err, member) => {
+  // Permitir para todos os usuários autenticados
+  const logo = req.file.filename;
+  db.run('UPDATE dashboards SET logo = ? WHERE id = ?', [logo, dashboardId], function(err) {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    if (!member) {
-      res.status(403).json({ error: 'Not authorized' });
-      return;
-    }
-    
-    const logo = req.file.filename;
-    db.run('UPDATE dashboards SET logo = ? WHERE id = ?', [logo, dashboardId], function(err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({ message: 'Logo updated', logo });
-    });
+    res.json({ message: 'Logo updated', logo });
   });
 });
 

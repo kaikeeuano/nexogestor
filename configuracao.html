@@ -6,7 +6,6 @@
     <title>NEXO GESTOR - Configurações</title>
     <link rel="stylesheet" href="staly.css">
     <script src="permissions.js"></script>
-    <script src="notify.js"></script>
     <style>
         .config-section {
             background: white;
@@ -135,16 +134,17 @@
             <h2>Informações da Congregação</h2>
             <form id="congregationForm">
                 <div class="form-group">
-                    <label for="dashboardName">Nome do Dashboard:</label>
-                    <input type="text" id="dashboardName" required>
+                        <label for="dashboardName">Nome do Dashboard:</label>
+                        <input type="text" id="dashboardName" name="dashboardName" required autocomplete="name">
                 </div>
                 <div class="form-group">
-                    <label for="congregationName">Nome da Congregação:</label>
-                    <input type="text" id="congregationName" placeholder="Digite o nome da congregação">
+                        <label for="congregationName">Nome da Congregação:</label>
+                        <input type="text" id="congregationName" name="congregationName" placeholder="Digite o nome da congregação" autocomplete="organization">
                 </div>
                 <div class="form-group">
-                    <label for="logoUpload">Logo do Dashboard:</label>
-                    <input type="file" id="logoUpload" accept="image/*">
+                        <label for="logoUpload">Logo do Dashboard:
+                            <input type="file" id="logoUpload" name="logo" accept="image/*" autocomplete="off">
+                        </label>
                     <div id="logoPreview" style="margin-top: 10px;">
                         <!-- Logo preview will be shown here -->
                     </div>
@@ -158,7 +158,7 @@
             <div class="form-group">
                 <label for="newCongregation">Adicionar Congregação:</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="newCongregation" placeholder="Nome da congregação">
+                    <input type="text" id="newCongregation" name="newCongregation" placeholder="Nome da congregação" autocomplete="organization">
                     <button type="button" class="btn" id="addCongregationBtn" style="width: auto; white-space: nowrap;">Adicionar</button>
                 </div>
             </div>
@@ -172,7 +172,7 @@
             <div class="form-group">
                 <label for="newRole">Adicionar Cargo:</label>
                 <div style="display: flex; gap: 10px;">
-                    <input type="text" id="newRole" placeholder="Nome do cargo">
+                    <input type="text" id="newRole" name="newRole" placeholder="Nome do cargo" autocomplete="off">
                     <button type="button" class="btn" id="addRoleBtn" style="width: auto; white-space: nowrap;">Adicionar</button>
                 </div>
             </div>
@@ -211,11 +211,11 @@
             <div id="directSubDashForm">
                 <div class="form-group">
                     <label for="subDashboardName">Nome do Sub-Dashboard:</label>
-                    <input type="text" id="subDashboardName" placeholder="Ex: Dashboard Congregação Central">
+                    <input type="text" id="subDashboardName" name="subDashboardName" placeholder="Ex: Dashboard Congregação Central" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="subDashboardCongregation">Congregação:</label>
-                    <select id="subDashboardCongregation">
+                    <select id="subDashboardCongregation" name="subDashboardCongregation">
                         <option value="">Selecione uma congregação</option>
                     </select>
                 </div>
@@ -226,15 +226,15 @@
             <div id="keySubDashForm" style="display: none;">
                 <div class="form-group">
                     <label for="subDashActivationKey">Chave de Ativação:</label>
-                    <input type="text" id="subDashActivationKey" placeholder="NEXO-XXXXXXXX-XXXXXXXX" style="text-transform: uppercase;">
+                    <input type="text" id="subDashActivationKey" name="subDashActivationKey" placeholder="NEXO-XXXXXXXX-XXXXXXXX" style="text-transform: uppercase;" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="subDashKeyName">Nome do Sub-Dashboard:</label>
-                    <input type="text" id="subDashKeyName" placeholder="Ex: Dashboard Congregação Central">
+                    <input type="text" id="subDashKeyName" name="subDashKeyName" placeholder="Ex: Dashboard Congregação Central" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="subDashKeyCongregation">Congregação:</label>
-                    <select id="subDashKeyCongregation">
+                    <select id="subDashKeyCongregation" name="subDashKeyCongregation">
                         <option value="">Selecione uma congregação</option>
                     </select>
                 </div>
@@ -267,11 +267,11 @@
                 <h2>Trocar Senha</h2>
                 <form id="changePasswordForm">
                     <label for="currentPassword">Senha Atual:</label>
-                    <input type="password" id="currentPassword" required>
+                    <input type="password" id="currentPassword" name="currentPassword" required autocomplete="current-password">
                     <label for="newPassword">Nova Senha:</label>
-                    <input type="password" id="newPassword" required>
+                    <input type="password" id="newPassword" name="newPassword" required autocomplete="new-password">
                     <label for="confirmPassword">Confirmar Nova Senha:</label>
-                    <input type="password" id="confirmPassword" required>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password">
                     <div style="margin-top:10px;">
                         <button type="submit" class="btn">Salvar</button>
                         <button type="button" class="btn btn-danger" id="cancelChangePw">Cancelar</button>
@@ -358,19 +358,33 @@
                     if (logoFile) {
                         const formData = new FormData();
                         formData.append('logo', logoFile);
-                        
-                        const logoResponse = await fetch(`${API_BASE}/config/logo`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'dashboard-id': dashboardId
-                            },
-                            body: formData
-                        });
-                        
-                        if (!logoResponse.ok) {
-                            console.error('Failed to upload logo');
-                            notify.info('Configurações salvas, mas erro ao enviar logo.');
+                        try {
+                            const logoResponse = await fetch(`${API_BASE}/config/logo`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'dashboard-id': dashboardId
+                                },
+                                body: formData
+                            });
+                            if (!logoResponse.ok) {
+                                let errorMsg = 'Falha ao enviar logo';
+                                try {
+                                    const errText = await logoResponse.text();
+                                    errorMsg += ` (Status: ${logoResponse.status}) - ${errText}`;
+                                } catch (e) {}
+                                console.error(errorMsg);
+                                notify.info('Configurações salvas, mas erro ao enviar logo.\n' + errorMsg);
+                            } else {
+                                const logoData = await logoResponse.json();
+                                if (logoData.logo && logoData.url) {
+                                    document.getElementById('logoPreview').innerHTML = `<img src="${API_BASE}${logoData.url}" alt="Logo" style="max-height: 100px;">`;
+                                    notify.success('Logo enviada e atualizada com sucesso!');
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Erro inesperado no upload da logo:', e);
+                            notify.info('Configurações salvas, mas erro inesperado ao enviar logo.');
                         }
                     }
 
@@ -1322,5 +1336,3 @@
     <script src="nexo/mobile-menu.js"></script>
 </body>
 </html>
-
-

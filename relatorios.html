@@ -11,7 +11,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
@@ -313,6 +312,44 @@
             #reportRoot { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 16px; }
             #reportHeader { background: white !important; color: #333 !important; border: 2px solid #667eea !important; }
             #reportNav, #filterControls, #printReport, #exportCsv { display: none !important; }
+            .summary-grid {
+                display: flex !important;
+                flex-wrap: wrap;
+                gap: 24px;
+                margin-bottom: 32px;
+                box-shadow: none !important;
+                background: none !important;
+            }
+            .summary-card {
+                min-width: 220px;
+                max-width: 260px;
+                flex: 1 1 220px;
+                margin: 0 8px 16px 0;
+                box-shadow: none !important;
+                border-radius: 14px !important;
+                border: 1.5px solid #e0e7ef !important;
+                background: #fff !important;
+                padding: 18px 20px 14px 20px !important;
+                color: #222 !important;
+                font-family: inherit !important;
+            }
+            .summary-card .label {
+                color: #888 !important;
+                font-size: 15px !important;
+                font-weight: 500 !important;
+                margin-bottom: 8px !important;
+            }
+            .summary-card .value {
+                font-size: 2.2rem !important;
+                font-weight: 700 !important;
+                margin-bottom: 4px !important;
+            }
+            .summary-card .percentage {
+                font-size: 1.1rem !important;
+                color: #888 !important;
+                margin-top: 2px !important;
+            }
+        }
             #reportTable th { background: #667eea !important; color: white !important; }
             #reportTable tbody tr:nth-child(even) { background: #f5f5f5 !important; }
             .summary-card, .summary-table { box-shadow: none !important; border: 1px solid #ddd !important; }
@@ -353,6 +390,8 @@
         }
     </style>
     <script src="notify.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </head>
 <body>
     <div style="padding: 15px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-bottom: 0;">
@@ -388,6 +427,11 @@
         <section id="filterSection">
             <h3>🔍 Filtros</h3>
             <div id="filterControls">
+                <div id="removeCargosDropdown" style="position:relative; min-width:180px;">
+                    <label>Cargos</label>
+                    <div id="removeCargosSelected" style="padding:10px 12px; border:2px solid #e0e0e0; border-radius:8px; background:white; cursor:pointer;">Selecione cargos</div>
+                    <div id="removeCargosList" style="display:none; position:absolute; z-index:10; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); max-height:200px; overflow:auto; min-width:180px; margin-top:2px;"></div>
+                </div>
                 <div>
                     <label for="startDate">Data Inicial</label>
                     <input type="date" id="startDate">
@@ -396,12 +440,16 @@
                     <label for="endDate">Data Final</label>
                     <input type="date" id="endDate">
                 </div>
+                
                 <div>
                     <label for="congFilter">Congregação</label>
                     <select id="congFilter">
                         <option value="">Todas</option>
                     </select>
                 </div>
+
+
+
                 <button id="generate">📊 Gerar Relatório</button>
                 <button id="printReport">🖨️ Imprimir</button>
                 <button id="exportCsv">📥 Exportar CSV</button>
@@ -433,6 +481,24 @@
     </main>
 
     <script>
+                        // Função para atualizar o texto do dropdown customizado de cargos rotativos
+                        function updateRotativoCargoSelected() {
+                            const checkboxesDiv = document.getElementById('rotativoCargoCheckboxes');
+                            const selectedDiv = document.getElementById('rotativoCargoSelected');
+                            if (!checkboxesDiv || !selectedDiv) return;
+                            const selected = Array.from(checkboxesDiv.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+                            if (selected.length === 0) {
+                                selectedDiv.textContent = 'Selecione cargos rotativos';
+                            } else {
+                                selectedDiv.textContent = selected.join(', ');
+                            }
+                        }
+                // Função utilitária para obter valores selecionados de um <select> (single ou múltiplo)
+                function getSelectedValues(selectId) {
+                    const select = document.getElementById(selectId);
+                    if (!select) return [];
+                    return Array.from(select.selectedOptions).map(opt => opt.value).filter(v => v !== '');
+                }
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3000'
             : window.location.origin;
@@ -444,6 +510,7 @@
         let allMembers = [];
         let dashboardConfig = null;
         let currentFilteredMembers = [];
+        let cargosChoices = null;
 
         if (!token || !dashboardId) {
             window.location.href = 'login.html';
@@ -490,17 +557,24 @@
                 });
                 if (!resp.ok) throw new Error(`Congregations failed ${resp.status}`);
                 const rows = await resp.json();
-                const select = document.getElementById('congFilter');
-                select.innerHTML = '<option value="">Todas</option>';
-                rows.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.name;
-                    opt.textContent = c.name;
-                    select.appendChild(opt);
-                });
+                fillCongregationsFilter(rows);
             } catch (err) {
                 console.error('loadCongregations error', err);
             }
+        }
+
+        function fillCongregationsFilter(congs) {
+            const select = document.getElementById('congFilter');
+            if (!select) return;
+            const current = Array.from(select.selectedOptions).map(opt => opt.value);
+            select.innerHTML = '<option value="">Todas</option>';
+            congs.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.name;
+                opt.textContent = c.name;
+                if (current.includes(c.name)) opt.selected = true;
+                select.appendChild(opt);
+            });
         }
 
         async function loadMembers() {
@@ -511,6 +585,12 @@
                 if (!resp.ok) throw new Error(`Members failed ${resp.status}`);
                 const rows = await resp.json();
                 allMembers = Array.isArray(rows) ? rows : [];
+                if (allMembers.length > 0) {
+                    console.log('[DEBUG] Exemplo de membro retornado:', allMembers[0]);
+                } else {
+                    console.log('[DEBUG] Nenhum membro retornado pela API.');
+                }
+                fillRemoveCargos();
                 generateReport();
             } catch (err) {
                 console.error('loadMembers error', err);
@@ -518,26 +598,85 @@
             }
         }
 
+        function fillRemoveCargos(filteredMembers = allMembers) {
+            const dropdown = document.getElementById('removeCargosDropdown');
+            const list = document.getElementById('removeCargosList');
+            const selectedDiv = document.getElementById('removeCargosSelected');
+            if (!dropdown || !list || !selectedDiv) return;
+            // Salva seleção atual
+            const selected = Array.from(list.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+            // Extrair todos os cargos únicos dos membros filtrados
+            const cargosSet = new Set();
+            filteredMembers.forEach(m => { if (m.cargo) cargosSet.add(m.cargo); });
+            const cargosArr = Array.from(cargosSet).sort();
+            // Monta checkboxes
+            list.innerHTML = cargosArr.map(cargo => `
+                <label style="display:flex; align-items:start; gap:8px; padding:6px 12px; cursor:pointer; width:100%;">
+                    <input type='checkbox' value='${cargo}' ${selected.includes(cargo) ? 'checked' : ''} style='margin:0; min-width:18px; min-height:18px; align-self:start;'>
+                    <span style='flex:1; text-align:left;'>${cargo}</span>
+                </label>
+            `).join('');
+            // Atualiza texto do selecionado
+            updateRemoveCargosSelected();
+        }
+
+        function getRemoveCargosSelected() {
+            const list = document.getElementById('removeCargosList');
+            if (!list) return [];
+            return Array.from(list.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.value);
+        }
+
+        function updateRemoveCargosSelected() {
+            const list = document.getElementById('removeCargosList');
+            const selectedDiv = document.getElementById('removeCargosSelected');
+            const selected = getRemoveCargosSelected();
+            if (selected.length === 0) {
+                selectedDiv.textContent = 'Selecione cargos';
+            } else {
+                selectedDiv.textContent = selected.join(', ');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('removeCargosDropdown');
+            const list = document.getElementById('removeCargosList');
+            const selectedDiv = document.getElementById('removeCargosSelected');
+            if (!dropdown || !list || !selectedDiv) return;
+            if (selectedDiv.contains(e.target)) {
+                list.style.display = list.style.display === 'none' ? 'block' : 'none';
+            } else if (!dropdown.contains(e.target)) {
+                list.style.display = 'none';
+            }
+        });
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.closest('#removeCargosList')) {
+                updateRemoveCargosSelected();
+                generateReport();
+            }
+        });
+
         function generateReport() {
             const start = document.getElementById('startDate').value;
             const end = document.getElementById('endDate').value;
-            const cong = document.getElementById('congFilter').value;
+            const congs = getSelectedValues('congFilter');
             const tbody = document.querySelector('#reportTable tbody');
             const summarySection = document.getElementById('summary');
             const tableSection = document.getElementById('reportTableSection');
             const subEl = document.getElementById('reportSubtitle');
             const metaEl = document.getElementById('reportMeta');
 
+            const removeCargos = getRemoveCargosSelected();
             const filtered = allMembers.filter(m => {
                 const created = m.created_at || '';
                 const inPeriod = (!start || created >= start) && (!end || created <= end);
-                const matchCong = !cong || m.congregation === cong;
-                return inPeriod && matchCong;
+                const matchCong = !congs.length || congs.includes(m.congregation);
+                const notRemoved = !removeCargos.includes(m.cargo);
+                return inPeriod && matchCong && notRemoved;
             });
             currentFilteredMembers = filtered;
 
             const periodText = `${start || 'início'} até ${end || 'hoje'}`;
-            const congText = cong ? ` | ${cong}` : ' | Todas as congregações';
+            const congText = congs.length ? ` | ${congs.join(', ')}` : ' | Todas as congregações';
             subEl.textContent = `Período: ${periodText}${congText}`;
 
             const now = new Date();
@@ -649,10 +788,19 @@
                     <td>${m.congregation || ''}</td>
                     <td>${m.cargo || ''}</td>
                     <td><span style="display:inline-block; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; background:${(m.status === 'inactive') ? '#fee' : '#efe'}; color:${(m.status === 'inactive') ? '#c33' : '#3c3'};">${(m.status === 'inactive') ? 'Inativo' : 'Ativo'}</span></td>
-                    <td>${m.created_at || ''}</td>
-                    <td>${m.birth_date || ''}</td>`;
+                    <td>${formatDateBR(m.created_at)}</td>
+                    <td>${formatDateBR(m.birth_date)}</td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        // Função utilitária para formatar datas no padrão brasileiro DD/MM/YYYY
+        function formatDateBR(dateStr) {
+            if (!dateStr) return '';
+            if (dateStr.includes('/')) return dateStr; // já está formatado
+            const [year, month, day] = dateStr.split('-');
+            if (!year || !month || !day) return dateStr;
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
         }
 
         function printReport() {
@@ -691,10 +839,16 @@
             URL.revokeObjectURL(url);
         }
 
-        document.getElementById('generate').addEventListener('click', generateReport);
-        document.getElementById('printReport').addEventListener('click', printReport);
-        document.getElementById('exportCsv').addEventListener('click', exportToCSV);
-        document.getElementById('logout').addEventListener('click', function() {
+        const btnGenerate = document.getElementById('generate');
+        if (btnGenerate) btnGenerate.addEventListener('click', generateReport);
+        const removeCargosDropdown = document.getElementById('removeCargosDropdown');
+        if (removeCargosDropdown) removeCargosDropdown.addEventListener('change', generateReport);
+        const btnPrint = document.getElementById('printReport');
+        if (btnPrint) btnPrint.addEventListener('click', printReport);
+        const btnExport = document.getElementById('exportCsv');
+        if (btnExport) btnExport.addEventListener('click', exportToCSV);
+        const btnLogout = document.getElementById('logout');
+        if (btnLogout) btnLogout.addEventListener('click', function() {
             localStorage.removeItem('token');
             localStorage.removeItem('dashboardId');
             window.location.href = 'login.html';
@@ -704,6 +858,16 @@
         document.getElementById('startDate').addEventListener('change', () => generateReport());
         document.getElementById('endDate').addEventListener('change', () => generateReport());
         document.getElementById('congFilter').addEventListener('change', () => generateReport());
+
+        // Atualiza relatório ao clicar nos checkboxes
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.closest('#removeCargosCheckboxes')) {
+                generateReport();
+            }
+        });
+
+
+
     </script>
     <script src="nexo/mobile-menu.js"></script>
 </body>
